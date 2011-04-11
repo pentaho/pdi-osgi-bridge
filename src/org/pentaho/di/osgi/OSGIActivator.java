@@ -1,0 +1,70 @@
+package org.pentaho.di.osgi;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogReaderService;
+import org.osgi.util.tracker.ServiceTracker;
+import org.pentaho.di.core.plugins.PluginInterface;
+import org.pentaho.di.core.plugins.PluginRegistry;
+import org.pentaho.di.karaf.KarafHost;
+import org.pentaho.osgi.BeanFactory;
+import org.pentaho.osgi.BeanFactoryLocator;
+
+/**
+ * User: nbaker
+ * Date: 11/2/10
+ */
+public class OSGIActivator {
+
+  private BundleContext bundleContext;
+
+  public LogReaderService getLogReaderService() {
+    return logService;
+  }
+
+  public void setLogReaderService(LogReaderService logService) {
+    this.logService = logService;
+    logService.addLogListener(new OSGILogListener());
+  }
+
+  private LogReaderService logService;
+
+  public BundleContext getBundleContext() {
+    return bundleContext;
+  }
+
+  public void setBundleContext(BundleContext bundleContext) {
+    this.bundleContext = bundleContext;
+  }
+
+  public OSGIActivator(){
+
+  }
+
+  public OSGIActivator(BundleContext bundleContext){
+    this.bundleContext = bundleContext;
+  }
+
+  public void start() throws Exception {
+
+    KarafHost.setInitialized(true);
+    OSGIPluginTracker.getInstance().setBundleContext(bundleContext);
+    OSGIPluginTracker.getInstance().init(PluginRegistry.getInstance());
+
+    OSGIPluginTracker.getInstance().registerPluginClass(BeanFactory.class);
+    OSGIPluginTracker.getInstance().registerPluginClass(PluginInterface.class);
+
+    new ServiceTracker(bundleContext, BeanFactoryLocator.class.getName(), null){
+      @Override
+      public Object addingService(ServiceReference reference) {
+        OSGIPluginTracker.getInstance().setBeanFactoryLookup((BeanFactoryLocator) context.getService(reference));
+        return reference;
+      }
+    }.open();
+
+  }
+
+  public void stop(BundleContext bundleContext) throws Exception {
+    OSGIPluginTracker.getInstance().shutdown();
+  }
+}

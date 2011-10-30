@@ -3,7 +3,7 @@
 
   <bean id="OSGIActivator" class="org.pentaho.di.osgi.OSGIActivator" scope="singleton" init-method="start">
     <property name="bundleContext" ref="blueprintBundleContext"/>
-    <!--<property name="logReaderService" ref="logService"/>-->
+
   </bean>
 
   <!--<reference id="logService" interface="org.osgi.service.log.LogReaderService"/>-->

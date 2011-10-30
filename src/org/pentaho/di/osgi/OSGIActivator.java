@@ -2,7 +2,6 @@ package org.pentaho.di.osgi;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.log.LogReaderService;
 import org.osgi.util.tracker.ServiceTracker;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -17,17 +16,6 @@ import org.pentaho.osgi.BeanFactoryLocator;
 public class OSGIActivator {
 
   private BundleContext bundleContext;
-
-  public LogReaderService getLogReaderService() {
-    return logService;
-  }
-
-  public void setLogReaderService(LogReaderService logService) {
-    this.logService = logService;
-    logService.addLogListener(new OSGILogListener());
-  }
-
-  private LogReaderService logService;
 
   public BundleContext getBundleContext() {
     return bundleContext;

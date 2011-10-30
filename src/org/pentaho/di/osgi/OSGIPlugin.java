@@ -136,4 +136,8 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
   public BeanFactory getBeanFactory() {
     return beanFactory;
   }
+
+  public ClassLoader getClassLoader(){
+    return OSGIPluginTracker.getInstance().getClassLoader(this);
+  }
 }

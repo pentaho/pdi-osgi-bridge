@@ -1,6 +1,8 @@
 package org.pentaho.di.osgi;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.*;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.plugins.*;
@@ -42,6 +44,8 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
 
   private Map<Object, List<ServiceReferenceListener>> instanceListeners = new WeakHashMap<Object, List<ServiceReferenceListener>>();
   private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+  private Log logger = LogFactory.getLog(getClass().getName());
 
   // As this class is constructed by the kettle plugin system it's constructor must be available. We cannot have Kettle
   // use a factory method unfortunately.
@@ -150,37 +154,49 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
     return INSTANCE;
   }
 
+
+
+  
+
   public void init(final PluginRegistry registry){
     PluginRegistry.addPluginType(OSGIPluginType.getInstance());
     registerPluginClass(PluginInterface.class);
     addPluginLifecycleListener(PluginInterface.class, new OSGIServiceLifecycleListener<PluginInterface>() {
       @Override
       public void pluginAdded(PluginInterface serviceObject) {
-        OSGIPlugin osgiPlugin = (OSGIPlugin) serviceObject;
-        Class<? extends PluginTypeInterface> pluginTypeFromPlugin = osgiPlugin.getPluginType();
-        try {
-          registry.registerPlugin(pluginTypeFromPlugin, serviceObject);
-        } catch (KettlePluginException e) {
-          e.printStackTrace();
-        }
-        List<PluginTypeTracker> listeners = registry.getListenersForType(pluginTypeFromPlugin);
-        if (listeners != null) {
-          for (PluginTypeTracker listener : listeners) {
-            listener.pluginAdded(serviceObject);
+        try{
+          OSGIPlugin osgiPlugin = (OSGIPlugin) serviceObject;
+          Class<? extends PluginTypeInterface> pluginTypeFromPlugin = osgiPlugin.getPluginType();
+          try {
+            registry.registerPlugin(pluginTypeFromPlugin, serviceObject);
+          } catch (KettlePluginException e) {
+            e.printStackTrace();
           }
+          List<PluginTypeListener> listeners = registry.getListenersForType(pluginTypeFromPlugin);
+          if (listeners != null) {
+            for (PluginTypeListener listener : listeners) {
+              listener.pluginAdded(serviceObject);
+            }
+          }
+        } catch(Exception e){
+          logger.error("Error notifying listener of plugin addition", e);
         }
       }
 
       @Override
       public void pluginRemoved(PluginInterface serviceObject) {
-        OSGIPlugin osgiPlugin = (OSGIPlugin) serviceObject;
-        Class<? extends PluginTypeInterface> pluginTypeFromPlugin = osgiPlugin.getPluginType();
-        registry.removePlugin(pluginTypeFromPlugin, serviceObject);
-        List<PluginTypeTracker> listeners = registry.getListenersForType(pluginTypeFromPlugin);
-        if (listeners != null) {
-          for (PluginTypeTracker listener : listeners) {
-            listener.pluginRemoved(serviceObject);
+        try{
+          OSGIPlugin osgiPlugin = (OSGIPlugin) serviceObject;
+          Class<? extends PluginTypeInterface> pluginTypeFromPlugin = osgiPlugin.getPluginType();
+          registry.removePlugin(pluginTypeFromPlugin, serviceObject);
+          List<PluginTypeListener> listeners = registry.getListenersForType(pluginTypeFromPlugin);
+          if (listeners != null) {
+            for (PluginTypeListener listener : listeners) {
+              listener.pluginRemoved(serviceObject);
+            }
           }
+        } catch(Exception e){
+          logger.error("Error notifying listener of plugin removal", e);
         }
       }
 
@@ -410,6 +426,22 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
     return null;
   }
 
+  public ClassLoader getClassLoader(Object instance){
+    try {
+
+      ServiceReference ref = instanceToReferenceMap.get(instance);
+      if(ref == null){
+        return null;
+      }
+      Bundle bundle = ref.getBundle();
+      return new BundleClassloaderWrapper(bundle);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
   public void setBeanFactoryLookup(BeanFactoryLocator lookup){
     this.lookup = lookup;
   }
@@ -426,18 +458,6 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
 
     return factory;
   }
-
-  // This would have found all BlueprintContainer's registered in the context and wrapped them as beanFactories
-  // Unfortunately Kettle doesn't have the Blueprint classes right now.
-//  private BeanFactory findOrCreateBeanFactoryFor(Object serviceObject){
-//
-//    ServiceReference reference = instanceToReferenceMap.get(serviceObject);
-//    if(reference == null){
-//      return null;
-//    }
-//    Bundle b = reference.getBundle();
-//    getServiceObjects(BlueprintContainer.class);
-//  }
 
   public <T> T getBean(Class<T> clazz, Map<String, String> beanFactoryProps, String id){
     BeanFactory factory = getServiceObject(BeanFactory.class, beanFactoryProps, false);

@@ -9,39 +9,51 @@
 ============================================================================-->
 <project name="Karaf Plugin" basedir="." default="dist"
 	xmlns:ivy="antlib:org.apache.ivy.ant" >
-	
+
+  <property name="karaf-version" value="2.2.4"/>
 	<description>
 	  Example project to providing a new Spoon Perspective and hooking into the
     menu system.
 	</description>
 
 	<!-- Import the common_build.xml file which contains all the default tasks -->	
-	<import file="build-res/subfloor-pkg.xml"/>
+	<import file="build-res/subfloor-pkg.xml" as="sub"/>
+
+  <target name="assemble" depends="install-antcontrib">
+
+    <if>
+      <available file="build-res/apache-karaf-${karaf-version}.zip"/><then/>
+      <else>
+        <get src="http://mirrors.ibiblio.org/apache/karaf/${karaf-version}/apache-karaf-${karaf-version}.zip" dest="build-res/apache-karaf-${karaf-version}.zip"/>
+        <unzip src="build-res/apache-karaf-${karaf-version}.zip" dest="build-res" />
+      </else>
+    </if>
 
 
+    <copy todir="${approot.stage.dir}/karaf">
+      <fileset dir="build-res/apache-karaf-${karaf-version}" includes="**" />
+    </copy>
 
+    <copy file="${dist.dir}/${ivy.artifact.id}-${project.revision}.jar" todir="${approot.stage.dir}"/>
 
-  <target name="generate.manifest" depends="init,set-build.id">
-    <echo>This is a test</echo>
-    <delete file="${dist.manifest.file}" />
-    <touch file="${dist.manifest.file}" />
-    <copy file="${manifest.file}" tofile="${dist.manifest.file}" overwrite="true" failonerror="false" />
-
-    <manifest file="${dist.manifest.file}" mode="update">
-      <attribute name="Implementation-Title" value="${impl.title}" />
-      <attribute name="Implementation-Version" value="${project.revision}.${build.id}" />
-      <attribute name="Implementation-Vendor" value="${impl.vendor}" />
-      <attribute name="Implementation-ProductID" value="${impl.productID}" />
-
-      <attribute name="Import-Package" value="org.pentaho.di.core.plugins,org.pentaho.di.core.plugins.osgi, org.pentaho.osgi.impl,org.apache.commons.io,org.apache.commons.logging,org.eclipse.swt.layout,org.eclipse.swt.widgets,org.pentaho.di.core,org.pentaho.di.core.annotations,org.pentaho.di.core.exception,org.pentaho.di.core.gui,org.pentaho.di.core.lifecycle,org.pentaho.di.i18n,org.pentaho.di.repository,org.pentaho.di.ui.core,org.pentaho.di.ui.spoon,org.pentaho.ui.xul,org.pentaho.ui.xul.binding,org.pentaho.ui.xul.components,org.pentaho.ui.xul.containers,org.pentaho.ui.xul.dom,org.pentaho.ui.xul.impl,org.pentaho.ui.xul.swt,org.pentaho.ui.xul.swt.tags,org.pentaho.ui.xul.util,org.slf4j,org.w3c.dom" />
-
-      <attribute name="Export-Package" value="org.pentaho.di.plugins.examples.helloworld" />
-      
-      <attribute name="Bundle-SymbolicName" value="org.pentaho.spoonexample" />
-      <attribute name="Bundle-Version" value="0.1" />
-
-    </manifest>
+    <antcall target="sub.assemble"/>
   </target>
+
+
+  <target name="assemble.copy-libs">
+    <copy todir="${approot.stage.dir}/lib">
+      <fileset dir="${lib.dir}">
+        <include name="org*.jar"/>
+          </fileset>
+    </copy>
+
+
+    <copy todir="${approot.stage.dir}/lib">
+        <fileset dir="dev-lib" includes="*.jar"/>
+    </copy>
+
+  </target>
+
 
 	
 </project>

@@ -1,7 +1,7 @@
 package org.pentaho.di.karaf;
 
 import org.apache.commons.lang.ObjectUtils;
-import org.apache.felix.karaf.main.Main;
+import org.apache.karaf.main.Main;
 import org.pentaho.di.core.annotations.LifecyclePlugin;
 import org.pentaho.di.core.gui.GUIOption;
 import org.pentaho.di.core.lifecycle.LifeEventHandler;
@@ -27,7 +27,7 @@ public class KarafHost implements LifecycleListener{
 
   public void start(){
     try {
-			String root = new File( "plugins/pluginRegistry/KarafPlugin/karaf").getAbsolutePath();
+			String root = new File( "plugins/pluginRegistry/karaf-plugin/karaf").getAbsolutePath();
 			System.setProperty("karaf.home", root);
       System.setProperty("karaf.base", root);
       System.setProperty("karaf.data", root + "/data");

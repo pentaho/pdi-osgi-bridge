@@ -20,13 +20,13 @@
 
   <dependencies defaultconf="default->default">
 
-    <dependency org="pentaho.kettle" name="kettle-engine" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
+    <dependency org="pentaho-kettle" name="kettle-engine" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
                 changing="true"/>
-    <dependency org="pentaho.kettle" name="kettle-core" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
+    <dependency org="pentaho-kettle" name="kettle-core" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
                 changing="true"/>
-    <dependency org="pentaho.kettle" name="kettle-db" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
+    <dependency org="pentaho-kettle" name="kettle-db" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
                 changing="true"/>
-    <dependency org="pentaho.kettle" name="kettle-ui-swt" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
+    <dependency org="pentaho-kettle" name="kettle-ui-swt" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
                 changing="true"/>
 
     <dependency org="pentaho" name="pentaho-xul-core" rev="${dependency.pentaho-xul.revision}" conf="default->default"
@@ -40,14 +40,7 @@
       <dependency org="commons-io" name="commons-io" rev="1.4" conf="default->default" />
       <dependency org="commons-beanutils" name="commons-beanutils" rev="1.7.0" conf="default->default" />
       <dependency org="commons-lang" name="commons-lang" rev="2.4" conf="default->default" />
-    <dependency org="org.apache.felix.karaf" name="org.apache.felix.karaf.main" rev="1.6.0"  conf="default->default" />
-    <dependency org="org.apache.felix.karaf" name="org.apache.felix.karaf.main" rev="1.6.0"  conf="default->default" />
-    <dependency org="org.apache.felix" name="org.apache.felix.framework" rev="3.2.0"  conf="default->default" />
-    <dependency org="org.apache.felix" name="org.apache.felix.log" rev="1.0.1"  conf="default->default" />
+        
 
-
-    <dependency org="org.apache.felix.karaf" name="apache-felix-karaf" rev="1.6.0"  conf="default->default" transitive="false" >
-      <artifact name="apache-felix-karaf" type="zip"/>
-    </dependency>
   </dependencies>
 </ivy-module>

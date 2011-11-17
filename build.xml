@@ -17,9 +17,11 @@
 	</description>
 
 	<!-- Import the common_build.xml file which contains all the default tasks -->	
-	<import file="build-res/subfloor-pkg.xml" as="sub"/>
+	<import file="build-res/subfloor-pkg.xml"/>
 
-  <target name="assemble" depends="install-antcontrib">
+
+  <target name="assemble.init">
+    <mkdir dir="${approot.stage.dir}" />
 
     <if>
       <available file="build-res/apache-karaf-${karaf-version}.zip"/><then/>
@@ -36,7 +38,6 @@
 
     <copy file="${dist.dir}/${ivy.artifact.id}-${project.revision}.jar" todir="${approot.stage.dir}"/>
 
-    <antcall target="sub.assemble"/>
   </target>
 
 

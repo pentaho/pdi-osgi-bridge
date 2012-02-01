@@ -1,0 +1,5 @@
+Build Steps
+
+Run the following from the command-line
+1. ant resolve
+2. ant dist

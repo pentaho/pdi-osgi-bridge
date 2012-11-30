@@ -172,12 +172,6 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
           } catch (KettlePluginException e) {
             e.printStackTrace();
           }
-          List<PluginTypeListener> listeners = registry.getListenersForType(pluginTypeFromPlugin);
-          if (listeners != null) {
-            for (PluginTypeListener listener : listeners) {
-              listener.pluginAdded(serviceObject);
-            }
-          }
         } catch(Exception e){
           logger.error("Error notifying listener of plugin addition", e);
         }
@@ -189,12 +183,6 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
           OSGIPlugin osgiPlugin = (OSGIPlugin) serviceObject;
           Class<? extends PluginTypeInterface> pluginTypeFromPlugin = osgiPlugin.getPluginType();
           registry.removePlugin(pluginTypeFromPlugin, serviceObject);
-          List<PluginTypeListener> listeners = registry.getListenersForType(pluginTypeFromPlugin);
-          if (listeners != null) {
-            for (PluginTypeListener listener : listeners) {
-              listener.pluginRemoved(serviceObject);
-            }
-          }
         } catch(Exception e){
           logger.error("Error notifying listener of plugin removal", e);
         }

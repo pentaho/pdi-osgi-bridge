@@ -31,9 +31,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -43,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * User: nbaker Date: 11/9/10
  */
-@RegistryPlugin( id = "OSGIRegistryPlugin", name = "OSGI" )
+@RegistryPlugin(id = "OSGIRegistryPlugin", name = "OSGI")
 public class OSGIPluginTracker implements PluginRegistryExtension {
 
   private static OSGIPluginTracker INSTANCE;
@@ -62,6 +64,7 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
   private Log logger = LogFactory.getLog( getClass().getName() );
   private List<PluginTypeInterface> queuedTypes = new ArrayList<PluginTypeInterface>();
   private Map<Class, ServiceRegistration> registeredServices = new HashMap<Class, ServiceRegistration>();
+  private Set<Class> queuedPluginClasses = new HashSet<Class>();
 
   // As this class is constructed by the kettle plugin system it's constructor must be available. We cannot have Kettle
   // use a factory method unfortunately.
@@ -114,10 +117,6 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
           // No nothing
         }
       } );
-
-      for ( PluginTypeInterface type : queuedTypes ) {
-        searchForType( type );
-      }
     }
   }
 
@@ -432,6 +431,16 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
         }
       }
     } );
+
+    for ( PluginTypeInterface type : queuedTypes ) {
+      searchForType( type );
+    }
+
+    for ( Class pluginClass : queuedPluginClasses ) {
+      registerPluginClass( pluginClass );
+    }
+
+    OSGIKettleLifecycleListener.setDoneInitializing();
   }
 
   public void registerPluginClass( Class clazz ) {
@@ -439,16 +448,9 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
       // Already tracking
       return;
     }
-    int timeout = 40000;
-    // Race condition. As OSGI is running in it's own thread, it may not be initialized yet. Wait for it.
-    // TODO: replace this terrible synchronization crap
-    while ( KarafHost.getInstance().isInitialized() == false/* && timeout > 0 */ ) {
-      timeout -= 10;
-      try {
-        Thread.sleep( 10 );
-      } catch ( InterruptedException e ) {
-        e.printStackTrace();
-      }
+    if ( this.getBundleContext() == null ) {
+      queuedPluginClasses.add( clazz );
+      return;
     }
     listeners.put( clazz, new ArrayList<OSGIServiceLifecycleListener>() );
 

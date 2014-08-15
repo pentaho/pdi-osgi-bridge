@@ -22,42 +22,49 @@
 
 package org.pentaho.di.osgi;
 
+import org.junit.Before;
+import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.pentaho.di.core.plugins.PluginInterface;
-import org.pentaho.di.osgi.service.tracker.BeanFactoryLookupServiceTracker;
 import org.pentaho.osgi.api.BeanFactory;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 /**
- * User: nbaker Date: 11/2/10
+ * Created by bryan on 8/15/14.
  */
-public class OSGIActivator {
+public class OSGIActivatorTest {
   private OSGIPluginTracker osgiPluginTracker;
   private BundleContext bundleContext;
+  private OSGIActivator osgiActivator;
 
-  public OSGIActivator() {
-    osgiPluginTracker = OSGIPluginTracker.getInstance();
+  @Before
+  public void setup() {
+    osgiPluginTracker = mock( OSGIPluginTracker.class );
+    bundleContext = mock( BundleContext.class );
+    osgiActivator = new OSGIActivator(  );
+    osgiActivator.setBundleContext( bundleContext );
+    osgiActivator.setOsgiPluginTracker( osgiPluginTracker );
   }
 
-  public BundleContext getBundleContext() {
-    return bundleContext;
+  @Test
+  public void testGetBundleContext() {
+    assertEquals( bundleContext, osgiActivator.getBundleContext() );
   }
 
-  public void setBundleContext( BundleContext bundleContext ) {
-    this.bundleContext = bundleContext;
+  @Test
+  public void testStart() throws Exception {
+    osgiActivator.start();
+    verify( osgiPluginTracker ).setBundleContext( bundleContext );
+    verify( osgiPluginTracker ).registerPluginClass( BeanFactory.class );
+    verify( osgiPluginTracker ).registerPluginClass( PluginInterface.class );
   }
 
-  protected void setOsgiPluginTracker( OSGIPluginTracker osgiPluginTracker ) {
-    this.osgiPluginTracker = osgiPluginTracker;
-  }
-
-  public void start() throws Exception {
-    osgiPluginTracker.setBundleContext( bundleContext );
-    osgiPluginTracker.registerPluginClass( BeanFactory.class );
-    osgiPluginTracker.registerPluginClass( PluginInterface.class );
-    new BeanFactoryLookupServiceTracker( bundleContext, osgiPluginTracker ).open();
-  }
-
-  public void stop( BundleContext bundleContext ) throws Exception {
-    osgiPluginTracker.shutdown();
+  @Test
+  public void testStop() throws Exception {
+    osgiActivator.stop( bundleContext );
+    verify( osgiPluginTracker ).shutdown();
   }
 }

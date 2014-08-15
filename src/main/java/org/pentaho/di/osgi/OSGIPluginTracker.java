@@ -1,3 +1,25 @@
+/*! ******************************************************************************
+ *
+ * Pentaho Data Integration
+ *
+ * Copyright (C) 2002-2014 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
 package org.pentaho.di.osgi;
 
 import org.apache.commons.beanutils.BeanUtils;
@@ -10,14 +32,14 @@ import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
-import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
-import org.pentaho.di.core.plugins.PluginRegistryExtension;
 import org.pentaho.di.core.plugins.PluginTypeInterface;
-import org.pentaho.di.core.plugins.RegistryPlugin;
-import org.pentaho.di.karaf.KarafHost;
+import org.pentaho.di.osgi.service.lifecycle.OSGIServiceLifecycleListener;
+import org.pentaho.di.osgi.service.notifier.DelayedInstanceNotifier;
+import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifier;
+import org.pentaho.di.osgi.service.tracker.OSGIServiceTracker;
 import org.pentaho.osgi.api.BeanFactory;
 import org.pentaho.osgi.api.BeanFactoryLocator;
 
@@ -31,11 +53,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -45,10 +65,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * User: nbaker Date: 11/9/10
  */
-@RegistryPlugin(id = "OSGIRegistryPlugin", name = "OSGI")
-public class OSGIPluginTracker implements PluginRegistryExtension {
-
-  private static OSGIPluginTracker INSTANCE;
+public class OSGIPluginTracker {
+  private static OSGIPluginTracker INSTANCE = new OSGIPluginTracker();
   private BundleContext context;
   private BeanFactoryLocator lookup;
   private Map<Class, OSGIServiceTracker> trackers = new WeakHashMap<Class, OSGIServiceTracker>();
@@ -62,108 +80,16 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
     new WeakHashMap<Object, List<ServiceReferenceListener>>();
   private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
   private Log logger = LogFactory.getLog( getClass().getName() );
-  private List<PluginTypeInterface> queuedTypes = new ArrayList<PluginTypeInterface>();
+  private List<Class<? extends PluginTypeInterface>> queuedClasses =
+    new ArrayList<Class<? extends PluginTypeInterface>>();
   private Map<Class, ServiceRegistration> registeredServices = new HashMap<Class, ServiceRegistration>();
-  private Set<Class> queuedPluginClasses = new HashSet<Class>();
 
-  // As this class is constructed by the kettle plugin system it's constructor must be available. We cannot have Kettle
-  // use a factory method unfortunately.
-  public OSGIPluginTracker() {
-    INSTANCE = this;
+  private OSGIPluginTracker() {
+
   }
 
   public static OSGIPluginTracker getInstance() {
-    if ( INSTANCE == null ) {
-      INSTANCE = new OSGIPluginTracker();
-    }
     return INSTANCE;
-  }
-
-  @Override
-  public void init( final PluginRegistry registry ) {
-    KarafHost.getInstance();
-    if ( KettleClientEnvironment.isInitialized() ) {
-      PluginRegistry.addPluginType( OSGIPluginType.getInstance() );
-      registerPluginClass( PluginInterface.class );
-      addPluginLifecycleListener( PluginInterface.class, new OSGIServiceLifecycleListener<PluginInterface>() {
-        @Override
-        public void pluginAdded( PluginInterface serviceObject ) {
-          try {
-            OSGIPlugin osgiPlugin = (OSGIPlugin) serviceObject;
-            Class<? extends PluginTypeInterface> pluginTypeFromPlugin = osgiPlugin.getPluginType();
-            try {
-              registry.registerPlugin( pluginTypeFromPlugin, serviceObject );
-            } catch ( KettlePluginException e ) {
-              e.printStackTrace();
-            }
-          } catch ( Exception e ) {
-            logger.error( "Error notifying listener of plugin addition", e );
-          }
-        }
-
-        @Override
-        public void pluginRemoved( PluginInterface serviceObject ) {
-          try {
-            OSGIPlugin osgiPlugin = (OSGIPlugin) serviceObject;
-            Class<? extends PluginTypeInterface> pluginTypeFromPlugin = osgiPlugin.getPluginType();
-            registry.removePlugin( pluginTypeFromPlugin, serviceObject );
-          } catch ( Exception e ) {
-            logger.error( "Error notifying listener of plugin removal", e );
-          }
-        }
-
-        @Override
-        public void pluginChanged( PluginInterface serviceObject ) {
-          // No nothing
-        }
-      } );
-    }
-  }
-
-  @Override
-  public void searchForType( PluginTypeInterface pluginType ) {
-    if ( this.getBundleContext() == null ) {
-      queuedTypes.add( pluginType );
-      return;
-    }
-    registerPluginClass( pluginType.getClass() );
-    for ( PluginInterface plugin : getServiceObjects( PluginInterface.class, Collections.singletonMap( "PluginType",
-      pluginType.getClass().getName() ) ) ) {
-      try {
-        PluginRegistry.getInstance().registerPlugin( pluginType.getClass(), plugin );
-      } catch ( KettlePluginException e ) {
-        e.printStackTrace();
-      }
-    }
-
-  }
-
-  @Override
-  public String getPluginId( Class<? extends PluginTypeInterface> pluginType, Object pluginClass ) {
-    try {
-      return (String) OSGIPluginTracker.getInstance().getBeanPluginProperty( pluginType, pluginClass, "ID" );
-    } catch ( Exception e ) {
-      e.printStackTrace();
-    }
-    return null;
-
-  }
-
-  public <T> List<T> getServiceObjects( Class<T> clazz ) {
-    List<T> serviceObjects = new ArrayList<T>();
-    ServiceReference[] refs = trackers.get( clazz ).getServiceReferences();
-    if ( refs == null ) {
-      return Collections.emptyList();
-    }
-    for ( ServiceReference r : refs ) {
-      T serv = (T) context.getService( r );
-
-      instanceToReferenceMap.put( serv, r );
-      referenceToInstanceMap.put( r, serv );
-
-      serviceObjects.add( serv );
-    }
-    return serviceObjects;
   }
 
   public <T> List<T> getServiceObjects( Class<T> clazz, Map<String, String> props ) {
@@ -189,60 +115,6 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
     return services;
   }
 
-  public <T> T getServiceObject( Class<T> clazz, Map<String, String> props ) {
-    return getServiceObject( clazz, props, true );
-  }
-
-  public <T> T getServiceObject( Class<T> clazz, Map<String, String> props, boolean createProxy ) {
-    try {
-      Hashtable<String, Object> env = new Hashtable<String, Object>();
-      env.put( "osgi.service.jndi.bundleContext", context );
-      Context ctx = new InitialContext( env );
-
-      String propsString = createFilterString( props );
-      T retVal = null;
-      if ( createProxy ) {
-        retVal = (T) ctx.lookup( "osgi:service/" + clazz.getName() + "/" + propsString );
-      } else {
-        retVal = (T) ctx.lookup( "aries:services/" + clazz.getName() + "/" + propsString );
-      }
-
-      ServiceReference[] refs = context.getServiceReferences( clazz.getName(), propsString );
-
-      if ( retVal != null && refs != null && refs.length > 0 ) {
-        instanceToReferenceMap.put( retVal, refs[ refs.length - 1 ] );
-        referenceToInstanceMap.put( refs[ refs.length - 1 ], retVal );
-      }
-
-      return retVal;
-
-    } catch ( NamingException e ) {
-      e.printStackTrace();
-    } catch ( InvalidSyntaxException e ) {
-      e.printStackTrace();
-    }
-    return null;
-  }
-
-  public Object getServiceProperty( Object service, String prop ) {
-    return instanceToReferenceMap.get( service ).getProperty( prop );
-  }
-
-  // TODO: lots of checking to add here
-  // public <T> T getServiceObject(Class<T> clazz, String name){
-  // try {
-  // Hashtable<String, Object> env = new Hashtable<String, Object>();
-  // env.put("osgi.service.jndi.bundleContext", context );
-  // Context ctx = new InitialContext(env);
-  //
-  // return (T)ctx.lookup("osgi:service/"+clazz.getName()+"/(stepName=" + name + ")");
-  //
-  // } catch (NamingException e) {
-  // e.printStackTrace(); //To change body of catch statement use File | Settings | File Templates.
-  // }
-  // return null;
-  // }
-
   private String createFilterString( Map<String, String> props ) {
     StringBuffer sb = new StringBuffer();
     boolean firstProp = true;
@@ -262,33 +134,6 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
     return sb.toString();
   }
 
-  public void addServiceReferenceListener( Object obj, ServiceReferenceListener listener ) {
-    List<ServiceReferenceListener> listeners;
-    if ( instanceListeners.containsKey( obj ) == false ) {
-      listeners = new ArrayList<ServiceReferenceListener>();
-      instanceListeners.put( obj, listeners );
-    } else {
-      listeners = instanceListeners.get( obj );
-    }
-    listeners.add( listener );
-  }
-
-  public InputStream getResourceAsStream( Object serviceObject, String resource ) {
-    ServiceReference reference = instanceToReferenceMap.get( serviceObject );
-    if ( reference == null ) {
-      return null;
-    }
-    Bundle objectBundle = reference.getBundle();
-    URL url = objectBundle.getResource( resource );
-
-    try {
-      return url.openStream();
-    } catch ( IOException e ) {
-      e.printStackTrace();
-    }
-    return null;
-  }
-
   public <T> T getBean( Class<T> clazz, Object serviceClass, String id ) {
 
     BeanFactory factory = findOrCreateBeanFactoryFor( serviceClass );
@@ -298,10 +143,6 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
     T instance = factory.getInstance( id, clazz );
     beanToFactoryMap.put( instance, factory );
     return instance;
-  }
-
-  public BeanFactory getBeanFactory( Object bean ) {
-    return beanToFactoryMap.get( bean );
   }
 
   /**
@@ -315,7 +156,6 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
   public <T extends PluginTypeInterface> Object getBeanPluginProperty( Class<? extends PluginTypeInterface> pluginType,
                                                                        Object instance, String prop ) {
     try {
-
       BeanFactory beanFactory = beanToFactoryMap.get( instance );
       if ( beanFactory == null ) {
         return null;
@@ -336,7 +176,6 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
 
   public ClassLoader getClassLoader( Object instance ) {
     try {
-
       ServiceReference ref = instanceToReferenceMap.get( instance );
       if ( ref == null ) {
         return null;
@@ -354,7 +193,7 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
     this.lookup = lookup;
   }
 
-  private BeanFactory findOrCreateBeanFactoryFor( Object serviceObject ) {
+  public BeanFactory findOrCreateBeanFactoryFor( Object serviceObject ) {
     ServiceReference reference = instanceToReferenceMap.get( serviceObject );
     if ( reference == null || lookup == null ) {
       return null;
@@ -362,27 +201,16 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
     Bundle objectBundle = reference.getBundle();
     BeanFactory factory = lookup.getBeanFactory( objectBundle );
     beanFactoryToBundleMap.put( factory, objectBundle );
-
     return factory;
-  }
-
-  public <T> T getBean( Class<T> clazz, Map<String, String> beanFactoryProps, String id ) {
-    BeanFactory factory = getServiceObject( BeanFactory.class, beanFactoryProps, false );
-
-    T instance = factory.getInstance( id, clazz );
-    beanToFactoryMap.put( instance, factory );
-    return instance;
   }
 
   public void shutdown() {
     for ( Map.Entry<Class, OSGIServiceTracker> entry : trackers.entrySet() ) {
       entry.getValue().close();
     }
-
   }
 
   public void addPluginLifecycleListener( Class clazzToTrack, OSGIServiceLifecycleListener listener ) {
-
     List<OSGIServiceLifecycleListener> list = listeners.get( clazzToTrack );
     if ( list == null ) {
       list = new ArrayList<OSGIServiceLifecycleListener>();
@@ -422,7 +250,8 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
           BeanFactory factory = findOrCreateBeanFactoryFor( instance );
           if ( factory == null ) {
             ScheduledFuture<?> timeHandle =
-              scheduler.schedule( new DelayedInstanceNotifier( type, instance ), 2, TimeUnit.SECONDS );
+              scheduler.schedule( new DelayedInstanceNotifier( OSGIPluginTracker.this, type, instance,
+                instanceListeners, scheduler ), 2, TimeUnit.SECONDS );
             return;
           }
           for ( ServiceReferenceListener listener : listeners ) {
@@ -432,32 +261,37 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
       }
     } );
 
-    for ( PluginTypeInterface type : queuedTypes ) {
-      searchForType( type );
-    }
-
-    for ( Class pluginClass : queuedPluginClasses ) {
-      registerPluginClass( pluginClass );
+    for ( Class<? extends PluginTypeInterface> type : queuedClasses ) {
+      registerPluginClass( type );
     }
 
     OSGIKettleLifecycleListener.setDoneInitializing();
   }
 
-  public void registerPluginClass( Class clazz ) {
+  public boolean registerPluginClass( Class clazz ) {
     if ( listeners.get( clazz ) != null ) {
       // Already tracking
-      return;
+      return true;
     }
     if ( this.getBundleContext() == null ) {
-      queuedPluginClasses.add( clazz );
-      return;
+      queuedClasses.add( clazz );
+      return false;
     }
     listeners.put( clazz, new ArrayList<OSGIServiceLifecycleListener>() );
 
     OSGIServiceTracker tracker = new OSGIServiceTracker( this, clazz );
     tracker.open();
     trackers.put( clazz, tracker );
-
+    for ( PluginInterface plugin : getServiceObjects( PluginInterface.class,
+      Collections.singletonMap( "PluginType",
+        clazz.getName() ) ) ) {
+      try {
+        PluginRegistry.getInstance().registerPlugin( clazz, plugin );
+      } catch ( KettlePluginException e ) {
+        e.printStackTrace();
+      }
+    }
+    return true;
   }
 
   public void serviceChanged( Class<?> cls, Event evt, ServiceReference serviceObject ) {
@@ -477,7 +311,8 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
           break;
       }
       ScheduledFuture<?> timeHandle =
-        scheduler.schedule( new DelayedServiceNotifier( cls, type, instance ), 2, TimeUnit.SECONDS );
+        scheduler.schedule( new DelayedServiceNotifier( this, cls, type, instance, listeners, scheduler ), 2,
+          TimeUnit.SECONDS );
       return;
     }
     for ( OSGIServiceLifecycleListener listener : listeners.get( cls ) ) {
@@ -495,79 +330,7 @@ public class OSGIPluginTracker implements PluginRegistryExtension {
     }
   }
 
-  public void publishService( Class publishClazz, Object serviceObject, Dictionary props ) {
-    if ( registeredServices.get( publishClazz ) != null ) {
-      registeredServices.get( publishClazz ).unregister();
-    }
-    context.registerService( publishClazz.getName(), serviceObject, props );
-
-  }
-
   public enum Event {
     START, STOP, MODIFY
-  }
-
-  class DelayedInstanceNotifier implements Runnable {
-    private ServiceReferenceListener.EVENT_TYPE eventType;
-    private Object serviceObject;
-
-    public DelayedInstanceNotifier( ServiceReferenceListener.EVENT_TYPE eventType, Object serviceObject ) {
-      this.eventType = eventType;
-      this.serviceObject = serviceObject;
-    }
-
-    @Override
-    public void run() {
-
-      List<ServiceReferenceListener> listeners = instanceListeners.get( serviceObject );
-      BeanFactory factory = findOrCreateBeanFactoryFor( serviceObject );
-      if ( factory == null ) {
-        ScheduledFuture<?> timeHandle =
-          scheduler.schedule( new DelayedInstanceNotifier( eventType, serviceObject ), 2, TimeUnit.SECONDS );
-      } else {
-        for ( ServiceReferenceListener listener : listeners ) {
-          listener.serviceEvent( eventType, serviceObject );
-        }
-      }
-    }
-  }
-
-  class DelayedServiceNotifier implements Runnable {
-    private Class<?> classToTrack;
-    private ServiceReferenceListener.EVENT_TYPE eventType;
-    private Object serviceObject;
-
-    public DelayedServiceNotifier( Class<?> classToTrack, ServiceReferenceListener.EVENT_TYPE eventType,
-                                   Object serviceObject ) {
-      this.classToTrack = classToTrack;
-      this.eventType = eventType;
-      this.serviceObject = serviceObject;
-    }
-
-    @Override
-    public void run() {
-
-      BeanFactory factory = findOrCreateBeanFactoryFor( serviceObject );
-      if ( factory == null ) {
-        ScheduledFuture<?> timeHandle =
-          scheduler.schedule( new DelayedServiceNotifier( classToTrack, eventType, serviceObject ), 2,
-            TimeUnit.SECONDS );
-      } else {
-        for ( OSGIServiceLifecycleListener listener : listeners.get( classToTrack ) ) {
-          switch( eventType ) {
-
-            case STARTING:
-              listener.pluginAdded( serviceObject );
-              break;
-            case STOPPING:
-              listener.pluginRemoved( serviceObject );
-              break;
-            case MODIFIED:
-              listener.pluginChanged( serviceObject );
-              break;
-          }
-        }
-      }
-    }
   }
 }

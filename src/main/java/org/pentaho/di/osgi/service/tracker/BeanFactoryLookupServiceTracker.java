@@ -20,36 +20,28 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.osgi;
+package org.pentaho.di.osgi.service.tracker;
 
-import org.pentaho.di.core.annotations.KettleLifecyclePlugin;
-import org.pentaho.di.core.lifecycle.KettleLifecycleListener;
-import org.pentaho.di.core.lifecycle.LifecycleException;
-
-import java.util.concurrent.atomic.AtomicBoolean;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.util.tracker.ServiceTracker;
+import org.pentaho.di.osgi.OSGIPluginTracker;
+import org.pentaho.osgi.api.BeanFactoryLocator;
 
 /**
- * Created by bryan on 8/13/14.
+ * Created by bryan on 8/15/14.
  */
-@KettleLifecyclePlugin( id = "OSGIKettleLifecyclePlugin", name = "OSGIKettleLifecyclePlugin" )
-public class OSGIKettleLifecycleListener implements KettleLifecycleListener {
-  private static final AtomicBoolean doneInitializing = new AtomicBoolean( false );
+public class BeanFactoryLookupServiceTracker extends ServiceTracker {
+  private final OSGIPluginTracker osgiPluginTracker;
 
-  public static void setDoneInitializing() {
-    doneInitializing.set( true );
+  public BeanFactoryLookupServiceTracker( BundleContext bundleContext, OSGIPluginTracker osgiPluginTracker ) {
+    super( bundleContext, BeanFactoryLocator.class.getName(), null );
+    this.osgiPluginTracker = osgiPluginTracker;
   }
 
-  @Override public void onEnvironmentInit() throws LifecycleException {
-    while ( !doneInitializing.get() ) {
-      try {
-        Thread.sleep( 100 );
-      } catch ( InterruptedException e ) {
-        // Noop
-      }
-    }
-  }
-
-  @Override public void onEnvironmentShutdown() {
-
+  @Override
+  public Object addingService( ServiceReference reference ) {
+    osgiPluginTracker.setBeanFactoryLookup( (BeanFactoryLocator) context.getService( reference ) );
+    return reference;
   }
 }

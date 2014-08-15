@@ -20,13 +20,15 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.osgi;
+package org.pentaho.di.osgi.service.lifecycle;
 
 /**
- * User: nbaker Date: 11/17/10
+ * User: nbaker Date: 12/22/10
  */
-public interface ServiceReferenceListener {
-  void serviceEvent( EVENT_TYPE eventType, Object serviceObject );
+public interface OSGIServiceLifecycleListener<T> {
+  void pluginAdded( T serviceObject );
 
-  enum EVENT_TYPE { STARTING, STOPPING, MODIFIED }
+  void pluginRemoved( T serviceObject );
+
+  void pluginChanged( T serviceObject );
 }

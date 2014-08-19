@@ -25,9 +25,7 @@ package org.pentaho.di.osgi;
 import org.junit.Test;
 import org.pentaho.di.core.exception.KettlePluginException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 /**
  * Created by bryan on 8/15/14.

@@ -20,36 +20,18 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.osgi;
+package org.pentaho.di.osgi.service.notifier;
 
-import org.pentaho.di.core.annotations.KettleLifecyclePlugin;
-import org.pentaho.di.core.lifecycle.KettleLifecycleListener;
-import org.pentaho.di.core.lifecycle.LifecycleException;
+import org.junit.Test;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import static org.junit.Assert.assertNotNull;
 
 /**
- * Created by bryan on 8/13/14.
+ * Created by bryan on 8/18/14.
  */
-@KettleLifecyclePlugin(id = "OSGIKettleLifecyclePlugin", name = "OSGIKettleLifecyclePlugin")
-public class OSGIKettleLifecycleListener implements KettleLifecycleListener {
-  private static final AtomicBoolean doneInitializing = new AtomicBoolean( false );
-
-  public static void setDoneInitializing() {
-    doneInitializing.set( true );
-  }
-
-  @Override public void onEnvironmentInit() throws LifecycleException {
-    while ( !doneInitializing.get() ) {
-      try {
-        Thread.sleep( 100 );
-      } catch ( InterruptedException e ) {
-        // Noop
-      }
-    }
-  }
-
-  @Override public void onEnvironmentShutdown() {
-
+public class DelayedInstanceNotifierFactoryTest {
+  @Test
+  public void testCreate() {
+    assertNotNull( new DelayedInstanceNotifierFactory( null, null, null ).create( null, null ) );
   }
 }

@@ -30,7 +30,7 @@ import org.pentaho.di.osgi.OSGIPluginTracker;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.pentaho.di.osgi.OSGIPluginTracker.Event.*;
+import static org.pentaho.di.osgi.service.lifecycle.LifecycleEvent.*;
 
 /**
  * Created by bryan on 8/15/14.

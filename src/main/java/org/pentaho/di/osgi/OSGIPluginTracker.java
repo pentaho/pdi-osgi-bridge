@@ -28,39 +28,27 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.PluginTypeInterface;
+import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
 import org.pentaho.di.osgi.service.lifecycle.OSGIServiceLifecycleListener;
-import org.pentaho.di.osgi.service.notifier.DelayedInstanceNotifier;
+import org.pentaho.di.osgi.service.listener.BundleContextServiceListener;
+import org.pentaho.di.osgi.service.notifier.DelayedInstanceNotifierFactory;
 import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifier;
 import org.pentaho.di.osgi.service.tracker.OSGIServiceTracker;
 import org.pentaho.osgi.api.BeanFactory;
 import org.pentaho.osgi.api.BeanFactoryLocator;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * User: nbaker Date: 11/9/10
@@ -82,9 +70,9 @@ public class OSGIPluginTracker {
   private Log logger = LogFactory.getLog( getClass().getName() );
   private List<Class<? extends PluginTypeInterface>> queuedClasses =
     new ArrayList<Class<? extends PluginTypeInterface>>();
-  private Map<Class, ServiceRegistration> registeredServices = new HashMap<Class, ServiceRegistration>();
 
-  private OSGIPluginTracker() {
+  // ONLY CALL EXTERNALLY FOR UNIT TESTS
+  protected OSGIPluginTracker() {
 
   }
 
@@ -110,7 +98,7 @@ public class OSGIPluginTracker {
         services.add( serv );
       }
     } catch ( InvalidSyntaxException e ) {
-      e.printStackTrace();
+      logger.error( e.getMessage(), e );
     }
     return services;
   }
@@ -167,9 +155,8 @@ public class OSGIPluginTracker {
       if ( refs != null && refs.length > 0 ) {
         return BeanUtils.getProperty( cxt.getService( refs[ 0 ] ), prop );
       }
-
     } catch ( Exception e ) {
-      e.printStackTrace();
+      logger.error( e.getMessage(), e );
     }
     return null;
   }
@@ -184,7 +171,7 @@ public class OSGIPluginTracker {
       return new BundleClassloaderWrapper( bundle );
 
     } catch ( Exception e ) {
-      e.printStackTrace();
+      logger.error( e.getMessage(), e );
     }
     return null;
   }
@@ -225,41 +212,8 @@ public class OSGIPluginTracker {
 
   public void setBundleContext( BundleContext context ) {
     this.context = context;
-    context.addServiceListener( new ServiceListener() {
-
-      @Override
-      public void serviceChanged( ServiceEvent serviceEvent ) {
-        if ( referenceToInstanceMap.containsKey( serviceEvent.getServiceReference() ) ) {
-          Object instance = referenceToInstanceMap.get( serviceEvent.getServiceReference() );
-          ServiceReferenceListener.EVENT_TYPE type = ServiceReferenceListener.EVENT_TYPE.MODIFIED;
-
-          switch( serviceEvent.getType() ) {
-            case ServiceEvent.MODIFIED:
-              type = ServiceReferenceListener.EVENT_TYPE.MODIFIED;
-              break;
-            case ServiceEvent.UNREGISTERING:
-              type = ServiceReferenceListener.EVENT_TYPE.STOPPING;
-              break;
-          }
-          List<ServiceReferenceListener> listeners = instanceListeners.get( instance );
-          if ( listeners == null || listeners.size() == 0 ) {
-            return;
-          }
-
-          // The beanfactory may not be registered yet. If not schedule a check every second until it is.
-          BeanFactory factory = findOrCreateBeanFactoryFor( instance );
-          if ( factory == null ) {
-            ScheduledFuture<?> timeHandle =
-              scheduler.schedule( new DelayedInstanceNotifier( OSGIPluginTracker.this, type, instance,
-                instanceListeners, scheduler ), 2, TimeUnit.SECONDS );
-            return;
-          }
-          for ( ServiceReferenceListener listener : listeners ) {
-            listener.serviceEvent( type, instance );
-          }
-        }
-      }
-    } );
+    context.addServiceListener( new BundleContextServiceListener( referenceToInstanceMap,
+      new DelayedInstanceNotifierFactory( instanceListeners, scheduler, this ) ) );
 
     for ( Class<? extends PluginTypeInterface> type : queuedClasses ) {
       registerPluginClass( type );
@@ -294,43 +248,19 @@ public class OSGIPluginTracker {
     return true;
   }
 
-  public void serviceChanged( Class<?> cls, Event evt, ServiceReference serviceObject ) {
+  public void serviceChanged( Class<?> cls, LifecycleEvent evt, ServiceReference serviceObject ) {
     Object instance = context.getService( serviceObject );
     instanceToReferenceMap.put( instance, serviceObject );
-
-    // The beanfactory may not be registered yet. If not schedule a check every second until it is.
-    BeanFactory factory = findOrCreateBeanFactoryFor( instance );
-    if ( factory == null && evt != Event.STOP ) { // stopping services won't be able to find a beanfactory. Just skip
-      ServiceReferenceListener.EVENT_TYPE type = null;
-      switch( evt ) {
-        case START:
-          type = ServiceReferenceListener.EVENT_TYPE.STARTING;
-          break;
-        case MODIFY:
-          type = ServiceReferenceListener.EVENT_TYPE.MODIFIED;
-          break;
-      }
-      ScheduledFuture<?> timeHandle =
-        scheduler.schedule( new DelayedServiceNotifier( this, cls, type, instance, listeners, scheduler ), 2,
-          TimeUnit.SECONDS );
-      return;
-    }
-    for ( OSGIServiceLifecycleListener listener : listeners.get( cls ) ) {
-      switch( evt ) {
-        case START:
-          listener.pluginAdded( instance );
-          break;
-        case STOP:
-          listener.pluginRemoved( instance );
-          break;
-        case MODIFY:
-          listener.pluginChanged( instance );
-          break;
-      }
-    }
+    new DelayedServiceNotifier( this, cls, evt, instance, listeners, scheduler ).run();
   }
 
-  public enum Event {
-    START, STOP, MODIFY
+  // FOR UNIT TEST ONLY
+  protected void setLogger( Log logger ) {
+    this.logger = logger;
+  }
+
+  // FOR UNIT TEST ONLY
+  protected Map<Class, OSGIServiceTracker> getTrackers() {
+    return trackers;
   }
 }

@@ -29,9 +29,7 @@ import org.pentaho.di.osgi.OSGIPluginTracker;
 import org.pentaho.osgi.api.BeanFactoryLocator;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by bryan on 8/15/14.
@@ -46,6 +44,6 @@ public class BeanFactoryLookupServiceTrackerTest {
     BeanFactoryLocator service = mock( BeanFactoryLocator.class );
     when( bundleContext.getService( serviceReference ) ).thenReturn( service );
     assertEquals( serviceReference, tracker.addingService( serviceReference ) );
-    verify( osgiPluginTracker).setBeanFactoryLookup( service );
+    verify( osgiPluginTracker ).setBeanFactoryLookup( service );
   }
 }

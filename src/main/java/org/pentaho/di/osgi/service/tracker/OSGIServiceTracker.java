@@ -26,6 +26,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.pentaho.di.osgi.OSGIPluginTracker;
+import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,7 @@ public class OSGIServiceTracker extends ServiceTracker {
                                  reference ) {
     references.add( reference );
     Object retVal = super.addingService( reference );
-    tracker.serviceChanged( clazzToTrack, OSGIPluginTracker.Event.START, reference );
+    tracker.serviceChanged( clazzToTrack, LifecycleEvent.START, reference );
     return retVal;
   }
 
@@ -60,13 +61,13 @@ public class OSGIServiceTracker extends ServiceTracker {
                                 reference, Object service ) {
     references.remove( reference );
     super.removedService( reference, service );
-    tracker.serviceChanged( clazzToTrack, OSGIPluginTracker.Event.STOP, reference );
+    tracker.serviceChanged( clazzToTrack, LifecycleEvent.STOP, reference );
   }
 
   @Override
   public void modifiedService( ServiceReference
                                  reference, Object service ) {
     super.modifiedService( reference, service );
-    tracker.serviceChanged( clazzToTrack, OSGIPluginTracker.Event.MODIFY, reference );
+    tracker.serviceChanged( clazzToTrack, LifecycleEvent.MODIFY, reference );
   }
 }

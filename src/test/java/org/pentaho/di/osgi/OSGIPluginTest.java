@@ -84,7 +84,7 @@ public class OSGIPluginTest {
     osgiPlugin.setID( id );
     assertEquals( id, osgiPlugin.getID() );
     assertEquals( 1, osgiPlugin.getIds().length );
-    assertEquals( id, osgiPlugin.getIds()[0] );
+    assertEquals( id, osgiPlugin.getIds()[ 0 ] );
   }
 
   @Test
@@ -180,7 +180,7 @@ public class OSGIPluginTest {
 
   @Test
   public void testSetClassToBeanMap() {
-    Map<String, String> map = new HashMap<String, String>(  );
+    Map<String, String> map = new HashMap<String, String>();
     map.put( "A", "B" );
     osgiPlugin.setClassToBeanMap( map );
     assertEquals( map, osgiPlugin.getClassToBeanMap() );
@@ -195,7 +195,7 @@ public class OSGIPluginTest {
 
   @Test
   public void testLoadClassInBeanMap() throws KettlePluginException {
-    Map<String, String> map = new HashMap<String, String>(  );
+    Map<String, String> map = new HashMap<String, String>();
     map.put( "java.lang.Object", "list" );
     osgiPlugin.setClassToBeanMap( map );
     Object result = new Object();
@@ -211,7 +211,7 @@ public class OSGIPluginTest {
     assertTrue( result instanceof ArrayList );
   }
 
-  @Test( expected = KettlePluginException.class )
+  @Test(expected = KettlePluginException.class)
   public void testLoadClassInstantiationException() throws KettlePluginException {
     osgiPlugin.loadClass( URL.class );
   }

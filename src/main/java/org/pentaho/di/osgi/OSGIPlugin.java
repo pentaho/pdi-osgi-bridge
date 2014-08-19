@@ -54,7 +54,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
   private String casesUrl;
   private String documentationUrl;
   private String forumUrl;
-  private Map<String, String> classToBeanMap = new HashMap<String, String>(  );
+  private Map<String, String> classToBeanMap = new HashMap<String, String>();
 
   public OSGIPlugin() {
     osgiPluginTracker = OSGIPluginTracker.getInstance();

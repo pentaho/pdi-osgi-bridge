@@ -20,33 +20,11 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.osgi;
-
-import org.junit.Test;
-import org.pentaho.di.core.lifecycle.LifecycleException;
+package org.pentaho.di.osgi.service.lifecycle;
 
 /**
- * Created by bryan on 8/15/14.
+ * Created by bryan on 8/18/14.
  */
-public class OSGIKettleLifecycleListenerTest {
-  @Test(timeout = 500L)
-  public void testOnEnvironmentInit() throws LifecycleException {
-    OSGIKettleLifecycleListener lifecycleListener = new OSGIKettleLifecycleListener();
-    new Thread( new Runnable() {
-      @Override public void run() {
-        try {
-          Thread.sleep( 100 );
-          OSGIKettleLifecycleListener.setDoneInitializing();
-        } catch ( InterruptedException e ) {
-          e.printStackTrace();
-        }
-      }
-    } ).start();
-    lifecycleListener.onEnvironmentInit();
-  }
-
-  @Test
-  public void testOnEnvironmentShutdownNoop() {
-    new OSGIKettleLifecycleListener().onEnvironmentShutdown();
-  }
+public enum LifecycleEvent {
+  START, STOP, MODIFY
 }

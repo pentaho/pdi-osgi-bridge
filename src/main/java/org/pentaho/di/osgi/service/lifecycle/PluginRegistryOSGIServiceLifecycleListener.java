@@ -34,8 +34,8 @@ import org.pentaho.di.osgi.OSGIPlugin;
  * Created by bryan on 8/15/14.
  */
 public class PluginRegistryOSGIServiceLifecycleListener implements OSGIServiceLifecycleListener<PluginInterface> {
-  private Log logger = LogFactory.getLog( getClass().getName() );
   private final PluginRegistry registry;
+  private Log logger = LogFactory.getLog( getClass().getName() );
 
   public PluginRegistryOSGIServiceLifecycleListener( PluginRegistry registry ) {
     this.registry = registry;

@@ -25,46 +25,27 @@ package org.pentaho.di.osgi.service.notifier;
 import org.pentaho.di.osgi.OSGIPluginTracker;
 import org.pentaho.di.osgi.ServiceReferenceListener;
 import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
-import org.pentaho.osgi.api.BeanFactory;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
- * Created by bryan on 8/15/14.
+ * Created by bryan on 8/18/14.
  */
-public class DelayedInstanceNotifier implements Runnable {
+public class DelayedInstanceNotifierFactory {
   private final Map<Object, List<ServiceReferenceListener>> instanceListeners;
   private final ScheduledExecutorService scheduler;
   private final OSGIPluginTracker osgiPluginTracker;
-  private final LifecycleEvent eventType;
-  private final Object serviceObject;
 
-  public DelayedInstanceNotifier( OSGIPluginTracker osgiPluginTracker, LifecycleEvent eventType,
-                                  Object serviceObject, Map<Object, List<ServiceReferenceListener>> instanceListeners,
-                                  ScheduledExecutorService scheduler ) {
-    this.osgiPluginTracker = osgiPluginTracker;
-    this.eventType = eventType;
-    this.serviceObject = serviceObject;
+  public DelayedInstanceNotifierFactory( Map<Object, List<ServiceReferenceListener>> instanceListeners,
+                                         ScheduledExecutorService scheduler, OSGIPluginTracker osgiPluginTracker ) {
     this.instanceListeners = instanceListeners;
     this.scheduler = scheduler;
+    this.osgiPluginTracker = osgiPluginTracker;
   }
 
-  @Override
-  public void run() {
-    BeanFactory factory = osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject );
-    if ( factory == null ) {
-      ScheduledFuture<?> timeHandle = scheduler.schedule( this, 2, TimeUnit.SECONDS );
-    } else {
-      List<ServiceReferenceListener> listeners = instanceListeners.get( serviceObject );
-      if ( listeners != null ) {
-        for ( ServiceReferenceListener listener : listeners ) {
-          listener.serviceEvent( eventType, serviceObject );
-        }
-      }
-    }
+  public DelayedInstanceNotifier create( Object instance, LifecycleEvent event_type ) {
+    return new DelayedInstanceNotifier( osgiPluginTracker, event_type, instance, instanceListeners, scheduler );
   }
 }

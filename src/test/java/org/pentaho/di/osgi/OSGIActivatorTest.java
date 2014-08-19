@@ -44,7 +44,7 @@ public class OSGIActivatorTest {
   public void setup() {
     osgiPluginTracker = mock( OSGIPluginTracker.class );
     bundleContext = mock( BundleContext.class );
-    osgiActivator = new OSGIActivator(  );
+    osgiActivator = new OSGIActivator();
     osgiActivator.setBundleContext( bundleContext );
     osgiActivator.setOsgiPluginTracker( osgiPluginTracker );
   }

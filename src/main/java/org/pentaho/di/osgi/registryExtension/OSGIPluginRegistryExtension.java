@@ -33,17 +33,23 @@ import org.pentaho.di.core.plugins.RegistryPlugin;
 import org.pentaho.di.karaf.KarafHost;
 import org.pentaho.di.osgi.OSGIPluginTracker;
 import org.pentaho.di.osgi.OSGIPluginType;
+import org.pentaho.di.osgi.StatusGetter;
 import org.pentaho.di.osgi.service.lifecycle.PluginRegistryOSGIServiceLifecycleListener;
 
 /**
  * Created by bryan on 8/15/14.
  */
-@RegistryPlugin( id = "OSGIRegistryPlugin", name = "OSGI" )
+@RegistryPlugin(id = "OSGIRegistryPlugin", name = "OSGI")
 public class OSGIPluginRegistryExtension implements PluginRegistryExtension {
   private static OSGIPluginRegistryExtension INSTANCE;
   private OSGIPluginTracker tracker = OSGIPluginTracker.getInstance();
   private Log logger = LogFactory.getLog( getClass().getName() );
   private KarafHost karafHost = KarafHost.getInstance();
+  private StatusGetter<Boolean> kettleClientEnvironmentInitialized = new StatusGetter<Boolean>() {
+    @Override public Boolean get() {
+      return KettleClientEnvironment.isInitialized();
+    }
+  };
 
   public OSGIPluginRegistryExtension() {
     INSTANCE = this;
@@ -71,22 +77,26 @@ public class OSGIPluginRegistryExtension implements PluginRegistryExtension {
     this.logger = logger;
   }
 
-  // FOr UNIT TEST ONLY
+  // FOR UNIT TEST ONLY
   public void setKarafHost( KarafHost karafHost ) {
     this.karafHost = karafHost;
+  }
+
+  // FOR UNIT TEST ONLY
+  protected void setKettleClientEnvironmentInitialized( StatusGetter<Boolean> kettleClientEnvironmentInitialized ) {
+    this.kettleClientEnvironmentInitialized = kettleClientEnvironmentInitialized;
   }
 
   @Override
   public void init( final PluginRegistry registry ) {
     karafHost.init();
-    if ( KettleClientEnvironment.isInitialized() ) {
+    if ( kettleClientEnvironmentInitialized.get() ) {
       PluginRegistry.addPluginType( OSGIPluginType.getInstance() );
       tracker.registerPluginClass( PluginInterface.class );
       tracker.addPluginLifecycleListener( PluginInterface.class,
         new PluginRegistryOSGIServiceLifecycleListener( registry ) );
     }
   }
-
 
   @Override
   public void searchForType( PluginTypeInterface pluginType ) {

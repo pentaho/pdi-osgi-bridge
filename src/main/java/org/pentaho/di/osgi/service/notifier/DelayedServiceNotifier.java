@@ -23,7 +23,7 @@
 package org.pentaho.di.osgi.service.notifier;
 
 import org.pentaho.di.osgi.OSGIPluginTracker;
-import org.pentaho.di.osgi.ServiceReferenceListener;
+import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
 import org.pentaho.di.osgi.service.lifecycle.OSGIServiceLifecycleListener;
 import org.pentaho.osgi.api.BeanFactory;
 
@@ -39,13 +39,13 @@ import java.util.concurrent.TimeUnit;
 public class DelayedServiceNotifier implements Runnable {
   private final Map<Class, List<OSGIServiceLifecycleListener>> listeners;
   private final ScheduledExecutorService scheduler;
-  private OSGIPluginTracker osgiPluginTracker;
-  private Class<?> classToTrack;
-  private ServiceReferenceListener.EVENT_TYPE eventType;
-  private Object serviceObject;
+  private final OSGIPluginTracker osgiPluginTracker;
+  private final Class<?> classToTrack;
+  private final LifecycleEvent eventType;
+  private final Object serviceObject;
 
   public DelayedServiceNotifier( OSGIPluginTracker osgiPluginTracker, Class<?> classToTrack,
-                                 ServiceReferenceListener.EVENT_TYPE eventType,
+                                 LifecycleEvent eventType,
                                  Object serviceObject, Map<Class, List<OSGIServiceLifecycleListener>> listeners,
                                  ScheduledExecutorService scheduler ) {
     this.osgiPluginTracker = osgiPluginTracker;
@@ -59,24 +59,27 @@ public class DelayedServiceNotifier implements Runnable {
   @Override
   public void run() {
     BeanFactory factory = osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject );
-    if ( factory == null ) {
-      ScheduledFuture<?> timeHandle =
-        scheduler.schedule( new DelayedServiceNotifier( osgiPluginTracker, classToTrack, eventType, serviceObject,
-            listeners, scheduler ), 2,
-          TimeUnit.SECONDS );
+    // The beanfactory may not be registered yet. If not schedule a check every second until it is.
+    // stopping services won't be able to find a beanfactory. Just skip
+    if ( factory == null && eventType != LifecycleEvent.STOP ) {
+      ScheduledFuture<?> timeHandle = scheduler.schedule( this, 2, TimeUnit.SECONDS );
     } else {
-      for ( OSGIServiceLifecycleListener listener : listeners.get( classToTrack ) ) {
-        switch( eventType ) {
-
-          case STARTING:
-            listener.pluginAdded( serviceObject );
-            break;
-          case STOPPING:
-            listener.pluginRemoved( serviceObject );
-            break;
-          case MODIFIED:
-            listener.pluginChanged( serviceObject );
-            break;
+      List<OSGIServiceLifecycleListener> listenerList = listeners.get( classToTrack );
+      if ( listenerList != null ) {
+        for ( OSGIServiceLifecycleListener listener : listenerList ) {
+          switch( eventType ) {
+            case START:
+              listener.pluginAdded( serviceObject );
+              break;
+            case STOP:
+              listener.pluginRemoved( serviceObject );
+              break;
+            case MODIFY:
+              listener.pluginChanged( serviceObject );
+              break;
+            default:
+              throw new IllegalStateException( "Unhandled enum value: " + eventType );
+          }
         }
       }
     }

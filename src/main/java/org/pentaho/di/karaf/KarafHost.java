@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class KarafHost {
   private static final KarafHost instance = new KarafHost();
+  public static final String EMBEDDED_KARAF_MODE = "embedded.karaf.mode";
   private final AtomicBoolean initialized = new AtomicBoolean( false );
   private Log logger = LogFactory.getLog( getClass().getName() );
 
@@ -47,6 +48,13 @@ public class KarafHost {
   }
 
   public void init() {
+    // Should we start Karaf or are we embedded scenario?
+    // TODO: migrate to unified configuration system
+    if ( System.getProperty( EMBEDDED_KARAF_MODE, "false" ).equals( "true" ) ) {
+      // Karaf has been started elsewhere
+      return;
+    }
+
     if ( !initialized.getAndSet( true ) ) {
       Thread karafLaunchThread = new Thread( new Runnable() {
 
@@ -55,8 +63,8 @@ public class KarafHost {
           String root;
           try {
             root =
-              new File( KarafHost.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath() )
-                .getParentFile().getAbsolutePath() + "/karaf";
+                new File( KarafHost.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath() )
+                    .getParentFile().getAbsolutePath() + "/karaf";
           } catch ( URISyntaxException e1 ) {
             throw new RuntimeException( e1 );
           }

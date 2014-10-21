@@ -1,0 +1,37 @@
+<!--===========================================================================
+  This is the build file for the Pentaho Kettle Google Docs Plugin project.
+  
+  This build file will use the subfloor.xml file as the default build
+  process and should only override the tasks that need to differ from
+  the common build file.
+  
+  See subfloor.xml for more details
+============================================================================-->
+<project name="Pentaho OSGI Utils" basedir="." default="dist"
+  xmlns:ivy="antlib:org.apache.ivy.ant" >
+  
+  <description>
+    Utilities for OSGI development
+  </description>
+
+  <import file="build-res/subfloor.xml" />
+
+  <target name="jar"
+          depends="compile,set-build.id"
+          description="Jars up the bin directory after a compile">
+    <jar destfile="${dist.dir}/${ivy.artifact.id}-${project.revision}.jar">
+      <manifest>
+        <attribute name="Implementation-Title" value="${impl.title}" />
+        <attribute name="Implementation-Version" value="${project.revision}.${build.id}" />
+        <attribute name="Implementation-Vendor" value="${impl.vendor}" />
+        <attribute name="Implementation-ProductID" value="${impl.productID}" />
+        <attribute name="Import-Package" value="org.osgi.framework,org.pentaho.osgi.api,org.osgi.service.blueprint.container,org.osgi.service.cm" />
+        <attribute name="Export-Package" value="org.pentaho.osgi.impl" />
+        <attribute name="Bundle-SymbolicName" value="org.pentaho.osgi.impl" />
+        <attribute name="Bundle-Activator" value="org.pentaho.osgi.impl.BeanFactoryActivator"/>
+      </manifest>
+      <fileset dir="${classes.dir}" />
+    </jar>
+  </target>
+
+</project>

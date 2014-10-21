@@ -1,0 +1,1 @@
+properties['version.for.license.obf'] = com.pentaho.commons.dsc.tlsup.util.ObfuscatedString.obfuscate("${properties['version.for.license']}")

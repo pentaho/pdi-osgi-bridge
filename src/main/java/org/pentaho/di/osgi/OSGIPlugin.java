@@ -22,11 +22,12 @@
 
 package org.pentaho.di.osgi;
 
-import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.plugins.ClassLoadingPluginInterface;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginTypeInterface;
 import org.pentaho.osgi.api.BeanFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.util.Collections;
@@ -55,6 +56,8 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
   private String documentationUrl;
   private String forumUrl;
   private Map<String, String> classToBeanMap = new HashMap<String, String>();
+
+  private Logger logger = LoggerFactory.getLogger( getClass() );
 
   public OSGIPlugin() {
     osgiPluginTracker = OSGIPluginTracker.getInstance();
@@ -174,7 +177,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
   }
 
   @Override
-  public <T> T loadClass( Class<T> pluginClass ) throws KettlePluginException {
+  public <T> T loadClass( Class<T> pluginClass ) {
     String id = classToBeanMap.get( pluginClass.getCanonicalName() );
     if ( id != null ) {
       return osgiPluginTracker.getBean( pluginClass, this, id );
@@ -182,7 +185,9 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
       try {
         return pluginClass.newInstance();
       } catch ( Exception e ) {
-        throw new KettlePluginException( e );
+        logger.error( "Error instancing plugin class: ", e );
+        return null;
+//        throw new KettlePluginException( e );
       }
     }
   }

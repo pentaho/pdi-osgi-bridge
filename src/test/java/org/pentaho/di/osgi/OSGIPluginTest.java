@@ -211,8 +211,8 @@ public class OSGIPluginTest {
     assertTrue( result instanceof ArrayList );
   }
 
-  @Test(expected = KettlePluginException.class)
   public void testLoadClassInstantiationException() throws KettlePluginException {
-    osgiPlugin.loadClass( URL.class );
+    URL url = osgiPlugin.loadClass( URL.class );
+    assertNull( url );
   }
 }

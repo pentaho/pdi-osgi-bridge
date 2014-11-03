@@ -8,23 +8,21 @@
   <artifactId>pdi-osgi-bridge</artifactId>
   <version>TRUNK-SNAPSHOT</version>
 
+
+  
+  <parent>
+    <groupId>org.pentaho</groupId>
+    <artifactId>pentaho-ce-jar-parent-pom</artifactId>
+    <version>1.0.1</version>
+  </parent>
+
+
   <properties>
     <package.features>true</package.features>
     <karaf.version>2.3.5</karaf.version>
     <junit.version>4.11</junit.version>
     <mockito.version>1.9.5</mockito.version>
-    <pentaho.resolve.repo>http://nexus.pentaho.org/content/groups/omni/</pentaho.resolve.repo>
-    <pentaho.artifactory.resolve.repo>http://repository.pentaho.org/artifactory/repo</pentaho.artifactory.resolve.repo>
-    <pentaho.artifactory.resolve.repo.2>http://repo.pentaho.org/artifactory/repo</pentaho.artifactory.resolve.repo.2>
-
-    <pentaho.resolve.repo>http://nexus.pentaho.org/content/groups/omni/</pentaho.resolve.repo>
-    <pentaho.public.release.repo>http://nexus.pentaho.org/content/repositories/public-release/
-    </pentaho.public.release.repo>
-
-    <!--<pentaho.public.snapshot.repo>http://nexus.pentaho.org/content/repositories/public-snapshot/</pentaho.public.snapshot.repo>-->
-    <pentaho.public.snapshot.repo>http://repository.pentaho.org:8082/artifactory/pentaho</pentaho.public.snapshot.repo>
-    <!--<pentaho.public.snapshot.repo>file:///Users/nbaker/.m2/repository</pentaho.public.snapshot.repo>-->
-
+    
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <pentaho-karaf-assembly.version>1.0-SNAPSHOT</pentaho-karaf-assembly.version>
@@ -165,33 +163,12 @@
       </plugin>
     </plugins>
   </build>
-
-
-  <distributionManagement>
-    <!-- if you plan on releasing anything that inherits this parent pom
-      you will need your Maven settings.xml to have the appropriate entries ...
-      we recommend something like this: <servers> <server> <id>pentaho.public.release.repo</id>
-      <username>YOUR_REPO_USERNAME</username> <password>YOUR_REPO_PASSWORD</password>
-      </server> <server> <id>pentaho.public.snapshot.repo</id> <username>YOUR_REPO_USERNAME</username>
-      <password>YOUR_REPO_PASSWORD</password> </server> </servers> requests for
-      repo credentials should be made to buildteam@pentaho.com -->
-    <repository>
-      <id>pentaho.public.release.repo</id>
-      <name>Pentaho Public Release Repository</name>
-      <url>${pentaho.public.release.repo}</url>
-    </repository>
-    <snapshotRepository>
-      <id>pentaho.public.snapshot.repo</id>
-      <name>Pentaho Public Snapshot Repository</name>
-      <url>${pentaho.public.snapshot.repo}</url>
-    </snapshotRepository>
-  </distributionManagement>
-
-  <repositories>
+  
+<repositories>
     <repository>
       <id>pentaho.resolve.repo</id>
       <name>Pentaho Group Resolve Repository</name>
-      <url>${pentaho.resolve.repo}</url>
+      <url>http://nexus.pentaho.org/content/groups/omni/</url>
       <releases>
         <updatePolicy>always</updatePolicy>
         <checksumPolicy>fail</checksumPolicy>
@@ -201,33 +178,11 @@
         <checksumPolicy>fail</checksumPolicy>
       </snapshots>
     </repository>
-
     <repository>
-      <id>pentaho.artifactory.resolve.repo</id>
-      <name>Pentaho legacy Resolve Repository</name>
-      <url>${pentaho.artifactory.resolve.repo}</url>
-      <releases>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </releases>
-      <snapshots>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </snapshots>
-    </repository>
-
-    <repository>
-      <id>pentaho.artifactory.resolve.repo.2</id>
-      <name>Pentaho legacy Resolve Repository</name>
-      <url>${pentaho.artifactory.resolve.repo.2}</url>
-      <releases>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </releases>
-      <snapshots>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </snapshots>
+      <id>repo.pentaho.org</id>
+      <name>repo.pentaho.org</name>
+      <url>http://repository.pentaho.org/artifactory/pentaho</url>
     </repository>
   </repositories>
+
 </project>

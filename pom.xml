@@ -29,8 +29,8 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <pentaho-karaf-assembly.version>1.0-SNAPSHOT</pentaho-karaf-assembly.version>
     <felix.version>4.0.3</felix.version>
-    <pentaho-osgi-utils.version>DATA-PROFILING-SNAPSHOT</pentaho-osgi-utils.version>
-    <kettle.version>DATA-PROFILING-SNAPSHOT</kettle.version>
+    <pentaho-osgi-utils.version>1.0-SNAPSHOT</pentaho-osgi-utils.version>
+    <kettle.version>TRUNK-SNAPSHOT</kettle.version>
   </properties>
 
   <dependencies>

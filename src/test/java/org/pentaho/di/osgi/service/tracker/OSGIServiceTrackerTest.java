@@ -25,6 +25,8 @@ package org.pentaho.di.osgi.service.tracker;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Filter;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.pentaho.di.osgi.OSGIPluginTracker;
 
@@ -40,18 +42,23 @@ public class OSGIServiceTrackerTest {
   private OSGIPluginTracker pluginTracker;
 
   @Before
-  public void setup() {
+  public void setup() throws InvalidSyntaxException {
     bundleContext = mock( BundleContext.class );
     pluginTracker = mock( OSGIPluginTracker.class );
     when( pluginTracker.getBundleContext() ).thenReturn( bundleContext );
+      Filter filter = mock( Filter.class );
+      when( bundleContext.createFilter( anyString())).thenReturn( filter );
+
   }
 
   @Test
-  public void testAddingService() {
+  public void testAddingService() throws InvalidSyntaxException {
     ServiceReference serviceReference = mock( ServiceReference.class );
     Object service = mock( Object.class );
     when( bundleContext.getService( serviceReference ) ).thenReturn( service );
-    assertEquals( service, new OSGIServiceTracker( pluginTracker, Object.class ).addingService( serviceReference ) );
+      Filter filter = mock( Filter.class );
+    when( bundleContext.createFilter( anyString())).thenReturn(filter);
+    assertEquals(service, new OSGIServiceTracker(pluginTracker, Object.class).addingService(serviceReference));
     verify( pluginTracker ).serviceChanged( Object.class, START, serviceReference );
   }
 

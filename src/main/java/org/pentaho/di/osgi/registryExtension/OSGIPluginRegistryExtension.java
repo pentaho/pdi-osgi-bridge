@@ -90,12 +90,12 @@ public class OSGIPluginRegistryExtension implements PluginRegistryExtension {
   @Override
   public void init( final PluginRegistry registry ) {
     karafHost.init();
-    if ( kettleClientEnvironmentInitialized.get() ) {
+//    if ( kettleClientEnvironmentInitialized.get() ) {
       PluginRegistry.addPluginType( OSGIPluginType.getInstance() );
       tracker.registerPluginClass( PluginInterface.class );
       tracker.addPluginLifecycleListener( PluginInterface.class,
         new PluginRegistryOSGIServiceLifecycleListener( registry ) );
-    }
+//    }
   }
 
   @Override

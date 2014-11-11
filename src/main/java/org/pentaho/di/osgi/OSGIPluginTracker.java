@@ -212,6 +212,11 @@ public class OSGIPluginTracker {
 
   public void setBundleContext( BundleContext context ) {
     this.context = context;
+      for ( OSGIServiceTracker tracker : trackers.values() ) {
+          tracker.close();
+      }
+      trackers.clear();
+
     context.addServiceListener( new BundleContextServiceListener( referenceToInstanceMap,
       new DelayedInstanceNotifierFactory( instanceListeners, scheduler, this ) ) );
 
@@ -223,7 +228,7 @@ public class OSGIPluginTracker {
   }
 
   public boolean registerPluginClass( Class clazz ) {
-    if ( listeners.get( clazz ) != null ) {
+    if ( trackers.get( clazz ) != null ) {
       // Already tracking
       return true;
     }
@@ -231,10 +236,19 @@ public class OSGIPluginTracker {
       queuedClasses.add( clazz );
       return false;
     }
-    listeners.put( clazz, new ArrayList<OSGIServiceLifecycleListener>() );
+    if(listeners.get( clazz ) == null ) {
+      listeners.put(clazz, new ArrayList<OSGIServiceLifecycleListener>());
+    }
 
+    // Track the class directly
     OSGIServiceTracker tracker = new OSGIServiceTracker( this, clazz );
     tracker.open();
+
+    // Track it as a PluginInterface with a PluginType of the given class.
+    // We're obscuring the other tracker, but that collection is just a marker
+    tracker = new OSGIServiceTracker( this, clazz, true );
+    tracker.open();
+
     trackers.put( clazz, tracker );
     for ( PluginInterface plugin : getServiceObjects( PluginInterface.class,
       Collections.singletonMap( "PluginType",

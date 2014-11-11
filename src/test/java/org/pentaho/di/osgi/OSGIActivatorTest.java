@@ -45,18 +45,19 @@ public class OSGIActivatorTest {
     osgiPluginTracker = mock( OSGIPluginTracker.class );
     bundleContext = mock( BundleContext.class );
     osgiActivator = new OSGIActivator();
-    osgiActivator.setBundleContext( bundleContext );
     osgiActivator.setOsgiPluginTracker( osgiPluginTracker );
   }
 
   @Test
-  public void testGetBundleContext() {
+  public void testGetBundleContext() throws Exception {
+
+    osgiActivator.start( bundleContext );
     assertEquals( bundleContext, osgiActivator.getBundleContext() );
   }
 
   @Test
   public void testStart() throws Exception {
-    osgiActivator.start();
+    osgiActivator.start( bundleContext );
     verify( osgiPluginTracker ).setBundleContext( bundleContext );
     verify( osgiPluginTracker ).registerPluginClass( BeanFactory.class );
     verify( osgiPluginTracker ).registerPluginClass( PluginInterface.class );
@@ -64,6 +65,7 @@ public class OSGIActivatorTest {
 
   @Test
   public void testStop() throws Exception {
+    osgiActivator.start( bundleContext );
     osgiActivator.stop( bundleContext );
     verify( osgiPluginTracker ).shutdown();
   }

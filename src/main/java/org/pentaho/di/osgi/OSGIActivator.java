@@ -22,6 +22,7 @@
 
 package org.pentaho.di.osgi;
 
+import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.osgi.service.tracker.BeanFactoryLookupServiceTracker;
@@ -30,9 +31,10 @@ import org.pentaho.osgi.api.BeanFactory;
 /**
  * User: nbaker Date: 11/2/10
  */
-public class OSGIActivator {
+public class OSGIActivator implements BundleActivator {
   private OSGIPluginTracker osgiPluginTracker;
   private BundleContext bundleContext;
+  private BeanFactoryLookupServiceTracker beanFactoryLookupServiceTracker;
 
   public OSGIActivator() {
     osgiPluginTracker = OSGIPluginTracker.getInstance();
@@ -42,22 +44,22 @@ public class OSGIActivator {
     return bundleContext;
   }
 
-  public void setBundleContext( BundleContext bundleContext ) {
-    this.bundleContext = bundleContext;
-  }
 
   protected void setOsgiPluginTracker( OSGIPluginTracker osgiPluginTracker ) {
     this.osgiPluginTracker = osgiPluginTracker;
   }
 
-  public void start() throws Exception {
+  @Override public void start( BundleContext bundleContext ) throws Exception {
+    this.bundleContext = bundleContext;
     osgiPluginTracker.setBundleContext( bundleContext );
     osgiPluginTracker.registerPluginClass( BeanFactory.class );
     osgiPluginTracker.registerPluginClass( PluginInterface.class );
-    new BeanFactoryLookupServiceTracker( bundleContext, osgiPluginTracker ).open();
+    beanFactoryLookupServiceTracker = new BeanFactoryLookupServiceTracker( bundleContext, osgiPluginTracker );
+    beanFactoryLookupServiceTracker.open();
   }
 
   public void stop( BundleContext bundleContext ) throws Exception {
     osgiPluginTracker.shutdown();
+    beanFactoryLookupServiceTracker.close();
   }
 }

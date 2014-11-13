@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.0.0"
+           xmlns:ext="http://aries.apache.org/blueprint/xmlns/blueprint-ext/v1.0.0" default-timeout="20000">
+
+
+  <bean id="helloPlugin_SpoonPlugin" class="org.pentaho.di.plugins.examples.helloworld.HelloWorldSpoonPlugin"
+        scope="singleton" destroy-method="removeFromContainer">
+
+    <!-- Switch to this to see the Raw SWT Perspective -->
+    <!--<property name="perspective" ref="HelloWorldSwtPerspective"/>-->
+
+    <!-- WEB-based Perspective -->
+    <property name="perspective" ref="HelloWorldWebPerspective"/>
+
+  </bean>
+
+
+  <!-- Actual Plugin Class PluginInterface, references the Spoon Plugin above -->
+  <bean id="helloPlugin" class="org.pentaho.di.osgi.OSGIPlugin">
+    <property name="mainType" value="org.pentaho.di.ui.spoon.SpoonPluginInterface"/>
+    <property name="name" value="SpoonPluginExample"/>
+    <property name="ID" value="SpoonPluginExample"/>
+    <property name="imageFile" value="MGL.png"/>
+    <property name="description" value="MaxMind GeoIP Lookup"/>
+    <property name="pluginTypeInterface" value="org.pentaho.di.ui.spoon.SpoonPluginType"/>
+    <property name="category" value="spoon"/>
+    <property name="classToBeanMap">
+      <map>
+        <entry key="org.pentaho.di.ui.spoon.SpoonPluginInterface" value="helloPlugin_SpoonPlugin"/>
+      </map>
+    </property>
+  </bean>
+
+  <!-- Register plugin with the Service Registry -->
+  <service id="pluginService" interface="org.pentaho.di.core.plugins.PluginInterface" ref="helloPlugin">
+    <service-properties>
+      <entry key="PluginType" value="org.pentaho.di.ui.spoon.SpoonPluginType"/>
+    </service-properties>
+  </service>
+
+  <!-- Web version of the Hello Perspective -->
+  <bean id="HelloWorldWebPerspective" class="org.pentaho.di.plugins.examples.helloworld.HelloWorldWebPerspective"/>
+
+
+  <!-- Plain SWT version -->
+  <bean id="HelloWorldSwtPerspective" class="org.pentaho.di.plugins.examples.helloworld.HelloWorldSwtPerspective">
+    <cm:managed-properties persistent-id="org.pentaho.spoonexample" update-strategy="container-managed"/>
+
+    <!--<property name="message" value="${message}"/>-->
+    <property name="message" value="Default message"/>
+    <property name="messageFormatter" ref="messageFormatterService"/>
+  </bean>
+
+  <!-- Locate Message Formatter from the service registry, used by the perspectives  -->
+  <reference id="messageFormatterService" interface="org.pentaho.di.plugins.examples.helloworld.MessageFormatter"
+             timeout="30000" availability="optional"/>
+
+  <!-- Register Message Formatter as the default, other's with higher priority will be prefered -->
+  <service id="defaultMessageFormatter" interface="org.pentaho.di.plugins.examples.helloworld.MessageFormatter"
+           ranking="-1">
+    <bean class="org.pentaho.di.plugins.examples.helloworld.DefaultMessageFormatter"/>
+  </service>
+
+  <!-- The web perspective calls this servlet to obtain the Message of the Day -->
+  <bean id="HelloWorldMessageServlet" class="org.pentaho.di.plugins.examples.helloworld.HelloWorldServlet">
+
+    <!-- message will be injected if an org.pentaho.spoonexample configuration exists -->
+    <cm:managed-properties persistent-id="org.pentaho.spoonexample" update-strategy="container-managed"/>
+
+    <!-- add an org.pentaho.spoonexample.cfg file to the pickup directory with a different message to test Config Admin-->
+    <property name="message" value="Default message"/>
+    <property name="messageFormatter" ref="messageFormatterService"/>
+  </bean>
+
+  <!-- HttpService Whiteboard registration of Servlet -->
+  <service interface="javax.servlet.http.HttpServlet" ref="HelloWorldMessageServlet">
+    <service-properties>
+      <entry key="alias" value="/helloworld/message"/>
+    </service-properties>
+  </service>
+
+  <!-- HttpService Whiteboard registration of web assets -->
+  <service interface="org.ops4j.pax.web.extender.whiteboard.ResourceMapping">
+    <bean class="org.ops4j.pax.web.extender.whiteboard.runtime.DefaultResourceMapping">
+
+      <!-- http path -->
+      <property name="alias" value="/helloworld"/>
+
+      <!--Local Folder -->
+      <property name="path" value="/web"/>
+
+    </bean>
+  </service>
+
+
+
+  <!-- Editor Perspective, another spoon plugin with perspective like above. This one supports open/save/create
+  operations and demonstrates a LifecycleListener -->
+
+  <bean id="editorPlugin_SpoonPlugin" class="org.pentaho.di.plugins.examples.texteditor.EditorPlugin" scope="singleton"
+        destroy-method="removeFromContainer"/>
+
+  <bean id="editorPlugin" class="org.pentaho.di.osgi.OSGIPlugin">
+    <property name="mainType" value="org.pentaho.di.ui.spoon.SpoonPluginInterface"/>
+    <property name="name" value="SpoonEditorPluginExample"/>
+    <property name="ID" value="SpoonEditorPluginExample"/>
+    <property name="imageFile" value="MGL.png"/>
+    <property name="description" value="Example Editor plugin"/>
+    <property name="pluginTypeInterface" value="org.pentaho.di.ui.spoon.SpoonPluginType"/>
+    <property name="category" value="spoon"/>
+    <property name="category" value="spoon"/>
+    <property name="classToBeanMap">
+      <map>
+        <entry key="org.pentaho.di.ui.spoon.SpoonPluginInterface" value="editorPlugin_SpoonPlugin"/>
+      </map>
+    </property>
+  </bean>
+
+  <!-- Register the plugin as a service so Kettle can find it -->
+  <service id="editorPluginService" interface="org.pentaho.di.core.plugins.PluginInterface" ref="editorPlugin">
+    <service-properties>
+      <entry key="PluginType" value="org.pentaho.di.ui.spoon.SpoonPluginType"/>
+    </service-properties>
+  </service>
+
+  <bean id="SpoonEditorPluginListener_LifecycleListener"
+        class="org.pentaho.di.plugins.examples.texteditor.ExampleSpoonLifecycleListener" scope="singleton"/>
+
+  <bean id="lifecycleBean" class="org.pentaho.di.osgi.OSGIPlugin">
+    <property name="mainType" value="org.pentaho.di.core.lifecycle.LifecycleListener"/>
+    <property name="name" value="SpoonEditorPluginListener"/>
+    <property name="ID" value="SpoonEditorPluginListener"/>
+    <property name="description" value="Example Editor plugin lifecycle listener"/>
+    <property name="pluginTypeInterface" value="org.pentaho.di.core.plugins.LifecyclePluginType"/>
+    <property name="classToBeanMap">
+      <map>
+        <entry key="org.pentaho.di.core.lifecycle.LifecycleListener"
+               value="SpoonEditorPluginListener_LifecycleListener"/>
+      </map>
+    </property>
+  </bean>
+  <service id="editorLifecycleService" interface="org.pentaho.di.core.plugins.PluginInterface" ref="lifecycleBean">
+    <service-properties>
+      <entry key="PluginType" value="org.pentaho.di.core.plugins.LifecyclePluginType"/>
+    </service-properties>
+
+  </service>
+
+</blueprint>

@@ -72,15 +72,6 @@ public class OSGIPluginRegistryExtensionTest {
   }
 
   @Test
-  public void testInitKettleEnvironmentNotInitialized() {
-    PluginRegistry registry = mock( PluginRegistry.class );
-    when( kettleClientEnvironmentInitialized.get() ).thenReturn( false );
-    OSGIPluginRegistryExtension.getInstance().init( registry );
-    verify( karafHost ).init();
-    verifyNoMoreInteractions( tracker );
-  }
-
-  @Test
   public void testInit() {
     PluginRegistry registry = mock( PluginRegistry.class );
     when( kettleClientEnvironmentInitialized.get() ).thenReturn( true );

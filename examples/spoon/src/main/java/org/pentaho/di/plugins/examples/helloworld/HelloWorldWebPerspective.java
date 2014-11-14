@@ -24,6 +24,8 @@ import java.util.Locale;
 public class HelloWorldWebPerspective implements SpoonPerspective {
 
   private Composite comp;
+  private String baseUrl;
+
 
   private void createUI() {
     comp = new Composite( ( (Spoon) SpoonFactory.getInstance() ).getShell(), SWT.BORDER );
@@ -33,6 +35,14 @@ public class HelloWorldWebPerspective implements SpoonPerspective {
     browser.setLayoutData( new GridData( GridData.FILL_BOTH ) );
     browser.setUrl( "http://localhost:8181/helloworld/index.html" );
 
+  }
+
+  public String getBaseUrl() {
+    return baseUrl;
+  }
+
+  public void setBaseUrl(String baseUrl) {
+    this.baseUrl = baseUrl;
   }
 
   public void setActive( boolean b ) {

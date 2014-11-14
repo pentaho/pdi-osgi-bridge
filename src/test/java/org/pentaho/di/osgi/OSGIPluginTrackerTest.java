@@ -25,10 +25,7 @@ package org.pentaho.di.osgi;
 import org.apache.commons.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
+import org.osgi.framework.*;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
 import org.pentaho.di.osgi.service.lifecycle.OSGIServiceLifecycleListener;
@@ -54,9 +51,11 @@ public class OSGIPluginTrackerTest {
   private BundleContext bundleContext;
 
   @Before
-  public void setup() {
+  public void setup() throws InvalidSyntaxException {
     tracker = new OSGIPluginTracker();
     bundleContext = mock( BundleContext.class );
+    Filter filter = mock( Filter.class );
+    when( bundleContext.createFilter( anyString())).thenReturn( filter );
   }
 
   @Test

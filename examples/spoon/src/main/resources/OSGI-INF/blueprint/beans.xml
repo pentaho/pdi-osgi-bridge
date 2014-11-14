@@ -3,6 +3,11 @@
            xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.0.0"
            xmlns:ext="http://aries.apache.org/blueprint/xmlns/blueprint-ext/v1.0.0" default-timeout="20000">
 
+  <ext:property-placeholder>
+    <ext:default-properties>
+      <ext:property name="myProperty" value="defaultValue" />
+    </ext:default-properties>
+  </ext:property-placeholder>
 
   <bean id="helloPlugin_SpoonPlugin" class="org.pentaho.di.plugins.examples.helloworld.HelloWorldSpoonPlugin"
         scope="singleton" destroy-method="removeFromContainer">
@@ -32,6 +37,8 @@
     </property>
   </bean>
 
+  <reference interface="org.osgi.service.http.HttpService" id="http"/>
+
   <!-- Register plugin with the Service Registry -->
   <service id="pluginService" interface="org.pentaho.di.core.plugins.PluginInterface" ref="helloPlugin">
     <service-properties>
@@ -40,7 +47,10 @@
   </service>
 
   <!-- Web version of the Hello Perspective -->
-  <bean id="HelloWorldWebPerspective" class="org.pentaho.di.plugins.examples.helloworld.HelloWorldWebPerspective"/>
+  <bean id="HelloWorldWebPerspective" class="org.pentaho.di.plugins.examples.helloworld.HelloWorldWebPerspective">
+    <!--<property name="baseUrl" value="http://${org.apache.felix.http.host}:${org.apache.felix.http.port}"/>-->
+
+  </bean>
 
 
   <!-- Plain SWT version -->

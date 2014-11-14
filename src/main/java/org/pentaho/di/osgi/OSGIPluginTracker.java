@@ -217,6 +217,8 @@ public class OSGIPluginTracker {
       }
       trackers.clear();
 
+    // Not sure who is watching instances, instancesListeners never seems to be modified.
+    // TODO: Verify not needed then remove
     context.addServiceListener( new BundleContextServiceListener( referenceToInstanceMap,
       new DelayedInstanceNotifierFactory( instanceListeners, scheduler, this ) ) );
 
@@ -240,25 +242,17 @@ public class OSGIPluginTracker {
       listeners.put(clazz, new ArrayList<OSGIServiceLifecycleListener>());
     }
 
-    // Track the class directly
+    // Track the OsgiPlugin (PluginInterface) directly. This triggers PluginRegistry.registerPlugin()
     OSGIServiceTracker tracker = new OSGIServiceTracker( this, clazz );
     tracker.open();
 
-    // Track it as a PluginInterface with a PluginType of the given class.
-    // We're obscuring the other tracker, but that collection is just a marker
+    // Track it as a PluginInterface with a PluginType of the given class. This one trigger type trackers in pdi.
+    // We're obscuring the other tracker, but the 'trackers' collection is just a marker
     tracker = new OSGIServiceTracker( this, clazz, true );
     tracker.open();
 
     trackers.put( clazz, tracker );
-    for ( PluginInterface plugin : getServiceObjects( PluginInterface.class,
-      Collections.singletonMap( "PluginType",
-        clazz.getName() ) ) ) {
-      try {
-        PluginRegistry.getInstance().registerPlugin( clazz, plugin );
-      } catch ( KettlePluginException e ) {
-        e.printStackTrace();
-      }
-    }
+
     return true;
   }
 

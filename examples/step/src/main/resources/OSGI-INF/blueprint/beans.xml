@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.0.0"
+           xmlns:ext="http://aries.apache.org/blueprint/xmlns/blueprint-ext/v1.0.0" default-timeout="20000">
+
+
+  <!--<step id="YamlInput"> <description>i18n:org.pentaho.di.trans.step:BaseStep.TypeLongDesc.YamlInput</description> <classname>org.pentaho.di.trans.steps.yamlinput.YamlInputMeta</classname> <category>i18n:org.pentaho.di.trans.step:BaseStep.Category.Input</category> <tooltip>i18n:org.pentaho.di.trans.step:BaseStep.TypeTooltipDesc.YamlInput</tooltip> <iconfile>ui/images/YamlI.png</iconfile> <documentation_url/> <cases_url/> <forum_url/> </step>-->
+
+
+  <bean id="YamlInput_StepMeta" class="org.pentaho.di.plugins.examples.step.YamlInputMeta" scope="prototype"/>
+
+
+  <bean id="YamlInput_StepData" class="org.pentaho.di.plugins.examples.step.YamlInputData" scope="prototype"/>
+
+  <!-- Actual Plugin Class PluginInterface, references the Spoon Plugin above -->
+  <bean id="YamlPlugin" class="org.pentaho.di.osgi.OSGIPlugin">
+    <property name="mainType" value="org.pentaho.di.trans.step.StepMetaInterface"/>
+    <property name="name" value="YamlInputFromOsgi"/>
+    <property name="ID" value="YamlInput"/>
+    <property name="imageFile" value="YamlI.png"/>
+    <property name="description" value="i18n:org.pentaho.di.trans.step:BaseStep.TypeLongDesc.YamlInput"/>
+    <property name="pluginTypeInterface" value="org.pentaho.di.core.plugins.StepPluginType"/>
+    <property name="category" value="i18n:org.pentaho.di.trans.step:BaseStep.Category.Input"/>
+    <!--<property name="tooltip" value="i18n:org.pentaho.di.trans.step:BaseStep.TypeTooltipDesc.YamlInput"/>-->
+    <property name="classToBeanMap">
+      <map>
+        <entry key="org.pentaho.di.trans.step.StepMetaInterface" value="YamlInput_StepMeta"/>
+        <entry key="org.pentaho.di.trans.step.StepDataInterface" value="YamlInput_StepData"/>
+      </map>
+    </property>
+  </bean>
+
+  <!-- Register plugin with the Service Registry -->
+  <service id="pluginService" interface="org.pentaho.di.core.plugins.PluginInterface" ref="YamlPlugin">
+    <service-properties>
+      <entry key="PluginType" value="org.pentaho.di.core.plugins.StepPluginType"/>
+    </service-properties>
+  </service>
+
+</blueprint>

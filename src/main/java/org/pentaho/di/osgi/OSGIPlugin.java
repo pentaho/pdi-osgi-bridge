@@ -25,6 +25,7 @@ package org.pentaho.di.osgi;
 import org.pentaho.di.core.plugins.ClassLoadingPluginInterface;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginTypeInterface;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.osgi.api.BeanFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +70,25 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
 
   @Override
   public String getCategory() {
-    return category;
+    return translateString( category );
+  }
+
+  private static String translateString( String str ){
+
+    if ( str == null ) {
+      return null;
+    }
+
+    if ( str.startsWith( "i18n:" ) ) {
+      String[] parts = str.split( ":" );
+      if ( parts.length != 3 ) {
+        return str;
+      } else {
+        return BaseMessages.getString(parts[1], parts[2]);
+      }
+    }
+
+    return str;
   }
 
   public void setCategory( String category ) {
@@ -86,7 +105,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
 
   @Override
   public String getDescription() {
-    return description;
+    return translateString( description );
   }
 
   public void setDescription( String description ) {
@@ -126,7 +145,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
 
   @Override
   public List<String> getLibraries() {
-    return null;
+    return Collections.emptyList();
   }
 
   @Override

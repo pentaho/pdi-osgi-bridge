@@ -95,8 +95,8 @@ public class OSGIPluginTest {
   }
 
   @Test
-  public void testGetLibrariesNull() {
-    assertNull( osgiPlugin.getLibraries() );
+  public void testGetLibrariesEmpty() {
+    assertEquals( Collections.emptyList(), osgiPlugin.getLibraries() );
   }
 
   @Test

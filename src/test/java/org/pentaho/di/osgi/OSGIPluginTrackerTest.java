@@ -186,7 +186,10 @@ public class OSGIPluginTrackerTest {
     BundleContext cxt = mock( BundleContext.class );
     when( bundle.getBundleContext() ).thenReturn( cxt );
     ServiceReference ref = mock( ServiceReference.class );
-    when( cxt.getServiceReferences( eq( PluginInterface.class.getName() ), anyString() ) )
+    when( ref.getProperty( "objectClass")).thenReturn(PluginInterface.class.getName());
+    when( ref.getProperty( "PluginType")).thenReturn(OSGIPluginType.class.getName());
+    when(bundle.getRegisteredServices()).thenReturn( new ServiceReference[]{ref} );
+    when(cxt.getServiceReferences(eq(PluginInterface.class.getName()), anyString()))
       .thenReturn( new ServiceReference[] { ref } );
     OSGIPlugin plugin = new OSGIPlugin();
     String ID = "PLUGIN_ID";

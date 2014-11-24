@@ -26,15 +26,20 @@ import org.apache.commons.logging.Log;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
+import org.pentaho.di.core.plugins.PluginRegistryPluginType;
 import org.pentaho.di.karaf.KarafHost;
 import org.pentaho.di.osgi.OSGIPluginTracker;
 import org.pentaho.di.osgi.OSGIPluginType;
 import org.pentaho.di.osgi.StatusGetter;
 import org.pentaho.di.osgi.service.lifecycle.PluginRegistryOSGIServiceLifecycleListener;
 
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 /**
@@ -104,5 +109,18 @@ public class OSGIPluginRegistryExtensionTest {
     when( tracker.getBeanPluginProperty( OSGIPluginType.class, pluginClass, "ID" ) ).thenThrow( runtimeException );
     assertEquals( null, OSGIPluginRegistryExtension.getInstance().getPluginId( OSGIPluginType.class, pluginClass ) );
     verify( logger ).error( runtimeException.getMessage(), runtimeException );
+  }
+
+  @Test
+  public void testNativeRegistration() throws KettlePluginException {
+
+    List<PluginInterface> plugins = PluginRegistry.getInstance().getPlugins(PluginRegistryPluginType.class);
+    int initialSize = plugins != null ? plugins.size() : 0;
+
+    PluginRegistryPluginType pluginRegistryPluginType = new PluginRegistryPluginType();
+    pluginRegistryPluginType.searchPlugins();
+    plugins = PluginRegistry.getInstance().getPlugins(PluginRegistryPluginType.class);
+    assertTrue( plugins.size() > initialSize );
+
   }
 }

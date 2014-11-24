@@ -8,7 +8,7 @@
   <artifactId>pdi-osgi-bridge</artifactId>
   <version>1.0-SNAPSHOT</version>
 
-  <packaging>pom</packaging>
+  <packaging>jar</packaging>
 
   <parent>
     <groupId>org.pentaho</groupId>
@@ -28,7 +28,7 @@
     <pentaho-karaf-assembly.version>1.0-SNAPSHOT</pentaho-karaf-assembly.version>
     <felix.version>4.0.3</felix.version>
     <pentaho-osgi-utils.version>1.0-SNAPSHOT</pentaho-osgi-utils.version>
-    <kettle.version>TRUNK-SNAPSHOT</kettle.version>
+    <kettle.version>INNOVATION-SNAPSHOT</kettle.version>
   </properties>
 
   <dependencies>
@@ -161,7 +161,7 @@
               <descriptors>
                 <descriptor>src/main/descriptors/assembly.xml</descriptor>
               </descriptors>
-              <finalName>${project.artifactId}</finalName>
+              <finalName>${project.artifactId}-${version}</finalName>
               <appendAssemblyId>false</appendAssemblyId>
             </configuration>
           </execution>
@@ -181,8 +181,8 @@
               <configuration>
                 <artifacts>
                   <artifact>
-                    <file>target/${artifactId}-${version}.jar</file>
-                    <type>jar</type>
+                    <file>target/${project.artifactId}-${version}.zip</file>
+                    <type>zip</type>
                   </artifact>
 
                 </artifacts>

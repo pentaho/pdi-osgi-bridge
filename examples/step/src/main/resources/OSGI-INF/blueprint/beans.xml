@@ -15,7 +15,7 @@
   <!-- Actual Plugin Class PluginInterface, references the Spoon Plugin above -->
   <bean id="YamlPlugin" class="org.pentaho.di.osgi.OSGIPlugin">
     <property name="mainType" value="org.pentaho.di.trans.step.StepMetaInterface"/>
-    <property name="name" value="YamlInputFromOsgi"/>
+    <property name="name" value="Yaml Input From Osgi"/>
     <property name="ID" value="YamlInput"/>
     <property name="imageFile" value="YamlI.png"/>
     <property name="description" value="i18n:org.pentaho.di.trans.step:BaseStep.TypeLongDesc.YamlInput"/>

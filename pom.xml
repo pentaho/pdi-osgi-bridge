@@ -13,9 +13,8 @@
   <parent>
     <groupId>org.pentaho</groupId>
     <artifactId>pentaho-ce-jar-parent-pom</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.3</version>
   </parent>
-
 
   <properties>
     <package.features>true</package.features>
@@ -26,7 +25,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <pentaho-karaf-assembly.version>1.0-SNAPSHOT</pentaho-karaf-assembly.version>
-    <felix.version>4.0.3</felix.version>
+    <felix.version>4.4.1</felix.version>
     <pentaho-osgi-utils.version>1.0-SNAPSHOT</pentaho-osgi-utils.version>
     <kettle.version>INNOVATION-SNAPSHOT</kettle.version>
   </properties>

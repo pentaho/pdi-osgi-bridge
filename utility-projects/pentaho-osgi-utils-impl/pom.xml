@@ -40,20 +40,6 @@
       <artifactId>slf4j-api</artifactId>
       <version>1.7.7</version>
     </dependency>
-
-
-    <dependency>
-      <groupId>pentaho-kettle</groupId>
-      <artifactId>kettle-core</artifactId>
-      <version>${dependency.pentaho-kettle.kettle-core.revision}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>pentaho-kettle</groupId>
-      <artifactId>kettle-ui-swt</artifactId>
-      <version>${dependency.pentaho-kettle.kettle-core.revision}</version>
-    </dependency>
-
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-osgi-utils-api</artifactId>

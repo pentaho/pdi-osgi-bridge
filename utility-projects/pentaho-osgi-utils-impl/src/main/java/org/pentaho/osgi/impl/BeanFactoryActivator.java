@@ -17,7 +17,6 @@ public class BeanFactoryActivator implements BundleActivator {
     bundleContext.registerService(BeanFactoryLocator.class.getName(), new BeanFactoryLocatorImpl(), null);
     ServiceReference ref = bundleContext.getServiceReference(ConfigurationAdmin.class.getName());
     ConfigurationAdmin admin = (ConfigurationAdmin) bundleContext.getService(ref);
-    new PluginDirWatcher(admin).start();
   }
 
   @Override

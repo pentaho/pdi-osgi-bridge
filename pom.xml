@@ -5,10 +5,17 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>pentaho</groupId>
-  <artifactId>pdi-osgi-bridge</artifactId>
+  <artifactId>pdi-osgi-bridge-parent</artifactId>
   <version>1.0-SNAPSHOT</version>
 
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>core</module>
+    <module>activator</module>
+    <module>examples/step</module>
+    <module>examples/spoon</module>
+  </modules>
 
   <parent>
     <groupId>org.pentaho</groupId>
@@ -17,202 +24,7 @@
   </parent>
 
   <properties>
-    <package.features>true</package.features>
-    <karaf.version>2.3.5</karaf.version>
-    <junit.version>4.11</junit.version>
-    <mockito.version>1.9.5</mockito.version>
-    
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <pentaho-karaf-assembly.version>1.0-SNAPSHOT</pentaho-karaf-assembly.version>
-    <felix.version>4.4.1</felix.version>
-    <pentaho-osgi-utils.version>1.0-SNAPSHOT</pentaho-osgi-utils.version>
-    <kettle.version>INNOVATION-SNAPSHOT</kettle.version>
+    <dependency.pentaho-kettle.version>INNOVATION-SNAPSHOT</dependency.pentaho-kettle.version>
   </properties>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.7</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.7</version>
-    </dependency>
-
-    <dependency>
-      <groupId>pentaho-kettle</groupId>
-      <artifactId>kettle-core</artifactId>
-      <version>${kettle.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho-kettle</groupId>
-      <artifactId>kettle-engine</artifactId>
-      <version>${kettle.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho-kettle</groupId>
-      <artifactId>kettle-ui-swt</artifactId>
-      <version>${kettle.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-osgi-utils-api</artifactId>
-      <version>${pentaho-osgi-utils.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-osgi-utils-impl</artifactId>
-      <version>${pentaho-osgi-utils.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.felix</groupId>
-      <artifactId>org.apache.felix.framework</artifactId>
-      <version>${felix.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.karaf</groupId>
-      <artifactId>org.apache.karaf.main</artifactId>
-      <version>${karaf.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <version>${mockito.version}</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>cobertura-maven-plugin</artifactId>
-        <version>2.6</version>
-        <configuration>
-          <formats>
-            <format>html</format>
-            <format>xml</format>
-          </formats>
-          <check>
-            <branchRate>80</branchRate>
-            <lineRate>90</lineRate>
-            <haltOnFailure>false</haltOnFailure>
-            <totalBranchRate>80</totalBranchRate>
-            <totalLineRate>90</totalLineRate>
-            <packageLineRate>90</packageLineRate>
-            <packageBranchRate>80</packageBranchRate>
-          </check>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <!-- Uncompress the standard Karaf distribution -->
-            <id>unpack</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>unpack</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>pentaho</groupId>
-                  <artifactId>pentaho-karaf-assembly</artifactId>
-                  <version>${pentaho-karaf-assembly.version}</version>
-                  <classifier>client</classifier>
-                  <type>zip</type>
-                  <outputDirectory>target/dependencies</outputDirectory>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.4</version>
-        <executions>
-          <execution>
-            <id>package</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>src/main/descriptors/assembly.xml</descriptor>
-              </descriptors>
-              <finalName>${project.artifactId}</finalName>
-              <appendAssemblyId>false</appendAssemblyId>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>build-helper-maven-plugin</artifactId>
-          <version>1.5</version>
-          <executions>
-            <execution>
-              <id>attach-artifacts</id>
-              <phase>package</phase>
-              <goals>
-                <goal>attach-artifact</goal>
-              </goals>
-              <configuration>
-                <artifacts>
-                  <artifact>
-                    <file>target/${project.artifactId}.zip</file>
-                    <type>zip</type>
-                  </artifact>
-
-                </artifacts>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-
-    </plugins>
-
-  </build>
-  
-<repositories>
-    <repository>
-      <id>pentaho.resolve.repo</id>
-      <name>Pentaho Group Resolve Repository</name>
-      <url>http://nexus.pentaho.org/content/groups/omni/</url>
-      <releases>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </releases>
-      <snapshots>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>repo.pentaho.org</id>
-      <name>repo.pentaho.org</name>
-      <url>http://repository.pentaho.org/artifactory/pentaho</url>
-    </repository>
-  </repositories>
 
 </project>

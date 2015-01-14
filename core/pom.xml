@@ -23,10 +23,10 @@
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <pentaho-karaf-assembly.version>1.0-SNAPSHOT</pentaho-karaf-assembly.version>
+    <pentaho-karaf-assembly.version>${project.version}</pentaho-karaf-assembly.version>
     <felix.version>4.4.1</felix.version>
-    <pentaho-osgi-utils.version>1.0-SNAPSHOT</pentaho-osgi-utils.version>
-    <dependency.pentaho-kettle.version>INNOVATION-SNAPSHOT</dependency.pentaho-kettle.version>
+    <pentaho-osgi-utils.version>${project.version}</pentaho-osgi-utils.version>
+    <dependency.pentaho-kettle.version>${project.version}</dependency.pentaho-kettle.version>
   </properties>
 
   <dependencies>

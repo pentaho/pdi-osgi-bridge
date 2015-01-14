@@ -24,7 +24,7 @@
   </parent>
 
   <properties>
-    <dependency.pentaho-kettle.version>INNOVATION-SNAPSHOT</dependency.pentaho-kettle.version>
+    <dependency.pentaho-kettle.version>${project.version}</dependency.pentaho-kettle.version>
   </properties>
 
 </project>

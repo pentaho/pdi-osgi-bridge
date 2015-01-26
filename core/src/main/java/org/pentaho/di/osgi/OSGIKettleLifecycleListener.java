@@ -40,13 +40,7 @@ public class OSGIKettleLifecycleListener implements KettleLifecycleListener {
   }
 
   @Override public void onEnvironmentInit() throws LifecycleException {
-    while ( !doneInitializing.get() ) {
-      try {
-        Thread.sleep( 100 );
-      } catch ( InterruptedException e ) {
-        // Noop
-      }
-    }
+
   }
 
   @Override public void onEnvironmentShutdown() {

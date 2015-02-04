@@ -22,12 +22,16 @@
 
 package org.pentaho.di.karaf;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.karaf.main.Main;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -39,8 +43,9 @@ public class KarafHost {
   public static final String EMBEDDED_KARAF_MODE = "embedded.karaf.mode";
   private final AtomicBoolean initialized = new AtomicBoolean( false );
   private Log logger = LogFactory.getLog( getClass().getName() );
+  public static final String ORG_OSGI_FRAMEWORK_SYSTEM_PACKAGES_EXTRA = "org.osgi.framework.system.packages.extra";
   private Main main;
-
+  
   private KarafHost() {
   }
 
@@ -77,6 +82,10 @@ public class KarafHost {
           System.setProperty( "karaf.startLocalConsole", "false" );
           System.setProperty( "karaf.startRemoteShell", "true" );
           System.setProperty( "karaf.lock", "false" );
+
+
+          expandSystemPackages( root + "/etc/custom.properties");
+
           Main main = new Main( new String[ 0 ] );
           instance.main = main;
           try {
@@ -99,5 +108,40 @@ public class KarafHost {
         logger.error( "Error during Karaf shutdown", e );
       }
     }
+  }
+
+  void expandSystemPackages( String s ) {
+
+    File customFile = new File( s );
+    if( !customFile.exists() ){
+      logger.warn( "No custom.properties file for in karaf distribution.");
+      return;
+    }
+    Properties properties = new Properties();
+    FileInputStream inStream = null;
+    try {
+      inStream = new FileInputStream( customFile );
+      properties.load( inStream );
+    } catch ( IOException e ) {
+      logger.error( "Not able to expand system.packages.extra properties due to an error loading custom.properties", e );
+      return;
+    } finally {
+      IOUtils.closeQuietly( inStream );
+    }
+
+    properties = new SystemPackageExtrapolator().expandProperties( properties );
+    System.setProperty( ORG_OSGI_FRAMEWORK_SYSTEM_PACKAGES_EXTRA,
+        properties.getProperty( ORG_OSGI_FRAMEWORK_SYSTEM_PACKAGES_EXTRA ) );
+
+    //    FileOutputStream out = null;
+    //    try {
+    //      out = new FileOutputStream( customFile );
+    //      properties.store( out, "expanding osgi properties" );
+    //    } catch ( IOException e ) {
+    //      logger.error( "Not able to expand system.packages.extra properties due error saving custom.properties", e );
+    //    } finally {
+    //      IOUtils.closeQuietly( out );
+    //    }
+
   }
 }

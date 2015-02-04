@@ -39,6 +39,7 @@ public class KarafHost {
   public static final String EMBEDDED_KARAF_MODE = "embedded.karaf.mode";
   private final AtomicBoolean initialized = new AtomicBoolean( false );
   private Log logger = LogFactory.getLog( getClass().getName() );
+  private Main main;
 
   private KarafHost() {
   }
@@ -77,6 +78,7 @@ public class KarafHost {
           System.setProperty( "karaf.startRemoteShell", "true" );
           System.setProperty( "karaf.lock", "false" );
           Main main = new Main( new String[ 0 ] );
+          instance.main = main;
           try {
             main.launch();
           } catch ( Exception e ) {
@@ -86,6 +88,16 @@ public class KarafHost {
       } );
       karafLaunchThread.setContextClassLoader( this.getClass().getClassLoader() );
       karafLaunchThread.start();
+    }
+  }
+  
+  public void onEnvironmentShutdown() {
+    if ( main != null ) {
+      try {
+        main.destroy();
+      } catch ( Exception e ) {
+        logger.error( "Error during Karaf shutdown", e );
+      }
     }
   }
 }

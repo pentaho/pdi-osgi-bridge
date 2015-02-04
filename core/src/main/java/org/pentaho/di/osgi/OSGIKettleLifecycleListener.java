@@ -25,6 +25,7 @@ package org.pentaho.di.osgi;
 import org.pentaho.di.core.annotations.KettleLifecyclePlugin;
 import org.pentaho.di.core.lifecycle.KettleLifecycleListener;
 import org.pentaho.di.core.lifecycle.LifecycleException;
+import org.pentaho.di.karaf.KarafHost;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -44,6 +45,6 @@ public class OSGIKettleLifecycleListener implements KettleLifecycleListener {
   }
 
   @Override public void onEnvironmentShutdown() {
-
+    KarafHost.getInstance().onEnvironmentShutdown();
   }
 }

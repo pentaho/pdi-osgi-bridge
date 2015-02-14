@@ -147,6 +147,9 @@ public class OSGIPluginTracker {
             BundleContext cxt = bundle.getBundleContext();
 
             ServiceReference[] registeredServices = bundle.getRegisteredServices();
+            if( registeredServices == null ){
+                return null;
+            }
             for (ServiceReference registeredService : registeredServices) {
                 Object registeredServiceProperty = registeredService.getProperty("objectClass");
                 String proVal = (registeredServiceProperty instanceof String) ? (String) registeredServiceProperty : ((String[]) registeredServiceProperty)[0];

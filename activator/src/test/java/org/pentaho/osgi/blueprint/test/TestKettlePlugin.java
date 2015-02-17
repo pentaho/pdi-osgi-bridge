@@ -44,10 +44,8 @@ import java.io.InputStream;
 import java.util.Collection;
 
 import static junit.framework.TestCase.assertNotNull;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.ops4j.pax.exam.CoreOptions.*;
-import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.karafDistributionConfiguration;
 import static org.ops4j.pax.tinybundles.core.TinyBundles.bundle;
 import static org.ops4j.pax.tinybundles.core.TinyBundles.withBnd;
 
@@ -116,7 +114,7 @@ public class TestKettlePlugin {
               , "mvn:pentaho/pentaho-osgi-utils-api/" + projectVersion
               , "mvn:commons-vfs/commons-vfs/1.0",
               "mvn:net.sf.scannotation/scannotation/1.0.2" ),
-//          vmOption( "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005" ),
+          vmOption( "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005" ),
           systemPackages( "org.pentaho.di.i18n", "org.pentaho.osgi.api", "org.pentaho.di.core.plugins",
               "org.pentaho.di.core.exception", "org.apache.commons.vfs", "org.scannotation",
               "org.pentaho.di.core.annotations", "org.pentaho.di.core.lifecycle" ),
@@ -127,7 +125,8 @@ public class TestKettlePlugin {
               .useDeployFolder( false ),
           junitBundles(),
           mavenBundle( "commons-beanutils", "commons-beanutils", "1.9.2" ),
-          mavenBundle( "pentaho", "pentaho-monitoring-plugin", projectVersion ),
+//          mavenBundle( "pentaho", "pentaho-monitoring-plugin", projectVersion ),
+          mavenBundle( "commons-collections", "commons-collections", "3.2.1" ),
           mavenBundle( "commons-collections", "commons-collections", "3.2.1" ),
           provision( inp )
           , provision( inp2 )

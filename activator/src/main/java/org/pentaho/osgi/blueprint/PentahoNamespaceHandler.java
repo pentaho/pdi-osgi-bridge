@@ -48,7 +48,11 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
 
   @Override
   public ComponentMetadata decorate( Node node, ComponentMetadata componentMetadata, ParserContext parserContext ) {
-    if ( DI_PLUGIN.equals( node.getNodeName() ) ) {     // <pen:di-plugin type="..."/>
+    String nodeName = node.getNodeName();
+    if(nodeName.contains( ":" )){
+      nodeName = nodeName.substring( nodeName.indexOf( ":" ) + 1 );
+    }
+    if ( DI_PLUGIN.equals( nodeName ) ) {     // <pen:di-plugin type="..."/>
 
       MutableBeanMetadata pluginBeanMetadata = createKettlePluginBean( node, componentMetadata, parserContext );
       MutableServiceMetadata serviceMetadata = createServiceMeta( componentMetadata, parserContext, pluginBeanMetadata );

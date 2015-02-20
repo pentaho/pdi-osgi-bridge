@@ -60,6 +60,14 @@
       <version>${dependency.pentaho-kettle.version}</version>
       <scope>provided</scope>
     </dependency>
+
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-service-coordinator</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-osgi-utils-api</artifactId>

@@ -56,6 +56,8 @@ public class OSGIActivator implements BundleActivator {
     osgiPluginTracker.registerPluginClass( PluginInterface.class );
     beanFactoryLookupServiceTracker = new BeanFactoryLookupServiceTracker( bundleContext, osgiPluginTracker );
     beanFactoryLookupServiceTracker.open();
+    KarafLifecycleListener.getInstance().setBundleContext( bundleContext );
+
   }
 
   public void stop( BundleContext bundleContext ) throws Exception {

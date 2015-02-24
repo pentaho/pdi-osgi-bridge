@@ -25,12 +25,18 @@ package org.pentaho.di.osgi;
 import org.apache.commons.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.osgi.framework.*;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
 import org.pentaho.di.osgi.service.lifecycle.OSGIServiceLifecycleListener;
 import org.pentaho.osgi.api.BeanFactory;
 import org.pentaho.osgi.api.BeanFactoryLocator;
+import org.pentaho.osgi.api.ProxyUnwrapper;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,16 +52,26 @@ import static org.mockito.Mockito.*;
 /**
  * Created by bryan on 8/18/14.
  */
+@RunWith( MockitoJUnitRunner.class )
 public class OSGIPluginTrackerTest {
   private OSGIPluginTracker tracker;
   private BundleContext bundleContext;
+  @Mock private ProxyUnwrapper mockProxyUnwrapper;
 
   @Before
   public void setup() throws InvalidSyntaxException {
     tracker = new OSGIPluginTracker();
+    tracker.setProxyUnwrapper( mockProxyUnwrapper );
     bundleContext = mock( BundleContext.class );
     Filter filter = mock( Filter.class );
     when( bundleContext.createFilter( anyString())).thenReturn( filter );
+    when( mockProxyUnwrapper.unwrap( anyObject() ) ).thenAnswer( new Answer<Object>() {
+      @Override
+      public Object answer( InvocationOnMock invocation ) throws Throwable {
+        // return the same object that was passed in
+        return invocation.getArguments()[0];
+      }
+    } );
   }
 
   @Test

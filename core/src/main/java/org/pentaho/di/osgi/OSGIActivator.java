@@ -26,6 +26,7 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.osgi.service.tracker.BeanFactoryLookupServiceTracker;
+import org.pentaho.di.osgi.service.tracker.ProxyUnwrapperServiceTracker;
 import org.pentaho.osgi.api.BeanFactory;
 
 /**
@@ -35,6 +36,7 @@ public class OSGIActivator implements BundleActivator {
   private OSGIPluginTracker osgiPluginTracker;
   private BundleContext bundleContext;
   private BeanFactoryLookupServiceTracker beanFactoryLookupServiceTracker;
+  private ProxyUnwrapperServiceTracker proxyUnwrapperServiceTracker;
 
   public OSGIActivator() {
     osgiPluginTracker = OSGIPluginTracker.getInstance();
@@ -56,12 +58,16 @@ public class OSGIActivator implements BundleActivator {
     osgiPluginTracker.registerPluginClass( PluginInterface.class );
     beanFactoryLookupServiceTracker = new BeanFactoryLookupServiceTracker( bundleContext, osgiPluginTracker );
     beanFactoryLookupServiceTracker.open();
-    KarafLifecycleListener.getInstance().setBundleContext( bundleContext );
+    proxyUnwrapperServiceTracker = new ProxyUnwrapperServiceTracker( bundleContext, osgiPluginTracker );
+    proxyUnwrapperServiceTracker.open();
 
+    // Make sure all activation is done BEFORE this call. It will block until all bundles are registered
+    KarafLifecycleListener.getInstance().setBundleContext( bundleContext );
   }
 
   public void stop( BundleContext bundleContext ) throws Exception {
     osgiPluginTracker.shutdown();
     beanFactoryLookupServiceTracker.close();
+    proxyUnwrapperServiceTracker.close();
   }
 }

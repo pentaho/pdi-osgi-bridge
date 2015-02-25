@@ -39,8 +39,13 @@ import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifier;
 import org.pentaho.di.osgi.service.tracker.OSGIServiceTracker;
 import org.pentaho.osgi.api.BeanFactory;
 import org.pentaho.osgi.api.BeanFactoryLocator;
+import org.pentaho.osgi.api.ProxyUnwrapper;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -51,6 +56,7 @@ public class OSGIPluginTracker {
     private static OSGIPluginTracker INSTANCE = new OSGIPluginTracker();
     private BundleContext context;
     private BeanFactoryLocator lookup;
+    private ProxyUnwrapper proxyUnwrapper;
     private Map<Class, OSGIServiceTracker> trackers = new WeakHashMap<Class, OSGIServiceTracker>();
     private Map<Class, List<OSGIServiceLifecycleListener>> listeners =
             new WeakHashMap<Class, List<OSGIServiceLifecycleListener>>();
@@ -189,6 +195,10 @@ public class OSGIPluginTracker {
         this.lookup = lookup;
     }
 
+    public void setProxyUnwrapper( ProxyUnwrapper proxyUnwrapper ) {
+        this.proxyUnwrapper = proxyUnwrapper;
+    }
+
     public BeanFactory findOrCreateBeanFactoryFor(Object serviceObject) {
         ServiceReference reference = instanceToReferenceMap.get(serviceObject);
         if (reference == null || lookup == null) {
@@ -267,6 +277,7 @@ public class OSGIPluginTracker {
 
     public void serviceChanged(Class<?> cls, LifecycleEvent evt, ServiceReference serviceObject) {
         Object instance = context.getService(serviceObject);
+        instance = proxyUnwrapper.unwrap( instance );
         instanceToReferenceMap.put(instance, serviceObject);
         new DelayedServiceNotifier(this, cls, evt, instance, listeners, scheduler).run();
     }

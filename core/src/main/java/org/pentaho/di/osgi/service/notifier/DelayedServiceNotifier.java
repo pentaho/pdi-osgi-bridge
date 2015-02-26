@@ -62,7 +62,7 @@ public class DelayedServiceNotifier implements Runnable {
     // The beanfactory may not be registered yet. If not schedule a check every second until it is.
     // stopping services won't be able to find a beanfactory. Just skip
     if ( factory == null && eventType != LifecycleEvent.STOP ) {
-      ScheduledFuture<?> timeHandle = scheduler.schedule( this, 2, TimeUnit.SECONDS );
+      ScheduledFuture<?> timeHandle = scheduler.schedule( this, 100, TimeUnit.MILLISECONDS );
     } else {
       List<OSGIServiceLifecycleListener> listenerList = listeners.get( classToTrack );
       if ( listenerList != null ) {

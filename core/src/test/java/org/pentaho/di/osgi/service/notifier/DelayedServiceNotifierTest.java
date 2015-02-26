@@ -127,6 +127,6 @@ public class DelayedServiceNotifierTest {
         instanceListeners, scheduler );
     when( osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject ) ).thenReturn( null );
     delayedServiceNotifier.run();
-    verify( scheduler ).schedule( delayedServiceNotifier, 2, TimeUnit.SECONDS );
+    verify( scheduler ).schedule( delayedServiceNotifier, 100, TimeUnit.MILLISECONDS );
   }
 }

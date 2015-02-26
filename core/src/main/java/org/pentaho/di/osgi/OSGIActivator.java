@@ -53,13 +53,13 @@ public class OSGIActivator implements BundleActivator {
 
   @Override public void start( BundleContext bundleContext ) throws Exception {
     this.bundleContext = bundleContext;
+    proxyUnwrapperServiceTracker = new ProxyUnwrapperServiceTracker( bundleContext, osgiPluginTracker );
+    proxyUnwrapperServiceTracker.open();
     osgiPluginTracker.setBundleContext( bundleContext );
     osgiPluginTracker.registerPluginClass( BeanFactory.class );
     osgiPluginTracker.registerPluginClass( PluginInterface.class );
     beanFactoryLookupServiceTracker = new BeanFactoryLookupServiceTracker( bundleContext, osgiPluginTracker );
     beanFactoryLookupServiceTracker.open();
-    proxyUnwrapperServiceTracker = new ProxyUnwrapperServiceTracker( bundleContext, osgiPluginTracker );
-    proxyUnwrapperServiceTracker.open();
 
     // Make sure all activation is done BEFORE this call. It will block until all bundles are registered
     KarafLifecycleListener.getInstance().setBundleContext( bundleContext );

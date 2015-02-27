@@ -123,7 +123,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
 
   @Override
   public String[] getIds() {
-    return new String[] { ID };
+    return new String[]{ getID() };
   }
 
   public String getID() {
@@ -188,7 +188,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
 
   @Override
   public boolean matches( String id ) {
-    return ID.equals( id );
+    return getID().equals( id );
   }
 
   public void setPluginTypeInterface( Class<PluginTypeInterface> pluginTypeInterface ) {

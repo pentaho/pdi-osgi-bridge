@@ -114,7 +114,7 @@ public class TestKettlePlugin {
               , "mvn:pentaho/pentaho-osgi-utils-api/" + projectVersion
               , "mvn:commons-vfs/commons-vfs/1.0",
               "mvn:net.sf.scannotation/scannotation/1.0.2" ),
-          vmOption( "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005" ),
+//          vmOption( "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005" ),
           systemPackages( "org.pentaho.di.i18n", "org.pentaho.osgi.api", "org.pentaho.di.core.plugins",
               "org.pentaho.di.core.exception", "org.apache.commons.vfs", "org.scannotation",
               "org.pentaho.di.core.annotations", "org.pentaho.di.core.lifecycle" ),

@@ -32,6 +32,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -57,11 +58,6 @@ public class OSGIPluginTest {
     String category = "CATEGORY_TEST";
     osgiPlugin.setCategory( category );
     assertEquals( category, osgiPlugin.getCategory() );
-  }
-
-  @Test
-  public void testGetClassMap() {
-    assertEquals( Collections.emptyMap(), osgiPlugin.getClassMap() );
   }
 
   @Test
@@ -202,6 +198,16 @@ public class OSGIPluginTest {
     when( osgiPluginTracker.getBean( Object.class, osgiPlugin, "list" ) ).thenReturn( result );
     Object object = osgiPlugin.loadClass( Object.class );
     assertEquals( result, object );
+  }
+
+  @Test
+  public void testClassMap() {
+    String id = "myListBean";
+    List<Object> bean = new ArrayList<>();
+    osgiPlugin.setClassToBeanMap( Collections.singletonMap( List.class.getName(), id ) );
+    when( osgiPluginTracker.getBean( List.class, osgiPlugin, id ) ).thenReturn( bean );
+    Map<Class<List>, String> expected = Collections.singletonMap( List.class, ArrayList.class.getName() );
+    assertEquals( expected, osgiPlugin.getClassMap() );
   }
 
   @Test

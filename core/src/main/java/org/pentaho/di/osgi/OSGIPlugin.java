@@ -96,11 +96,21 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
   }
 
   /**
-   * No meaning in OSGI
+   * Generated from {@link #getClassToBeanMap}
    */
   @Override
   public Map<Class<?>, String> getClassMap() {
-    return Collections.emptyMap();
+    HashMap<Class<?>, String> classMap = new HashMap<>();
+    for( String typeName : getClassToBeanMap().keySet() ) {
+      try {
+        Class<?> type = Class.forName( typeName );
+        Object bean = loadClass( type );
+        classMap.put( type, bean.getClass().getName() );
+      } catch ( ClassNotFoundException e ) {
+        logger.error( "Error instancing plugin class: ", e );
+      }
+    }
+    return classMap;
   }
 
   @Override
@@ -123,7 +133,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
 
   @Override
   public String[] getIds() {
-    return new String[] { ID };
+    return new String[]{ getID() };
   }
 
   public String getID() {
@@ -188,7 +198,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
 
   @Override
   public boolean matches( String id ) {
-    return ID.equals( id );
+    return getID().equals( id );
   }
 
   public void setPluginTypeInterface( Class<PluginTypeInterface> pluginTypeInterface ) {
@@ -197,7 +207,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
 
   @Override
   public <T> T loadClass( Class<T> pluginClass ) {
-    String id = classToBeanMap.get( pluginClass.getCanonicalName() );
+    String id = classToBeanMap.get( pluginClass.getName() );
     if ( id != null ) {
       return osgiPluginTracker.getBean( pluginClass, this, id );
     } else {

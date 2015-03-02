@@ -86,10 +86,6 @@ public class AnnotationBasedOsgiPlugin extends OSGIPlugin {
     return exposer.extractCategory( annotation );
   }
 
-  @Override public String[] getIds() {
-    return new String[]{ getID() };
-  }
-
   @Override public String getID() {
     return exposer.extractID( annotation );
   }

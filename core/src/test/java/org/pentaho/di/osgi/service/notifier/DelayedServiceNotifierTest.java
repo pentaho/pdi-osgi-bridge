@@ -28,6 +28,7 @@ import org.pentaho.di.osgi.OSGIPluginTracker;
 import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
 import org.pentaho.di.osgi.service.lifecycle.OSGIServiceLifecycleListener;
 import org.pentaho.osgi.api.BeanFactory;
+import org.pentaho.osgi.api.ProxyUnwrapper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,6 +49,7 @@ public class DelayedServiceNotifierTest {
   private OSGIPluginTracker osgiPluginTracker;
   private Object serviceObject;
   private Class<?> clazz;
+  private ProxyUnwrapper proxyUnwrapper;
 
   @Before
   public void setup() {
@@ -55,6 +57,7 @@ public class DelayedServiceNotifierTest {
     scheduler = mock( ScheduledExecutorService.class );
     osgiPluginTracker = mock( OSGIPluginTracker.class );
     serviceObject = mock( Object.class );
+    proxyUnwrapper = mock( ProxyUnwrapper.class );
     clazz = Map.class;
   }
 
@@ -69,6 +72,7 @@ public class DelayedServiceNotifierTest {
     instanceListeners.put( clazz, listeners );
     BeanFactory beanFactory = mock( BeanFactory.class );
     when( osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject ) ).thenReturn( beanFactory );
+    when( osgiPluginTracker.getProxyUnwrapper() ).thenReturn( proxyUnwrapper );
     delayedServiceNotifier.run();
     verify( listener ).pluginAdded( serviceObject );
   }
@@ -99,6 +103,7 @@ public class DelayedServiceNotifierTest {
     instanceListeners.put( clazz, listeners );
     BeanFactory beanFactory = mock( BeanFactory.class );
     when( osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject ) ).thenReturn( beanFactory );
+    when( osgiPluginTracker.getProxyUnwrapper() ).thenReturn( proxyUnwrapper );
     delayedServiceNotifier.run();
     verify( listener ).pluginChanged( serviceObject );
   }

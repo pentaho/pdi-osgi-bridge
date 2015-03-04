@@ -199,6 +199,13 @@ public class OSGIPluginTracker {
         this.proxyUnwrapper = proxyUnwrapper;
     }
 
+    public ProxyUnwrapper getProxyUnwrapper() {
+      if ( proxyUnwrapper == null ) {
+        proxyUnwrapper = context.getService( context.getServiceReference( ProxyUnwrapper.class ) );
+      }
+      return proxyUnwrapper;
+    }
+
     public BeanFactory findOrCreateBeanFactoryFor(Object serviceObject) {
         ServiceReference reference = instanceToReferenceMap.get(serviceObject);
         if (reference == null || lookup == null) {
@@ -277,7 +284,7 @@ public class OSGIPluginTracker {
 
     public void serviceChanged(Class<?> cls, LifecycleEvent evt, ServiceReference serviceObject) {
         Object instance = context.getService(serviceObject);
-        instance = proxyUnwrapper.unwrap( instance );
+        instance = getProxyUnwrapper().unwrap( instance );
         instanceToReferenceMap.put(instance, serviceObject);
         new DelayedServiceNotifier(this, cls, evt, instance, listeners, scheduler).run();
     }

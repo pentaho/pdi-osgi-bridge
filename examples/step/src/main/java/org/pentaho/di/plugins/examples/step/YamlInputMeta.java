@@ -30,6 +30,7 @@ import org.apache.commons.vfs.FileObject;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
@@ -57,7 +58,10 @@ import org.w3c.dom.Node;
 
 /**
  * Store run-time data on the YamlInput step.
+ *
+ * <step id="YamlInput"> <description>i18n:org.pentaho.di.trans.step:BaseStep.TypeLongDesc.YamlInput</description> <classname>org.pentaho.di.trans.steps.yamlinput.YamlInputMeta</classname> <category>i18n:org.pentaho.di.trans.step:BaseStep.Category.Input</category> <tooltip>i18n:org.pentaho.di.trans.step:BaseStep.TypeTooltipDesc.YamlInput</tooltip> <iconfile>ui/images/YamlI.png</iconfile> <documentation_url/> <cases_url/> <forum_url/> </step>
  */
+@Step( id="YamlInput", image = "YamlI.png", name = "YAML Input Step", categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Input")
 public class YamlInputMeta extends BaseStepMeta implements StepMetaInterface {
   private static Class<?> PKG = YamlInputMeta.class; // for i18n purposes, needed by Translator2!!
 

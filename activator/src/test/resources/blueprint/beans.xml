@@ -5,9 +5,11 @@
               http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
               http://www.pentaho.com/xml/schemas/pentaho-blueprint http://www.pentaho.com/xml/schemas/pentaho-blueprint.xsd">
 
-
-<bean class="org.pentaho.osgi.blueprint.test.TestObject">
-  <pen:di-plugin type="org.pentaho.di.core.plugins.KettleLifecyclePluginType"/>
-</bean>
+  <bean class="org.pentaho.osgi.blueprint.test.TestObject">
+    <pen:di-plugin type="org.pentaho.di.core.plugins.KettleLifecyclePluginType">
+      <pen:di-plugin-mapping class="org.pentaho.di.core.extension.ExtensionPointPluginType" ref="testExtensionPoint"/>
+    </pen:di-plugin>
+  </bean>
+  <bean class="org.pentaho.osgi.blueprint.test.TestObject2" id="testExtensionPoint"/>
 
 </blueprint>

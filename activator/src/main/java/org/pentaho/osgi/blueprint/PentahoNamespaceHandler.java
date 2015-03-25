@@ -4,6 +4,8 @@ package org.pentaho.osgi.blueprint;
 import org.apache.aries.blueprint.NamespaceHandler;
 import org.apache.aries.blueprint.ParserContext;
 import org.apache.aries.blueprint.mutable.MutableBeanMetadata;
+import org.apache.aries.blueprint.mutable.MutableMapEntry;
+import org.apache.aries.blueprint.mutable.MutableMapMetadata;
 import org.apache.aries.blueprint.mutable.MutableRefMetadata;
 import org.apache.aries.blueprint.mutable.MutableServiceMetadata;
 import org.apache.aries.blueprint.mutable.MutableValueMetadata;
@@ -13,7 +15,9 @@ import org.osgi.service.blueprint.reflect.Metadata;
 import org.osgi.service.blueprint.reflect.ServiceMetadata;
 import org.pentaho.di.osgi.AnnotationBasedOsgiPlugin;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import java.net.URL;
 import java.util.Set;
@@ -133,10 +137,35 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
     MutableValueMetadata beanNameMeta = parserContext.createMetadata( MutableValueMetadata.class );
     beanNameMeta.setStringValue( componentMetadata.getId() );
 
+    // Class Map
+    MutableMapMetadata classToBeanMap = parserContext.createMetadata( MutableMapMetadata.class );
+    NodeList nodeList = node.getChildNodes();
+    for ( int i=0; i< nodeList.getLength(); i++) {
+      MutableValueMetadata prop = parserContext.createMetadata( MutableValueMetadata.class );
+      NamedNodeMap attributes = nodeList.item( i ).getAttributes();
+      if( attributes == null ) {
+        continue;
+      }
+      Node classProp = nodeList.item( i ).getAttributes().getNamedItem( "class" );
+      Node refProp = nodeList.item( i ).getAttributes().getNamedItem( "ref" );
+      if ( classProp == null || refProp == null ) {
+        continue;
+      }
+      prop.setStringValue( classProp.getNodeValue() );
+      prop.setType( String.class.getName() );
+      MutableValueMetadata propVal = parserContext.createMetadata( MutableValueMetadata.class );
+      propVal.setStringValue( refProp.getNodeValue() );
+      propVal.setType( String.class.getName() );
+      classToBeanMap.addEntry( prop, propVal );
+    }
+
+
+
     // Set Arguments
     pluginBeanMetadata.addArgument( kettlePluginTypeMeta, null, 0 );
     pluginBeanMetadata.addArgument( beanReferenceMeta, null, 1 );
     pluginBeanMetadata.addArgument( beanNameMeta, null, 2 );
+    pluginBeanMetadata.addArgument( classToBeanMap, null, 3 );
 
     // Give it an ID (required)
     pluginBeanMetadata.setId( AUTO_PDI_PLUGIN + componentMetadata.getId() );

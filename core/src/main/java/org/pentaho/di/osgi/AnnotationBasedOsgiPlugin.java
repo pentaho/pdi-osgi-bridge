@@ -13,6 +13,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -26,7 +28,9 @@ public class AnnotationBasedOsgiPlugin extends OSGIPlugin {
   private Annotation annotation;
   private Logger logger = LoggerFactory.getLogger( getClass() );
 
-  public AnnotationBasedOsgiPlugin( Class<PluginTypeInterface> pluginTypeInterface, Object bean, String id )
+
+  public AnnotationBasedOsgiPlugin( Class<PluginTypeInterface> pluginTypeInterface, Object bean, String id, Map
+      <String, String> classToBeanMap )
       throws IllegalAccessException, InstantiationException {
     this.bean = bean;
     if( ! BasePluginType.class.isAssignableFrom( pluginTypeInterface )){
@@ -73,8 +77,12 @@ public class AnnotationBasedOsgiPlugin extends OSGIPlugin {
       throw new IllegalStateException( "Bean class does not have required PluginType annotation" );
     }
     super.setPluginTypeInterface( pluginTypeInterface );
-    super.setClassToBeanMap( Collections.<String, String>singletonMap( getMainType().getName(), id ) );
-    exposer = new BasePluginTypeExposer( basePluginType );
+    if( classToBeanMap == null ){
+      classToBeanMap = new HashMap<String, String>(  );
+    }
+    classToBeanMap.put( getMainType().getName(), id );
+    super.setClassToBeanMap( classToBeanMap );
+    exposer = new BasePluginTypeExposer( basePluginType, bean );
   }
 
   @Override public String getDescription() {

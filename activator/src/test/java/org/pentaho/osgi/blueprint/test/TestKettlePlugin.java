@@ -88,6 +88,7 @@ public class TestKettlePlugin {
 
       InputStream inp2 = bundle()
           .add( TestObject.class )
+          .add( TestObject2.class )
           .set( Constants.BUNDLE_SYMBOLICNAME, "Test_Bundle2" )
           .set( Constants.EXPORT_PACKAGE, "*" )
           .set( Constants.IMPORT_PACKAGE, "org.pentaho.di.core.plugins,org.pentaho.di.osgi,*" )
@@ -117,7 +118,8 @@ public class TestKettlePlugin {
 //          vmOption( "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005" ),
           systemPackages( "org.pentaho.di.i18n", "org.pentaho.osgi.api", "org.pentaho.di.core.plugins",
               "org.pentaho.di.core.exception", "org.apache.commons.vfs", "org.scannotation",
-              "org.pentaho.di.core.annotations", "org.pentaho.di.core.lifecycle" ),
+              "org.pentaho.di.core.annotations", "org.pentaho.di.core.lifecycle", "org.pentaho.di.core.extension",
+              "org.pentaho.di.core.logging"),
 
           KarafDistributionOption.karafDistributionConfiguration()
               .frameworkUrl( karafUrl )

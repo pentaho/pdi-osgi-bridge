@@ -4,6 +4,7 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.pentaho.di.osgi.OSGIActivator;
 import org.pentaho.osgi.blueprint.PentahoNamespaceActivator;
+import org.pentaho.osgi.bridge.KarafCapabilityProvider;
 
 /**
  * The "Main" Activator for this bundle. Bundles can only have one Activator so this one chains to others as needed.
@@ -11,6 +12,9 @@ import org.pentaho.osgi.blueprint.PentahoNamespaceActivator;
  */
 public class BridgeActivator implements BundleActivator {
   @Override public void start( BundleContext bundleContext ) throws Exception {
+
+    new KarafCapabilityProvider( bundleContext ).open();
+
     new OSGIActivator().start( bundleContext );
     new PentahoNamespaceActivator().start( bundleContext );
   }

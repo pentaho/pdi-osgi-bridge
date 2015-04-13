@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -45,7 +46,7 @@ public class KarafHost {
   private Log logger = LogFactory.getLog( getClass().getName() );
   public static final String ORG_OSGI_FRAMEWORK_SYSTEM_PACKAGES_EXTRA = "org.osgi.framework.system.packages.extra";
   private Main main;
-  
+
   private KarafHost() {
   }
 
@@ -68,10 +69,10 @@ public class KarafHost {
         public void run() {
           String root;
           try {
-            root =
-                new File( KarafHost.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath() )
-                    .getParentFile().getAbsolutePath() + "/karaf";
-          } catch ( URISyntaxException e1 ) {
+            root = new File( URLDecoder.decode(
+                    KarafHost.class.getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8" ) )
+                      .getParentFile().getAbsolutePath() + "/karaf";
+          } catch ( Exception e1 ) {
             throw new RuntimeException( e1 );
           }
           System.setProperty( "karaf.home", root );
@@ -99,7 +100,7 @@ public class KarafHost {
       karafLaunchThread.start();
     }
   }
-  
+
   public void onEnvironmentShutdown() {
     if ( main != null ) {
       try {

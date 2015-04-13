@@ -142,6 +142,9 @@ public class KarafCapabilityProvider extends ServiceTracker<FeaturesService, Fea
   @Override public void featureEvent( FeatureEvent featureEvent ) {
     String feature = featureEvent.getFeature().getId();
     InstallFuture installFutureWrapper = futures.getIfPresent( feature );
+    if( installFutureWrapper == null ){
+      return;
+    }
     switch( featureEvent.getType() ) {
       case FeatureInstalled:
         SettableFuture<Boolean> future = installFutureWrapper.future;

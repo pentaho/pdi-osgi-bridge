@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Enumeration;
@@ -38,8 +39,7 @@ public class SystemPackageExtrapolator {
       URL[] urLs = ( (URLClassLoader) classLoader ).getURLs();
       for ( URL url : urLs ) {
         try {
-          String fileName = url.getFile();
-          File file = new File( fileName );
+          File file = new File( url.toURI() );
           if ( !file.exists() || file.isDirectory() ) {
             continue;
           }
@@ -54,6 +54,8 @@ public class SystemPackageExtrapolator {
             }
           }
         } catch ( IOException e ) {
+          logger.debug( "Error procesing jar for packages", e );
+        } catch (URISyntaxException e) {
           logger.debug( "Error procesing jar for packages", e );
         }
       }

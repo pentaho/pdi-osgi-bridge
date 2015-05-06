@@ -3,6 +3,7 @@ package org.pentaho.di.osgi;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.pentaho.osgi.api.IKarafFeatureWatcher;
+import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.platform.servicecoordination.api.IPhasedLifecycleEvent;
 import org.pentaho.platform.servicecoordination.api.IPhasedLifecycleListener;
 
@@ -59,6 +60,8 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
   }
 
   public void setBundleContext( BundleContext bundleContext ){
+    PentahoSystem.init();
+    PentahoSystem.setBundleContext( bundleContext );
     this.bundleContext = bundleContext;
 
     maybeStartFeatureWatcher();

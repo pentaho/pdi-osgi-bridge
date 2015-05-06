@@ -25,6 +25,7 @@ package org.pentaho.di.osgi.registryExtension;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.pentaho.di.core.KettleClientEnvironment;
+import org.pentaho.di.core.plugins.ParentFirst;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.PluginRegistryExtension;
@@ -40,6 +41,7 @@ import org.pentaho.di.osgi.service.lifecycle.PluginRegistryOSGIServiceLifecycleL
  * Created by bryan on 8/15/14.
  */
 @RegistryPlugin(id = "OSGIRegistryPlugin", name = "OSGI")
+@ParentFirst( patterns = { "org\\.osgi\\.framework\\.*" } )
 public class OSGIPluginRegistryExtension implements PluginRegistryExtension {
   private static OSGIPluginRegistryExtension INSTANCE;
   private OSGIPluginTracker tracker = OSGIPluginTracker.getInstance();

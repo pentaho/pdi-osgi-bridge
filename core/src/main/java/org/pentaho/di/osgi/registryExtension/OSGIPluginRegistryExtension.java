@@ -41,7 +41,7 @@ import org.pentaho.di.osgi.service.lifecycle.PluginRegistryOSGIServiceLifecycleL
  * Created by bryan on 8/15/14.
  */
 @RegistryPlugin(id = "OSGIRegistryPlugin", name = "OSGI")
-@ParentFirst( patterns = { "org\\.osgi\\.framework\\.*" } )
+@ParentFirst( patterns = { "org\\.osgi\\.framework\\..*" } )
 public class OSGIPluginRegistryExtension implements PluginRegistryExtension {
   private static OSGIPluginRegistryExtension INSTANCE;
   private OSGIPluginTracker tracker = OSGIPluginTracker.getInstance();

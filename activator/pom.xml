@@ -68,6 +68,15 @@
       <artifactId>kettle-core</artifactId>
       <version>${dependency.pentaho-kettle.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+
+
+          <groupId>org.apache.karaf</groupId>
+          <artifactId>org.apache.karaf.main</artifactId>
+
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

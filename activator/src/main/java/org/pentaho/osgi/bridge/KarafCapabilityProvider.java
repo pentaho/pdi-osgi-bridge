@@ -81,8 +81,8 @@ public class KarafCapabilityProvider extends ServiceTracker<FeaturesService, Fea
     this.bundleContext.registerService( FeaturesListener.class, this, null );
   }
 
-  @Override public FeaturesService addingService( ServiceReference reference ) {
-    this.featuresService = (FeaturesService) bundleContext.getService( reference );
+  @Override public FeaturesService addingService( ServiceReference<FeaturesService> reference ) {
+    this.featuresService = bundleContext.getService( reference );
     if(! initialized.getAndSet( true )) {
       DefaultCapabilityManager.getInstance().registerCapabilityProvider( this );
     }

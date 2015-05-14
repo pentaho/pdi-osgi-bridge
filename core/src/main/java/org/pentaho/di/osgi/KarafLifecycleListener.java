@@ -60,10 +60,13 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     }
   }
 
-  public void setBundleContext( BundleContext bundleContext ){
-    PentahoSystem.init();
-    PentahoSystem.setBundleContext( bundleContext );
-    PentahoSystem.registerObjectFactory( new OSGIObjectFactory( bundleContext ) );
+  public void setBundleContext( BundleContext bundleContext ) {
+    if ( PentahoSystem.getInitializedStatus() != PentahoSystem.SYSTEM_INITIALIZED_OK ){
+      PentahoSystem.init();
+      PentahoSystem.setBundleContext( bundleContext );
+      PentahoSystem.registerObjectFactory( new OSGIObjectFactory( bundleContext ) );
+    }
+
     this.bundleContext = bundleContext;
 
     maybeStartFeatureWatcher();

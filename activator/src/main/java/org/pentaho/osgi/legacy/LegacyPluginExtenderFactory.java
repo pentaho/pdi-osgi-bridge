@@ -158,7 +158,7 @@ public class LegacyPluginExtenderFactory {
           }
         }
         if ( match ) {
-          return constructor.newInstance( arguments );
+          return constructor.newInstance( arguments.toArray() );
         }
       }
     }

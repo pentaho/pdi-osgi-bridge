@@ -18,6 +18,7 @@
     <module>activator</module>
     <module>examples/step</module>
     <module>examples/spoon</module>
+    <module>assembly</module>
   </modules>
   <properties>
     <dependency.pentaho-kettle.version>${project.version}</dependency.pentaho-kettle.version>

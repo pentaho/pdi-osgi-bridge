@@ -22,15 +22,9 @@
   <formats>
     <format>zip</format>
   </formats>
+  <baseDirectory>pdi-osgi-bridge</baseDirectory>
 
   <fileSets>
-    <fileSet>
-      <directory>target</directory>
-      <outputDirectory></outputDirectory>
-      <includes>
-        <include>*.jar</include>
-      </includes>
-    </fileSet>
     <!-- Expanded Karaf Standard Distribution -->
     <fileSet>
       <directory>target/dependencies/pentaho-karaf-assembly</directory>
@@ -50,6 +44,31 @@
   <dependencySets>
     <dependencySet>
       <outputDirectory>/lib</outputDirectory>
+      <excludes>
+        <exclude>pentaho:pdi-osgi-bridge-core:jar:${project.version}</exclude>
+        <exclude>pentaho:pdi-osgi-bridge-activator:jar:${project.version}</exclude>
+        <exclude>*:easymock*</exclude>
+        <exclude>*:jansi*</exclude>
+        <exclude>*:jline*</exclude>
+        <exclude>*:mina-core*</exclude>
+        <exclude>org.osgi:org.osgi.compendium:*</exclude>
+        <exclude>org.apache.felix:*</exclude>
+        <exclude>org.apache.aries.blueprint:*</exclude>
+        <exclude>org.apache.aries.proxy:*</exclude>
+        <exclude>org.apache.aries.quiesce:*</exclude>
+        <exclude>org.apache.karaf*:*</exclude>
+        <exclude>org.ops4j.pax.*:*</exclude>
+        <exclude>*:sshd-core:*</exclude>
+      </excludes>
+      <unpack>false</unpack>
+      <scope>runtime</scope>
+      <useProjectArtifact>false</useProjectArtifact>
+    </dependencySet>
+    <dependencySet>
+      <outputDirectory></outputDirectory>
+      <includes>
+        <include>pentaho:pdi-osgi-bridge-core:jar:${project.version}</include>
+      </includes>
       <unpack>false</unpack>
       <scope>runtime</scope>
       <useProjectArtifact>false</useProjectArtifact>

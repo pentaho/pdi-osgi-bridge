@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>pdi-osgi-bridge</artifactId>
+  <artifactId>pdi-osgi-bridge-core</artifactId>
 
   <packaging>jar</packaging>
 
@@ -214,79 +214,7 @@
           </check>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <!-- Uncompress the standard Karaf distribution -->
-            <id>unpack</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>unpack</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>pentaho</groupId>
-                  <artifactId>pentaho-karaf-assembly</artifactId>
-                  <version>${pentaho-karaf-assembly.version}</version>
-                  <classifier>client</classifier>
-                  <type>zip</type>
-                  <outputDirectory>target/dependencies</outputDirectory>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.4</version>
-        <executions>
-          <execution>
-            <id>package</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>src/main/descriptors/assembly.xml</descriptor>
-              </descriptors>
-              <finalName>${project.artifactId}</finalName>
-              <appendAssemblyId>false</appendAssemblyId>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>build-helper-maven-plugin</artifactId>
-          <version>1.5</version>
-          <executions>
-            <execution>
-              <id>attach-artifacts</id>
-              <phase>package</phase>
-              <goals>
-                <goal>attach-artifact</goal>
-              </goals>
-              <configuration>
-                <artifacts>
-                  <artifact>
-                    <file>target/${project.artifactId}.zip</file>
-                    <type>zip</type>
-                  </artifact>
-
-                </artifacts>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-
     </plugins>
-
   </build>
   
 </project>

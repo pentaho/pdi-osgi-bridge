@@ -1,0 +1,10 @@
+bin/
+dist/
+lib/
+lib-runtime/
+lib-provided/
+lib-deploy/
+target/
+*.iml
+.classpath
+.project

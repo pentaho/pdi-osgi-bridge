@@ -13,14 +13,49 @@
   <version>6.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <modules>
-    <module>core</module>
-    <module>activator</module>
-    <module>examples/step</module>
-    <module>examples/spoon</module>
-    <module>assembly</module>
-  </modules>
   <properties>
     <dependency.pentaho-kettle.version>${project.version}</dependency.pentaho-kettle.version>
   </properties>
+
+  <profiles>
+    <profile>
+      <id>all</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <modules>
+        <module>core</module>
+        <module>activator</module>
+        <module>examples/step</module>
+        <module>examples/spoon</module>
+        <module>assembly</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>modules</id>
+      <activation>
+        <property>
+          <name>modules</name>
+        </property>
+      </activation>
+      <modules>
+        <module>core</module>
+        <module>activator</module>
+        <module>examples/step</module>
+        <module>examples/spoon</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>assembly</id>
+      <activation>
+        <property>
+          <name>assembly</name>
+        </property>
+      </activation>
+      <modules>
+        <module>assembly</module>
+      </modules>
+    </profile>
+  </profiles>
+
 </project>

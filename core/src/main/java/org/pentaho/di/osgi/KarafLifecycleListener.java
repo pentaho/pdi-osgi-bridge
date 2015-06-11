@@ -7,6 +7,8 @@ import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.platform.engine.core.system.objfac.OSGIObjectFactory;
 import org.pentaho.platform.servicecoordination.api.IPhasedLifecycleEvent;
 import org.pentaho.platform.servicecoordination.api.IPhasedLifecycleListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -18,6 +20,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
   private BundleContext bundleContext;
   private IPhasedLifecycleEvent<KettleLifecycleEvent> event;
   private static KarafLifecycleListener INSTANCE = new KarafLifecycleListener();
+  private Logger logger = LoggerFactory.getLogger( getClass() );
 
   private KarafLifecycleListener( ) {
 
@@ -45,11 +48,17 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
         @Override public void run() {
           ServiceReference<IKarafFeatureWatcher> serviceReference =
               bundleContext.getServiceReference( IKarafFeatureWatcher.class );
-          IKarafFeatureWatcher karafFeatureWatcher = bundleContext.getService( serviceReference );
           try {
+            if( serviceReference == null ){
+              throw new IKarafFeatureWatcher.FeatureWatcherException( "No IKarafFeatureWatcher service available");
+            }
+            IKarafFeatureWatcher karafFeatureWatcher = bundleContext.getService( serviceReference );
             karafFeatureWatcher.waitForFeatures();
           } catch ( IKarafFeatureWatcher.FeatureWatcherException e ) {
-            event.exception( e );
+            logger.error( "Error in Feature Watcher", e );
+
+            // We're not going to kill the system in the case of Feature errors, for now.
+            //event.exception( e );
           }
           event.accept();
         }

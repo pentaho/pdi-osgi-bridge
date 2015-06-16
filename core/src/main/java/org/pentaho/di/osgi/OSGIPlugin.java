@@ -1,0 +1,284 @@
+/*! ******************************************************************************
+ *
+ * Pentaho Data Integration
+ *
+ * Copyright (C) 2002-2014 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
+package org.pentaho.di.osgi;
+
+import org.pentaho.di.core.plugins.ClassLoadingPluginInterface;
+import org.pentaho.di.core.plugins.PluginInterface;
+import org.pentaho.di.core.plugins.PluginTypeInterface;
+import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.osgi.api.BeanFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.URL;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * User: nbaker Date: 12/9/10
+ * <p/>
+ * This represents a Plugin in the Kettle System that's been registered for a particular PluginTypeInterface.
+ */
+public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface {
+
+  private OSGIPluginTracker osgiPluginTracker;
+  private String category;
+  private String description;
+  private String errorHelpFile;
+  private String ID;
+  private String name;
+  private String imageFile;
+  private Class<Object> mainType;
+  private Class<PluginTypeInterface> pluginTypeInterface;
+  private BeanFactory beanFactory;
+  private String casesUrl;
+  private String documentationUrl;
+  private String forumUrl;
+  private Map<String, String> classToBeanMap = new HashMap<String, String>();
+
+  private Logger logger = LoggerFactory.getLogger( getClass() );
+
+  public OSGIPlugin() {
+    osgiPluginTracker = OSGIPluginTracker.getInstance();
+  }
+
+  protected void setOsgiPluginTracker( OSGIPluginTracker osgiPluginTracker ) {
+    this.osgiPluginTracker = osgiPluginTracker;
+  }
+
+  @Override
+  public String getCategory() {
+    return translateString( category );
+  }
+
+  private static String translateString( String str ){
+
+    if ( str == null ) {
+      return null;
+    }
+
+    if ( str.startsWith( "i18n:" ) ) {
+      String[] parts = str.split( ":" );
+      if ( parts.length != 3 ) {
+        return str;
+      } else {
+        return BaseMessages.getString(parts[1], parts[2]);
+      }
+    }
+
+    return str;
+  }
+
+  public void setCategory( String category ) {
+    this.category = category;
+  }
+
+  /**
+   * Generated from {@link #getClassToBeanMap}
+   */
+  @Override
+  public Map<Class<?>, String> getClassMap() {
+    HashMap<Class<?>, String> classMap = new HashMap<>();
+    for( String typeName : getClassToBeanMap().keySet() ) {
+      try {
+        Class<?> type = Class.forName( typeName );
+        Object bean = loadClass( type );
+        classMap.put( type, bean.getClass().getName() );
+      } catch ( ClassNotFoundException e ) {
+        logger.error( "Error instancing plugin class: ", e );
+      }
+    }
+    return classMap;
+  }
+
+  @Override
+  public String getDescription() {
+    return translateString( description );
+  }
+
+  public void setDescription( String description ) {
+    this.description = description;
+  }
+
+  @Override
+  public String getErrorHelpFile() {
+    return errorHelpFile;
+  }
+
+  public void setErrorHelpFile( String errorHelpFile ) {
+    this.errorHelpFile = errorHelpFile;
+  }
+
+  @Override
+  public String[] getIds() {
+    return new String[]{ getID() };
+  }
+
+  public String getID() {
+    return ID;
+  }
+
+  public void setID( String ID ) {
+    this.ID = ID;
+  }
+
+  @Override
+  public String getImageFile() {
+    return imageFile;
+  }
+
+  public void setImageFile( String imageFile ) {
+    this.imageFile = imageFile;
+  }
+
+  @Override
+  public List<String> getLibraries() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public Class<?> getMainType() {
+    return mainType;
+  }
+
+  public void setMainType( Class<Object> mainType ) {
+    this.mainType = mainType;
+  }
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  public void setName( String name ) {
+    this.name = name;
+  }
+
+  @Override
+  public URL getPluginDirectory() {
+    return null;
+  }
+
+  @Override
+  public Class<? extends PluginTypeInterface> getPluginType() {
+    return pluginTypeInterface;
+  }
+
+  @Override
+  public boolean isNativePlugin() {
+    return false;
+  }
+
+  @Override
+  public boolean isSeparateClassLoaderNeeded() {
+    return false;
+  }
+
+  @Override
+  public boolean matches( String id ) {
+    return getID().equals( id );
+  }
+
+  public void setPluginTypeInterface( Class<PluginTypeInterface> pluginTypeInterface ) {
+    this.pluginTypeInterface = pluginTypeInterface;
+  }
+
+  @Override
+  public <T> T loadClass( Class<T> pluginClass ) {
+    String id = classToBeanMap.get( pluginClass.getName() );
+    if ( id != null ) {
+      return osgiPluginTracker.getBean( pluginClass, this, id );
+    } else {
+      try {
+        return pluginClass.newInstance();
+      } catch ( Exception e ) {
+        logger.error( "Error instancing plugin class: ", e );
+        return null;
+//        throw new KettlePluginException( e );
+      }
+    }
+  }
+
+  public BeanFactory getBeanFactory() {
+    return beanFactory;
+  }
+
+  public void setBeanFactory( BeanFactory beanFactory ) {
+    this.beanFactory = beanFactory;
+  }
+
+  @Override
+  public ClassLoader getClassLoader() {
+    return osgiPluginTracker.getClassLoader( this );
+  }
+
+  @Override
+  public String getCasesUrl() {
+    return casesUrl;
+  }
+
+  @Override
+  public void setCasesUrl( String casesUrl ) {
+    this.casesUrl = casesUrl;
+  }
+
+  @Override
+  public String getDocumentationUrl() {
+    return documentationUrl;
+  }
+
+  @Override
+  public void setDocumentationUrl( String documentationUrl ) {
+    this.documentationUrl = documentationUrl;
+  }
+
+  @Override
+  public String getForumUrl() {
+    return forumUrl;
+  }
+
+  @Override
+  public void setForumUrl( String forumUrl ) {
+    this.forumUrl = forumUrl;
+  }
+
+  @Override
+  public String getClassLoaderGroup() {
+    return null;
+  }
+
+  @Override
+  public void setClassLoaderGroup( String arg0 ) {
+    // noop
+  }
+
+  public Map<String, String> getClassToBeanMap() {
+    return classToBeanMap;
+  }
+
+  public void setClassToBeanMap( Map<String, String> classToBeanMap ) {
+    this.classToBeanMap = classToBeanMap;
+  }
+}

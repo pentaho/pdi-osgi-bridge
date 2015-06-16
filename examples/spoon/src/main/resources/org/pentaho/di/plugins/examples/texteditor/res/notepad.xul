@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<window id="label-test" title="Flow Test"
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	xmlns:HTML="http://www.w3.org/Profiles/XHTML-transitional" height="600" width="800"
+    xmlns:pen="http://www.pentaho.org/2008/xul" onload="handler.init()" >
+     <vbox flex="1" id="mainPanel">
+       <label value="This perspective offers a simple text entry box. If you save this tab the value of the textbox will be saved out to file."/>
+       <label value="You can create new Note tabs by clicking the New button on the main toolbar"/>
+       <spacer height="20"/>
+       <label value="Note:"/>
+     	<textbox flex="1" id="notepad"/>
+     </vbox>
+</window>

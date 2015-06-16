@@ -1,0 +1,77 @@
+<!--
+  ~ This program is free software; you can redistribute it and/or modify it under the
+  ~ terms of the GNU Lesser General Public License, version 2.1 as published by the Free Software
+  ~ Foundation.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public License along with this
+  ~ program; if not, you can obtain a copy at http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+  ~ or from the Free Software Foundation, Inc.,
+  ~ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+  ~ without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  ~ See the GNU Lesser General Public License for more details.
+  ~
+  ~ Copyright 2014 Pentaho Corporation. All rights reserved.
+  -->
+
+<assembly>
+
+  <id>package</id>
+
+  <formats>
+    <format>zip</format>
+  </formats>
+  <baseDirectory>pdi-osgi-bridge</baseDirectory>
+
+  <fileSets>
+    <!-- Expanded Karaf Standard Distribution -->
+    <fileSet>
+      <directory>target/dependencies/pentaho-karaf-assembly</directory>
+      <outputDirectory>/karaf</outputDirectory>
+    </fileSet>
+
+    <fileSet>
+      <directory>target/dependencies/pentaho-karaf-assembly</directory>
+      <outputDirectory>/</outputDirectory>
+      <includes>
+        <include>lib/karaf.jar</include>
+        <include>lib/karaf-jaas-boot.jar</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>/lib</outputDirectory>
+      <excludes>
+        <exclude>pentaho:pdi-osgi-bridge-core:jar:${project.version}</exclude>
+        <exclude>pentaho:pdi-osgi-bridge-activator:jar:${project.version}</exclude>
+        <exclude>*:easymock*</exclude>
+        <exclude>*:jansi*</exclude>
+        <exclude>*:jline*</exclude>
+        <exclude>*:mina-core*</exclude>
+        <exclude>org.osgi:org.osgi.compendium:*</exclude>
+        <exclude>org.apache.felix:*</exclude>
+        <exclude>org.apache.aries.blueprint:*</exclude>
+        <exclude>org.apache.aries.proxy:*</exclude>
+        <exclude>org.apache.aries.quiesce:*</exclude>
+        <exclude>org.apache.karaf*:*</exclude>
+        <exclude>org.ops4j.pax.*:*</exclude>
+        <exclude>*:sshd-core:*</exclude>
+      </excludes>
+      <unpack>false</unpack>
+      <scope>runtime</scope>
+      <useProjectArtifact>false</useProjectArtifact>
+    </dependencySet>
+    <dependencySet>
+      <outputDirectory></outputDirectory>
+      <includes>
+        <include>pentaho:pdi-osgi-bridge-core:jar:${project.version}</include>
+      </includes>
+      <unpack>false</unpack>
+      <scope>runtime</scope>
+      <useProjectArtifact>false</useProjectArtifact>
+    </dependencySet>
+  </dependencySets>
+</assembly>

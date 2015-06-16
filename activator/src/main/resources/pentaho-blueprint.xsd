@@ -1,0 +1,56 @@
+<xsd:schema xmlns="http://www.pentaho.com/xml/schemas/pentaho-blueprint" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.pentaho.com/xml/schemas/pentaho-blueprint" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0.0">
+
+
+  <xsd:complexType name="TdiPlugin">
+    <xsd:annotation>
+      <xsd:documentation>
+        <![CDATA[
+Defines the di-plugin element with one attribute named 'type'
+]]>
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="di-plugin-mapping" type="TdiPluginMapping"
+                   minOccurs="0" maxOccurs="unbounded" />
+    </xsd:sequence>
+    <xsd:attribute name="type" type="xsd:string"/>
+  </xsd:complexType>
+
+  <xsd:element name="di-plugin" type="TdiPlugin">
+
+    <xsd:annotation>
+      <xsd:documentation>
+        <![CDATA[
+Marks the enclosing bean as a class containing Annotations describing a PDI Plugin Type
+]]>
+      </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+
+
+  <xsd:complexType name="TdiPluginMapping">
+    <xsd:annotation>
+      <xsd:documentation>
+        <![CDATA[
+Defines the di-plugin element with one attribute named 'type'
+]]>
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:attribute name="class" type="xsd:string"/>
+    <xsd:attribute name="ref" type="xsd:string"/>
+  </xsd:complexType>
+
+  <xsd:element name="di-plugin-mapping" type="TdiPluginMapping">
+
+    <xsd:annotation>
+      <xsd:documentation>
+        <![CDATA[
+Marks the enclosing bean as a class containing Annotations describing a PDI Plugin Type
+]]>
+      </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+
+
+
+</xsd:schema>

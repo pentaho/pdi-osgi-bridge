@@ -83,6 +83,7 @@ public class KarafHost {
           System.setProperty( "karaf.startLocalConsole", "false" );
           System.setProperty( "karaf.startRemoteShell", "true" );
           System.setProperty( "karaf.lock", "false" );
+          System.setProperty( "karaf.etc", root + "/etc"  );
 
 
           expandSystemPackages( root + "/etc/custom.properties");

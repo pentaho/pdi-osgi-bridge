@@ -23,6 +23,7 @@
 package org.pentaho.di.karaf;
 
 import org.junit.Test;
+import org.pentaho.di.osgi.registryExtension.OSGIPluginRegistryExtension;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -32,6 +33,7 @@ import static org.junit.Assert.assertNotNull;
 public class KarafHostTest {
   @Test
   public void testGetInstanceNotNull() {
-    assertNotNull( KarafHost.getInstance() );
+    new OSGIPluginRegistryExtension();
+    assertNotNull( OSGIPluginRegistryExtension.getInstance().getKarafBoot() );
   }
 }

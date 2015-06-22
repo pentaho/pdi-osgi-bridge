@@ -28,7 +28,6 @@
         <module>activator</module>
         <module>examples/step</module>
         <module>examples/spoon</module>
-        <module>assembly</module>
       </modules>
     </profile>
     <profile>

@@ -30,11 +30,11 @@ import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.PluginRegistryPluginType;
-import org.pentaho.di.karaf.KarafHost;
 import org.pentaho.di.osgi.OSGIPluginTracker;
 import org.pentaho.di.osgi.OSGIPluginType;
 import org.pentaho.di.osgi.StatusGetter;
 import org.pentaho.di.osgi.service.lifecycle.PluginRegistryOSGIServiceLifecycleListener;
+import org.pentaho.platform.osgi.KarafBoot;
 
 import java.util.List;
 
@@ -49,7 +49,7 @@ public class OSGIPluginRegistryExtensionTest {
   private OSGIPluginRegistryExtension cachedInstance;
   private OSGIPluginTracker tracker;
   private Log logger;
-  private KarafHost karafHost;
+  private KarafBoot karafBoot;
   private StatusGetter<Boolean> kettleClientEnvironmentInitialized;
 
   @Before
@@ -65,8 +65,8 @@ public class OSGIPluginRegistryExtensionTest {
     extension.setTracker( tracker );
     logger = mock( Log.class );
     extension.setLogger( logger );
-    karafHost = mock( KarafHost.class );
-    extension.setKarafHost( karafHost );
+    karafBoot = mock( KarafBoot.class );
+    extension.setKarafBoot( karafBoot );
     kettleClientEnvironmentInitialized = mock( StatusGetter.class );
     extension.setKettleClientEnvironmentInitialized( kettleClientEnvironmentInitialized );
   }
@@ -81,7 +81,7 @@ public class OSGIPluginRegistryExtensionTest {
     PluginRegistry registry = mock( PluginRegistry.class );
     when( kettleClientEnvironmentInitialized.get() ).thenReturn( true );
     OSGIPluginRegistryExtension.getInstance().init( registry );
-    verify( karafHost ).init();
+    verify( karafBoot ).startup( null );
     verify( tracker ).registerPluginClass( PluginInterface.class );
     verify( tracker ).addPluginLifecycleListener( any( Class.class ),
       any( PluginRegistryOSGIServiceLifecycleListener.class ) );

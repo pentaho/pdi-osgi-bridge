@@ -24,6 +24,7 @@ package org.pentaho.di.osgi;
 
 import org.junit.Test;
 import org.pentaho.di.core.lifecycle.LifecycleException;
+import org.pentaho.di.osgi.registryExtension.OSGIPluginRegistryExtension;
 
 /**
  * Created by bryan on 8/15/14.
@@ -47,6 +48,7 @@ public class OSGIKettleLifecycleListenerTest {
 
   @Test
   public void testOnEnvironmentShutdownNoop() {
+    new OSGIPluginRegistryExtension();
     new OSGIKettleLifecycleListener().onEnvironmentShutdown();
   }
 }

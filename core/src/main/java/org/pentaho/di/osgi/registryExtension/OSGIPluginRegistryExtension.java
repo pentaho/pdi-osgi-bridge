@@ -22,36 +22,40 @@
 
 package org.pentaho.di.osgi.registryExtension;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.pentaho.di.core.KettleClientEnvironment;
-import org.pentaho.di.core.plugins.ParentFirst;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.PluginRegistryExtension;
 import org.pentaho.di.core.plugins.PluginTypeInterface;
 import org.pentaho.di.core.plugins.RegistryPlugin;
-import org.pentaho.di.karaf.KarafHost;
 import org.pentaho.di.osgi.OSGIPluginTracker;
 import org.pentaho.di.osgi.OSGIPluginType;
 import org.pentaho.di.osgi.StatusGetter;
 import org.pentaho.di.osgi.service.lifecycle.PluginRegistryOSGIServiceLifecycleListener;
+import org.pentaho.platform.engine.core.system.PentahoSystem;
+import org.pentaho.platform.engine.core.system.StandaloneApplicationContext;
+import org.pentaho.platform.osgi.KarafBoot;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by bryan on 8/15/14.
  */
 @RegistryPlugin(id = "OSGIRegistryPlugin", name = "OSGI")
-@ParentFirst( patterns = { "org\\.osgi\\.framework\\..*" } )
 public class OSGIPluginRegistryExtension implements PluginRegistryExtension {
   private static OSGIPluginRegistryExtension INSTANCE;
   private OSGIPluginTracker tracker = OSGIPluginTracker.getInstance();
   private Log logger = LogFactory.getLog( getClass().getName() );
-  private KarafHost karafHost = KarafHost.getInstance();
+  private KarafBoot boot = new KarafBoot();
   private StatusGetter<Boolean> kettleClientEnvironmentInitialized = new StatusGetter<Boolean>() {
     @Override public Boolean get() {
       return KettleClientEnvironment.isInitialized();
     }
   };
+  private AtomicBoolean initializedKaraf = new AtomicBoolean( false );
 
   public OSGIPluginRegistryExtension() {
     INSTANCE = this;
@@ -79,25 +83,31 @@ public class OSGIPluginRegistryExtension implements PluginRegistryExtension {
     this.logger = logger;
   }
 
-  // FOR UNIT TEST ONLY
-  public void setKarafHost( KarafHost karafHost ) {
-    this.karafHost = karafHost;
-  }
 
   // FOR UNIT TEST ONLY
   protected void setKettleClientEnvironmentInitialized( StatusGetter<Boolean> kettleClientEnvironmentInitialized ) {
     this.kettleClientEnvironmentInitialized = kettleClientEnvironmentInitialized;
   }
 
+  @VisibleForTesting
+  void setKarafBoot( KarafBoot boot ){
+    this.boot = boot;
+  }
+
+  public KarafBoot getKarafBoot(){
+    return boot;
+  }
+
   @Override
-  public void init( final PluginRegistry registry ) {
-    karafHost.init();
-//    if ( kettleClientEnvironmentInitialized.get() ) {
-      PluginRegistry.addPluginType( OSGIPluginType.getInstance() );
-      tracker.registerPluginClass( PluginInterface.class );
-      tracker.addPluginLifecycleListener( PluginInterface.class,
-        new PluginRegistryOSGIServiceLifecycleListener( registry ) );
-//    }
+  public synchronized void init( final PluginRegistry registry ) {
+    if ( PentahoSystem.getInitializedStatus() != PentahoSystem.SYSTEM_INITIALIZED_OK && !initializedKaraf.getAndSet( true )) {
+      PentahoSystem.init();
+      boot.startup( null );
+    }
+    PluginRegistry.addPluginType( OSGIPluginType.getInstance() );
+    tracker.registerPluginClass( PluginInterface.class );
+    tracker.addPluginLifecycleListener( PluginInterface.class,
+      new PluginRegistryOSGIServiceLifecycleListener( registry ) );
   }
 
   @Override

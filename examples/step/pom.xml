@@ -19,7 +19,7 @@
 
   <properties>
     <paxexamversion>4.1.0</paxexamversion>
-    <dependency.pentaho.pentaho-xul-core.version>TRUNK-SNAPSHOT</dependency.pentaho.pentaho-xul-core.version>
+
   </properties>
   <dependencies>
 
@@ -44,7 +44,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-xul-core</artifactId>
-      <version>${dependency.pentaho.pentaho-xul-core.version}</version>
+      <version>${dependency.pentaho-xul.revision}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

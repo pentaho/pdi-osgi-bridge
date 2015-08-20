@@ -18,7 +18,6 @@
     <url>http://www.pentaho.com</url>
     
     <properties>
-        <dependency.pentaho.pentaho-xul-core.version>TRUNK-SNAPSHOT</dependency.pentaho.pentaho-xul-core.version>
         <paxexamversion>4.1.0</paxexamversion>
     </properties>
     <dependencies>
@@ -41,7 +40,7 @@
         <dependency>
             <groupId>pentaho</groupId>
             <artifactId>pentaho-xul-core</artifactId>
-            <version>${dependency.pentaho.pentaho-xul-core.version}</version>
+            <version>${dependency.pentaho-xul.revision}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

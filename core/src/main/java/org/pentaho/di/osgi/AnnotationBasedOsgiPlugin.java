@@ -41,14 +41,14 @@ public class AnnotationBasedOsgiPlugin extends OSGIPlugin {
     try {
       constructor = pluginTypeInterface.getConstructor();
     } catch ( NoSuchMethodException e ) {
-      logger.debug( "Error getting Constructor for BasePluginType", e );
+      logger.debug( "Error getting Constructor for BasePluginType of [ " + pluginTypeInterface.getName() + " ]");
       trySingleton = true;
     }
     if(constructor != null && constructor.isAccessible()){
     try {
         basePluginType = (BasePluginType) constructor.newInstance(  );
       } catch ( InvocationTargetException e ) {
-        logger.debug( "Error calling Constructor for BasePluginType", e );
+        logger.debug( "Error calling Constructor for BasePluginType of [ " + pluginTypeInterface.getName() + " ]");        
         trySingleton = true;
       }
     } else {

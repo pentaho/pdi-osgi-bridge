@@ -62,7 +62,6 @@
       </exclusions>
     </dependency>
 
-
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>
@@ -70,11 +69,8 @@
       <scope>provided</scope>
       <exclusions>
         <exclusion>
-
-
           <groupId>org.apache.karaf</groupId>
           <artifactId>org.apache.karaf.main</artifactId>
-
         </exclusion>
       </exclusions>
     </dependency>
@@ -117,32 +113,6 @@
       <scope>provided</scope>
     </dependency>
 
-
-    <dependency>
-      <groupId>org.ops4j.pax.exam</groupId>
-      <artifactId>pax-exam-container-karaf</artifactId>
-      <version>${exam.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-
-    <dependency>
-      <groupId>org.ops4j.pax.exam</groupId>
-      <artifactId>pax-exam-junit4</artifactId>
-      <version>${exam.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.ops4j.pax.exam</groupId>
-      <artifactId>pax-exam-extender-service</artifactId>
-      <version>4.1.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.ops4j.pax.exam</groupId>
-      <artifactId>pax-exam-link-mvn</artifactId>
-      <version>${exam.version}</version>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -150,20 +120,11 @@
       <scope>provided</scope>
     </dependency>
 
-
-
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-capability-manager</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.ops4j.pax.url</groupId>
-      <artifactId>pax-url-aether</artifactId>
-      <version>1.4.0</version>
-      <scope>test</scope>
     </dependency>
 
     <!-- Logging -->

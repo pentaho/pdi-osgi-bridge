@@ -56,7 +56,7 @@
     <dependency>
       <groupId>org.apache.karaf.features</groupId>
       <artifactId>org.apache.karaf.features.core</artifactId>
-      <version>3.0.3</version>
+      <version>4.0.1</version>
       <exclusions>
         <exclusion><groupId>org.osgi</groupId><artifactId>org.osgi.core</artifactId></exclusion>
       </exclusions>

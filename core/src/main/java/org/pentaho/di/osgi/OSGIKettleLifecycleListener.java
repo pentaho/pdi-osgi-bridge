@@ -22,7 +22,6 @@
 
 package org.pentaho.di.osgi;
 
-import org.pentaho.di.core.annotations.KettleLifecyclePlugin;
 import org.pentaho.di.core.lifecycle.KettleLifecycleListener;
 import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.osgi.registryExtension.OSGIPluginRegistryExtension;
@@ -32,7 +31,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Created by bryan on 8/13/14.
  */
-@KettleLifecyclePlugin(id = "OSGIKettleLifecyclePlugin", name = "OSGIKettleLifecyclePlugin")
 public class OSGIKettleLifecycleListener implements KettleLifecycleListener {
   private static final AtomicBoolean doneInitializing = new AtomicBoolean( false );
 

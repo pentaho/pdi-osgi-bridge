@@ -1,21 +1,18 @@
 package org.pentaho.di.osgi;
 
-import org.pentaho.di.core.annotations.KettleLifecyclePlugin;
 import org.pentaho.di.core.lifecycle.KettleLifecycleListener;
 import org.pentaho.di.core.lifecycle.LifecycleException;
 
 /**
  * Created by nbaker on 2/18/15.
  */
-@KettleLifecyclePlugin( id = "OSGIKettleLifecycleAdapter", name = "OSGIKettleLifecycleAdapter" )
 public class KettleLifeCycleAdapter implements KettleLifecycleListener {
 
   private KettlePhaseLifecycleManager manager;
 
-  public KettleLifeCycleAdapter(  ){
-
+  public KettleLifeCycleAdapter() {
     this.manager = KettlePhaseLifecycleManager.getInstance();
-    manager.addLifecycleListener( KarafLifecycleListener.getInstance()  );
+    manager.addLifecycleListener( KarafLifecycleListener.getInstance() );
   }
 
   @Override public void onEnvironmentInit() throws LifecycleException {

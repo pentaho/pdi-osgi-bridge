@@ -29,6 +29,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.util.tracker.ServiceTracker;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginTypeInterface;
 import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
@@ -41,13 +42,10 @@ import org.pentaho.osgi.api.BeanFactory;
 import org.pentaho.osgi.api.BeanFactoryLocator;
 import org.pentaho.osgi.api.ProxyUnwrapper;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * User: nbaker Date: 11/9/10
@@ -66,7 +64,16 @@ public class OSGIPluginTracker {
     private Map<Object, BeanFactory> beanToFactoryMap = new WeakHashMap<Object, BeanFactory>();
     private Map<Object, List<ServiceReferenceListener>> instanceListeners =
             new WeakHashMap<Object, List<ServiceReferenceListener>>();
-    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private static ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+
+            Thread thread = Executors.defaultThreadFactory().newThread(r);
+            thread.setDaemon(true);
+            thread.setName("OSGIPluginTracker pool");
+            return thread;
+        }
+    });
     private Log logger = LogFactory.getLog(getClass().getName());
     private List<Class<? extends PluginTypeInterface>> queuedClasses =
             new ArrayList<Class<? extends PluginTypeInterface>>();
@@ -153,7 +160,7 @@ public class OSGIPluginTracker {
             BundleContext cxt = bundle.getBundleContext();
 
             ServiceReference[] registeredServices = bundle.getRegisteredServices();
-            if( registeredServices == null ){
+            if (registeredServices == null) {
                 return null;
             }
             for (ServiceReference registeredService : registeredServices) {
@@ -195,15 +202,24 @@ public class OSGIPluginTracker {
         this.lookup = lookup;
     }
 
-    public void setProxyUnwrapper( ProxyUnwrapper proxyUnwrapper ) {
+    public void setProxyUnwrapper(ProxyUnwrapper proxyUnwrapper) {
         this.proxyUnwrapper = proxyUnwrapper;
     }
 
     public ProxyUnwrapper getProxyUnwrapper() {
-      if ( proxyUnwrapper == null ) {
-        proxyUnwrapper = context.getService( context.getServiceReference( ProxyUnwrapper.class ) );
-      }
-      return proxyUnwrapper;
+        if (proxyUnwrapper == null) {
+            ServiceTracker<ProxyUnwrapper, ProxyUnwrapper> tracker = new ServiceTracker(context, ProxyUnwrapper.class, null);
+            tracker.open();
+            try {
+                tracker.waitForService(30000);
+                proxyUnwrapper = tracker.getService();
+            } catch (InterruptedException e) {
+                throw new NullPointerException("No ProxyUnwrapper found");
+            } finally {
+                tracker.close();
+            }
+        }
+        return proxyUnwrapper;
     }
 
     public BeanFactory findOrCreateBeanFactoryFor(Object serviceObject) {
@@ -284,7 +300,7 @@ public class OSGIPluginTracker {
 
     public void serviceChanged(Class<?> cls, LifecycleEvent evt, ServiceReference serviceObject) {
         Object instance = context.getService(serviceObject);
-        instance = getProxyUnwrapper().unwrap( instance );
+        instance = getProxyUnwrapper().unwrap(instance);
         instanceToReferenceMap.put(instance, serviceObject);
         new DelayedServiceNotifier(this, cls, evt, instance, listeners, scheduler).run();
     }

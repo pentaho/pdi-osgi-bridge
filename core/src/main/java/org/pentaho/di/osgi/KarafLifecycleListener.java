@@ -4,6 +4,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.pentaho.di.core.util.ExecutorUtil;
 import org.pentaho.osgi.api.IKarafFeatureWatcher;
+import org.pentaho.osgi.api.IKarafBlueprintWatcher;
 import org.pentaho.platform.servicecoordination.api.IPhasedLifecycleEvent;
 import org.pentaho.platform.servicecoordination.api.IPhasedLifecycleListener;
 import org.slf4j.Logger;
@@ -35,25 +36,25 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     this.event = event;
     if ( event.getNotificationObject().equals( KettleLifecycleEvent.INIT ) ) {
       initialized.set( true );
-      maybeStartFeatureWatcher();
+      maybeStartWatchers();
     } else {
       // simple accept all other events
       event.accept();
     }
   }
 
-  private void maybeStartFeatureWatcher() {
+  private void maybeStartWatchers() {
     if ( bundleContext != null && initialized.get() ) {
 
       Thread thread = new Thread( new Runnable() {
         @Override public void run() {
-          ServiceReference<IKarafFeatureWatcher> serviceReference =
+          ServiceReference<IKarafFeatureWatcher> featureWatcherServiceReference =
             bundleContext.getServiceReference( IKarafFeatureWatcher.class );
           try {
-            if ( serviceReference == null ) {
+            if ( featureWatcherServiceReference == null ) {
               throw new IKarafFeatureWatcher.FeatureWatcherException( "No IKarafFeatureWatcher service available" );
             }
-            IKarafFeatureWatcher karafFeatureWatcher = bundleContext.getService( serviceReference );
+            IKarafFeatureWatcher karafFeatureWatcher = bundleContext.getService( featureWatcherServiceReference );
             karafFeatureWatcher.waitForFeatures();
           } catch ( IKarafFeatureWatcher.FeatureWatcherException e ) {
             logger.error( "Error in Feature Watcher", e );
@@ -61,6 +62,21 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
             // We're not going to kill the system in the case of Feature errors, for now.
             //event.exception( e );
           }
+
+          ServiceReference<IKarafBlueprintWatcher>
+              blueprintWatcherServiceReference =
+              bundleContext.getServiceReference( IKarafBlueprintWatcher.class );
+          try {
+            if ( blueprintWatcherServiceReference == null ) {
+              throw new IKarafBlueprintWatcher.BlueprintWatcherException(
+                  "No IKarafBlueprintWatcher service available" );
+            }
+            IKarafBlueprintWatcher karafBlueprintWatcher = bundleContext.getService( blueprintWatcherServiceReference );
+            karafBlueprintWatcher.waitForBlueprint();
+          } catch ( IKarafBlueprintWatcher.BlueprintWatcherException e ) {
+            logger.error( "Error in Blueprint Watcher", e );
+          }
+
           event.accept();
         }
       } );
@@ -74,7 +90,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
 
     this.bundleContext = bundleContext;
     bundleContext.registerService( ExecutorService.class, ExecutorUtil.getExecutor(), new Hashtable<String, Object>() );
-    maybeStartFeatureWatcher();
+    maybeStartWatchers();
 
   }
 }

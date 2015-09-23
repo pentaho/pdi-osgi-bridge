@@ -3,8 +3,8 @@ package org.pentaho.di.osgi;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.pentaho.di.core.util.ExecutorUtil;
-import org.pentaho.osgi.api.IKarafFeatureWatcher;
 import org.pentaho.osgi.api.IKarafBlueprintWatcher;
+import org.pentaho.osgi.api.IKarafFeatureWatcher;
 import org.pentaho.platform.servicecoordination.api.IPhasedLifecycleEvent;
 import org.pentaho.platform.servicecoordination.api.IPhasedLifecycleListener;
 import org.slf4j.Logger;
@@ -18,24 +18,31 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Created by nbaker on 2/19/15.
  */
 public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLifecycleEvent> {
-  private static KarafLifecycleListener INSTANCE = new KarafLifecycleListener();
+  private int timeout = 10000;
+  private static KarafLifecycleListener INSTANCE = new KarafLifecycleListener( );
+  private AtomicBoolean listenerActive = new AtomicBoolean( false );
   private AtomicBoolean initialized = new AtomicBoolean( false );
   private BundleContext bundleContext;
   private IPhasedLifecycleEvent<KettleLifecycleEvent> event;
   private Logger logger = LoggerFactory.getLogger( getClass() );
 
-  private KarafLifecycleListener() {
 
+  KarafLifecycleListener( ) {
+  }
+
+  KarafLifecycleListener( int timeout ) {
+    this.timeout = timeout;
   }
 
   public static KarafLifecycleListener getInstance() {
     return INSTANCE;
   }
 
-  @Override public void onPhaseChange( IPhasedLifecycleEvent<KettleLifecycleEvent> event ) {
+  @Override public void onPhaseChange( final IPhasedLifecycleEvent<KettleLifecycleEvent> event ) {
     this.event = event;
     if ( event.getNotificationObject().equals( KettleLifecycleEvent.INIT ) ) {
-      initialized.set( true );
+      listenerActive.set( true );
+      startTimeoutThread();
       maybeStartWatchers();
     } else {
       // simple accept all other events
@@ -43,13 +50,43 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     }
   }
 
+  private void startTimeoutThread() {
+    // start watch thread to prevent deadlock where the event is never accepted
+    Thread t = new Thread( new Runnable() {
+
+      @Override protected void finalize() throws Throwable {
+        super.finalize();
+      }
+
+      @Override public void run() {
+        while ( !initialized.get() && ( timeout -= 100 ) > 0 ) {
+          try {
+            Thread.sleep( 100 );
+          } catch ( InterruptedException e ) {
+            return;
+          }
+        }
+        if ( !initialized.get() ) {
+          // We fell out due to time or an exception. Ensure that we release the lifecycle hold
+          logger.error(
+              "The Kettle Karaf Lifycycle Listener failed to execute properly. Releasing lifecycle hold, but some "
+                  + "services may be unavailable." );
+          event.accept();
+        }
+      }
+    } );
+    t.setDaemon( true );
+    t.setName( "KarafLifecycleListner Timeout Thread" );
+    t.start();
+  }
+
   private void maybeStartWatchers() {
-    if ( bundleContext != null && initialized.get() ) {
+    if ( bundleContext != null && listenerActive.get() ) {
 
       Thread thread = new Thread( new Runnable() {
         @Override public void run() {
           ServiceReference<IKarafFeatureWatcher> featureWatcherServiceReference =
-            bundleContext.getServiceReference( IKarafFeatureWatcher.class );
+              bundleContext.getServiceReference( IKarafFeatureWatcher.class );
           try {
             if ( featureWatcherServiceReference == null ) {
               throw new IKarafFeatureWatcher.FeatureWatcherException( "No IKarafFeatureWatcher service available" );
@@ -82,6 +119,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
       } );
       thread.setDaemon( true );
       thread.start();
+      initialized.set( true );
 
     }
   }

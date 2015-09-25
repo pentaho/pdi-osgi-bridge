@@ -108,7 +108,12 @@ public class KarafCapabilityProvider extends ServiceTracker<FeaturesService, Fea
 
   @Override public ICapability getCapabilityById( String id ) {
     try {
-      return new KarafCapability( featuresService, featuresService.getFeature( id ), this );
+      Feature feature = featuresService.getFeature( id );
+      if( feature == null ){
+        logger.error( "No feature found matching id: " + id );
+        return null;
+      }
+      return new KarafCapability( featuresService, feature, this );
     } catch ( Exception e ) {
       logger.error( "Unknown error retrieving feature: "+id, e );
     }

@@ -1,51 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
-
-  <artifactId>pdi-osgi-bridge-activator</artifactId>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pdi-osgi-bridge-parent</artifactId>
-    <relativePath>../pom.xml</relativePath>
-    <version>6.0-SNAPSHOT</version>
+    <version>6.0.0.1-364</version>
   </parent>
-
-  <modelVersion>4.0.0</modelVersion>
+  <artifactId>pdi-osgi-bridge-activator</artifactId>
+  <version>6.0.0.1-364</version>
   <packaging>bundle</packaging>
-
-  <build>
-    <finalName>${project.artifactId}</finalName>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <version>2.3.7</version>
-        <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Bundle-Version>${project.version}</Bundle-Version>
-            <Bundle-Activator>org.pentaho.osgi.bridge.activator.BridgeActivator</Bundle-Activator>
-            <Import-Package>com.google.common.cache;version=16.0.1,*</Import-Package>
-          </instructions>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
   <properties>
-
     <exam.version>4.1.0</exam.version>
   </properties>
-
   <dependencies>
-
     <dependency>
       <groupId>org.apache.aries.blueprint</groupId>
       <artifactId>org.apache.aries.blueprint.core</artifactId>
-      <version>1.4.0</version>
+      <version>1.4.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -58,10 +30,12 @@
       <artifactId>org.apache.karaf.features.core</artifactId>
       <version>3.0.3</version>
       <exclusions>
-        <exclusion><groupId>org.osgi</groupId><artifactId>org.osgi.core</artifactId></exclusion>
+        <exclusion>
+          <artifactId>org.osgi.core</artifactId>
+          <groupId>org.osgi</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
-
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>
@@ -69,12 +43,11 @@
       <scope>provided</scope>
       <exclusions>
         <exclusion>
-          <groupId>org.apache.karaf</groupId>
           <artifactId>org.apache.karaf.main</artifactId>
+          <groupId>org.apache.karaf</groupId>
         </exclusion>
       </exclusions>
     </dependency>
-
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-engine</artifactId>
@@ -99,7 +72,6 @@
       <version>1.4.2</version>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>org.apache.aries.blueprint</groupId>
       <artifactId>org.apache.aries.blueprint.api</artifactId>
@@ -112,42 +84,35 @@
       <version>1.1.0</version>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>17.0</version>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-capability-manager</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
-
-    <!-- Logging -->
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-core</artifactId>
       <version>0.9.29</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <version>0.9.29</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>1.7.7</version>
     </dependency>
-
     <dependency>
       <groupId>org.ops4j.pax.exam</groupId>
       <artifactId>pax-exam-cdi</artifactId>
@@ -159,15 +124,29 @@
       <version>2.0.0</version>
       <exclusions>
         <exclusion>
-
-          <groupId>org.osgi</groupId>
           <artifactId>org.osgi.core</artifactId>
-
+          <groupId>org.osgi</groupId>
         </exclusion>
-
       </exclusions>
     </dependency>
   </dependencies>
-
-
+  <build>
+    <finalName>${project.artifactId}</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.3.7</version>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+            <Bundle-Version>${project.version}</Bundle-Version>
+            <Bundle-Activator>org.pentaho.osgi.bridge.activator.BridgeActivator</Bundle-Activator>
+            <Import-Package>com.google.common.cache;version=16.0.1,*</Import-Package>
+          </instructions>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

@@ -1,10 +1,31 @@
+/*! ******************************************************************************
+ *
+ * Pentaho Data Integration
+ *
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
 package org.pentaho.osgi.blueprint;
 
 
 import org.apache.aries.blueprint.NamespaceHandler;
 import org.apache.aries.blueprint.ParserContext;
 import org.apache.aries.blueprint.mutable.MutableBeanMetadata;
-import org.apache.aries.blueprint.mutable.MutableMapEntry;
 import org.apache.aries.blueprint.mutable.MutableMapMetadata;
 import org.apache.aries.blueprint.mutable.MutableRefMetadata;
 import org.apache.aries.blueprint.mutable.MutableServiceMetadata;
@@ -53,7 +74,7 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
   @Override
   public ComponentMetadata decorate( Node node, ComponentMetadata componentMetadata, ParserContext parserContext ) {
     String nodeName = node.getNodeName();
-    if(nodeName.contains( ":" )){
+    if ( nodeName.contains( ":" ) ) {
       nodeName = nodeName.substring( nodeName.indexOf( ":" ) + 1 );
     }
     if ( DI_PLUGIN.equals( nodeName ) ) {     // <pen:di-plugin type="..."/>
@@ -140,10 +161,10 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
     // Class Map
     MutableMapMetadata classToBeanMap = parserContext.createMetadata( MutableMapMetadata.class );
     NodeList nodeList = node.getChildNodes();
-    for ( int i=0; i< nodeList.getLength(); i++) {
+    for ( int i = 0; i < nodeList.getLength(); i++ ) {
       MutableValueMetadata prop = parserContext.createMetadata( MutableValueMetadata.class );
       NamedNodeMap attributes = nodeList.item( i ).getAttributes();
-      if( attributes == null ) {
+      if ( attributes == null ) {
         continue;
       }
       Node classProp = nodeList.item( i ).getAttributes().getNamedItem( "class" );

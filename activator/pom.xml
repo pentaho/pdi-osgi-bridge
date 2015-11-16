@@ -12,6 +12,7 @@
   <packaging>bundle</packaging>
   <properties>
     <exam.version>4.1.0</exam.version>
+    <mockito.version>1.9.5</mockito.version>
   </properties>
   <dependencies>
     <dependency>
@@ -128,6 +129,18 @@
           <groupId>org.osgi</groupId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <build>

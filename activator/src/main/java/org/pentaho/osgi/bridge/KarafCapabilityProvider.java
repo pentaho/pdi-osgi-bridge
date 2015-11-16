@@ -1,3 +1,25 @@
+/*! ******************************************************************************
+ *
+ * Pentaho Data Integration
+ *
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
 package org.pentaho.osgi.bridge;
 
 import com.google.common.cache.Cache;
@@ -35,9 +57,9 @@ public class KarafCapabilityProvider extends ServiceTracker<FeaturesService, Fea
 
   public static final String KARAF = "Karaf";
   private BundleContext bundleContext;
-    private FeaturesService featuresService;
+  private FeaturesService featuresService;
   private AtomicBoolean initialized = new AtomicBoolean( false );
-  private Logger logger = LoggerFactory.getLogger(getClass());
+  private Logger logger = LoggerFactory.getLogger( getClass() );
   private static final boolean UNINSTALL = false;
   private static final boolean INSTALL = true;
 
@@ -47,7 +69,7 @@ public class KarafCapabilityProvider extends ServiceTracker<FeaturesService, Fea
       .expireAfterWrite( 20, TimeUnit.SECONDS )
       .removalListener( new RemovalListener<String, InstallFuture>() {
         @Override public void onRemoval( RemovalNotification<String, InstallFuture> removalNotification ) {
-          switch( removalNotification.getCause() ) {
+          switch ( removalNotification.getCause() ) {
 
             case EXPLICIT:
               break;
@@ -56,7 +78,7 @@ public class KarafCapabilityProvider extends ServiceTracker<FeaturesService, Fea
             case EXPIRED:
             case SIZE:
               SettableFuture<Boolean> value = removalNotification.getValue().future;
-              if( value != null ){ // May have been GCed
+              if ( value != null ) { // May have been GCed
                 value.set( false );
               }
               break;
@@ -65,7 +87,7 @@ public class KarafCapabilityProvider extends ServiceTracker<FeaturesService, Fea
       } )
       .build();
 
-  private class InstallFuture{
+  private class InstallFuture {
     SettableFuture<Boolean> future;
     boolean install;
 
@@ -76,14 +98,14 @@ public class KarafCapabilityProvider extends ServiceTracker<FeaturesService, Fea
   }
 
   public KarafCapabilityProvider( BundleContext bundleContext ) {
-    super(bundleContext, FeaturesService.class, null);
+    super( bundleContext, FeaturesService.class, null );
     this.bundleContext = bundleContext;
     this.bundleContext.registerService( FeaturesListener.class, this, null );
   }
 
   @Override public FeaturesService addingService( ServiceReference<FeaturesService> reference ) {
     this.featuresService = bundleContext.getService( reference );
-    if(! initialized.getAndSet( true )) {
+    if ( !initialized.getAndSet( true ) ) {
       DefaultCapabilityManager.getInstance().registerCapabilityProvider( this );
     }
     return super.addingService( reference );
@@ -109,13 +131,13 @@ public class KarafCapabilityProvider extends ServiceTracker<FeaturesService, Fea
   @Override public ICapability getCapabilityById( String id ) {
     try {
       Feature feature = featuresService.getFeature( id );
-      if( feature == null ){
+      if ( feature == null ) {
         logger.error( "No feature found matching id: " + id );
         return null;
       }
       return new KarafCapability( featuresService, feature, this );
     } catch ( Exception e ) {
-      logger.error( "Unknown error retrieving feature: "+id, e );
+      logger.error( "Unknown error retrieving feature: " + id, e );
     }
     return null;
   }
@@ -125,7 +147,7 @@ public class KarafCapabilityProvider extends ServiceTracker<FeaturesService, Fea
     try {
       for ( Feature feature : featuresService.listFeatures() ) {
         ICapability capabilityById = this.getCapabilityById( feature.getName() );
-        if( capabilityById != null ) {
+        if ( capabilityById != null ) {
           capabilities.add( capabilityById );
         }
       }
@@ -136,33 +158,33 @@ public class KarafCapabilityProvider extends ServiceTracker<FeaturesService, Fea
     return capabilities;
   }
 
-  public void watchForInstall( Feature feature, SettableFuture<Boolean> future ){
-    futures.put( feature.getId(), new InstallFuture(future, INSTALL));
+  public void watchForInstall( Feature feature, SettableFuture<Boolean> future ) {
+    futures.put( feature.getId(), new InstallFuture( future, INSTALL ) );
   }
 
   public void watchForUnInstall( Feature feature, SettableFuture<Boolean> uninstallFuture ) {
-    futures.put( feature.getId(), new InstallFuture(uninstallFuture, UNINSTALL));
+    futures.put( feature.getId(), new InstallFuture( uninstallFuture, UNINSTALL ) );
   }
 
   @Override public void featureEvent( FeatureEvent featureEvent ) {
     String feature = featureEvent.getFeature().getId();
     InstallFuture installFutureWrapper = futures.getIfPresent( feature );
-    if( installFutureWrapper == null ){
+    if ( installFutureWrapper == null ) {
       return;
     }
-    switch( featureEvent.getType() ) {
+    switch ( featureEvent.getType() ) {
       case FeatureInstalled:
         SettableFuture<Boolean> future = installFutureWrapper.future;
-        if( future != null ){
+        if ( future != null ) {
           futures.invalidate( feature );
           future.set( installFutureWrapper.install );
         }
         break;
       case FeatureUninstalled:
         future = installFutureWrapper.future;
-        if( future != null ){
+        if ( future != null ) {
           futures.invalidate( feature );
-          future.set( ! installFutureWrapper.install );
+          future.set( !installFutureWrapper.install );
         }
         break;
     }

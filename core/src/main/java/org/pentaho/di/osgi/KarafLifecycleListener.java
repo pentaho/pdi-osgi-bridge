@@ -69,14 +69,14 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
         if ( !initialized.get() ) {
           // We fell out due to time or an exception. Ensure that we release the lifecycle hold
           logger.error(
-              "The Kettle Karaf Lifycycle Listener failed to execute properly. Releasing lifecycle hold, but some "
+              "The Kettle Karaf Lifecycle Listener failed to execute properly. Releasing lifecycle hold, but some "
                   + "services may be unavailable." );
           event.accept();
         }
       }
     } );
     t.setDaemon( true );
-    t.setName( "KarafLifecycleListner Timeout Thread" );
+    t.setName( "KarafLifecycleListener Timeout Thread" );
     t.start();
   }
 

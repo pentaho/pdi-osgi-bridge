@@ -235,6 +235,9 @@ public class OSGIPluginTracker {
         }
         Bundle objectBundle = reference.getBundle();
         BeanFactory factory = lookup.getBeanFactory(objectBundle);
+        if( factory == null ){
+            return null;
+        }
         beanFactoryToBundleMap.put(factory, objectBundle);
         return factory;
     }

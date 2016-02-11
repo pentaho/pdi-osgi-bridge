@@ -22,6 +22,7 @@
 
 package org.pentaho.di.osgi;
 
+import com.google.common.collect.MapMaker;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -58,12 +59,17 @@ public class OSGIPluginTracker {
     private Map<Class, OSGIServiceTracker> trackers = new WeakHashMap<Class, OSGIServiceTracker>();
     private Map<Class, List<OSGIServiceLifecycleListener>> listeners =
             new WeakHashMap<Class, List<OSGIServiceLifecycleListener>>();
-    private Map<Object, ServiceReference> instanceToReferenceMap = new WeakHashMap<Object, ServiceReference>();
-    private Map<ServiceReference, Object> referenceToInstanceMap = new WeakHashMap<ServiceReference, Object>();
-    private Map<BeanFactory, Bundle> beanFactoryToBundleMap = new WeakHashMap<BeanFactory, Bundle>();
-    private Map<Object, BeanFactory> beanToFactoryMap = new WeakHashMap<Object, BeanFactory>();
     private Map<Object, List<ServiceReferenceListener>> instanceListeners =
             new WeakHashMap<Object, List<ServiceReferenceListener>>();
+    // MapMaker provides a ConcurrentMap with weak keys and weak values
+    private Map<Object, ServiceReference> instanceToReferenceMap =
+            new MapMaker().weakKeys().weakValues().makeMap();
+    private Map<ServiceReference, Object> referenceToInstanceMap =
+            new MapMaker().weakKeys().weakValues().makeMap();
+    private Map<BeanFactory, Bundle> beanFactoryToBundleMap =
+            new MapMaker().weakKeys().weakValues().makeMap();
+    private Map<Object, BeanFactory> beanToFactoryMap =
+            new MapMaker().weakKeys().weakValues().makeMap();
     private static ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
         @Override
         public Thread newThread(Runnable r) {
@@ -229,6 +235,9 @@ public class OSGIPluginTracker {
         }
         Bundle objectBundle = reference.getBundle();
         BeanFactory factory = lookup.getBeanFactory(objectBundle);
+        if( factory == null ){
+            return null;
+        }
         beanFactoryToBundleMap.put(factory, objectBundle);
         return factory;
     }

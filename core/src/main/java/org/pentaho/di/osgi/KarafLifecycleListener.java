@@ -12,26 +12,40 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Hashtable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by nbaker on 2/19/15.
  */
 public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLifecycleEvent> {
-  private int timeout = 10000;
   private static KarafLifecycleListener INSTANCE = new KarafLifecycleListener( );
+  private static Logger logger = LoggerFactory.getLogger( KarafLifecycleListener.class );
+  private final long timeout;
   private AtomicBoolean listenerActive = new AtomicBoolean( false );
   private AtomicBoolean initialized = new AtomicBoolean( false );
   private BundleContext bundleContext;
   private IPhasedLifecycleEvent<KettleLifecycleEvent> event;
-  private Logger logger = LoggerFactory.getLogger( getClass() );
 
-
-  KarafLifecycleListener( ) {
+  KarafLifecycleListener() {
+    this( calculateTimeout() );
   }
 
-  KarafLifecycleListener( int timeout ) {
+  KarafLifecycleListener( long timeout ) {
     this.timeout = timeout;
+  }
+
+  private static long calculateTimeout() {
+    long result = TimeUnit.SECONDS.toMillis( 100 );
+    String timeoutProp = System.getProperty( KarafLifecycleListener.class.getCanonicalName() + ".timeout" );
+    if ( timeoutProp != null ) {
+      try {
+        result = Long.parseLong( timeoutProp );
+      } catch ( Exception e ) {
+        logger.warn( "Failed to parse custom timeout property of " + timeoutProp + ", returning default of 100,000" );
+      }
+    }
+    return result;
   }
 
   public static KarafLifecycleListener getInstance() {
@@ -59,7 +73,8 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
       }
 
       @Override public void run() {
-        while ( !initialized.get() && ( timeout -= 100 ) > 0 ) {
+        long endWaitTime = System.currentTimeMillis() + timeout;
+        while ( !initialized.get() && ( endWaitTime - System.currentTimeMillis() ) > 0 ) {
           try {
             Thread.sleep( 100 );
           } catch ( InterruptedException e ) {
@@ -69,8 +84,8 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
         if ( !initialized.get() ) {
           // We fell out due to time or an exception. Ensure that we release the lifecycle hold
           logger.error(
-              "The Kettle Karaf Lifecycle Listener failed to execute properly. Releasing lifecycle hold, but some "
-                  + "services may be unavailable." );
+              "The Kettle Karaf Lifecycle Listener failed to execute properly after waiting for " + TimeUnit.MILLISECONDS.toSeconds(timeout)
+                      + " seconds. Releasing lifecycle hold, but some services may be unavailable." );
           event.accept();
         }
       }

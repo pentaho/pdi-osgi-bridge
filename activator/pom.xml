@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pdi-osgi-bridge-parent</artifactId>
-    <version>6.1-SNAPSHOT</version>
+    <version>6.1.0.0-192</version>
   </parent>
   <artifactId>pdi-osgi-bridge-activator</artifactId>
-  <version>6.1-SNAPSHOT</version>
+  <version>6.1.0.0-192</version>
   <packaging>bundle</packaging>
   <properties>
     <exam.version>4.1.0</exam.version>

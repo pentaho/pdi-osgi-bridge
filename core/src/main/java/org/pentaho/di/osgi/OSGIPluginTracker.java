@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2014 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,6 +22,7 @@
 
 package org.pentaho.di.osgi;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.MapMaker;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.logging.Log;
@@ -36,14 +37,20 @@ import org.pentaho.di.core.plugins.PluginTypeInterface;
 import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
 import org.pentaho.di.osgi.service.lifecycle.OSGIServiceLifecycleListener;
 import org.pentaho.di.osgi.service.listener.BundleContextServiceListener;
+import org.pentaho.di.osgi.service.notifier.AggregatingNotifierListener;
 import org.pentaho.di.osgi.service.notifier.DelayedInstanceNotifierFactory;
 import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifier;
+import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifierListener;
 import org.pentaho.di.osgi.service.tracker.OSGIServiceTracker;
 import org.pentaho.osgi.api.BeanFactory;
 import org.pentaho.osgi.api.BeanFactoryLocator;
 import org.pentaho.osgi.api.ProxyUnwrapper;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -53,6 +60,7 @@ import java.util.concurrent.ThreadFactory;
  */
 public class OSGIPluginTracker {
     private static OSGIPluginTracker INSTANCE = new OSGIPluginTracker();
+    private final AggregatingNotifierListener aggregatingNotifierListener;
     private BundleContext context;
     private BeanFactoryLocator lookup;
     private ProxyUnwrapper proxyUnwrapper;
@@ -85,8 +93,14 @@ public class OSGIPluginTracker {
             new ArrayList<Class<? extends PluginTypeInterface>>();
 
     // ONLY CALL EXTERNALLY FOR UNIT TESTS
+    @VisibleForTesting
     protected OSGIPluginTracker() {
+        this( new AggregatingNotifierListener() );
+    }
 
+    @VisibleForTesting
+    protected OSGIPluginTracker( AggregatingNotifierListener aggregatingNotifierListener ) {
+        this.aggregatingNotifierListener = aggregatingNotifierListener;
     }
 
     public static OSGIPluginTracker getInstance() {
@@ -311,7 +325,20 @@ public class OSGIPluginTracker {
         Object instance = context.getService(serviceObject);
         instance = getProxyUnwrapper().unwrap(instance);
         instanceToReferenceMap.put(instance, serviceObject);
-        new DelayedServiceNotifier(this, cls, evt, instance, listeners, scheduler).run();
+        aggregatingNotifierListener.incrementCount();
+        new DelayedServiceNotifier(this, cls, evt, instance, listeners, scheduler, aggregatingNotifierListener ).run();
+    }
+
+    public boolean addDelayedServiceNotifierListener( DelayedServiceNotifierListener delayedServiceNotifierListener ) {
+        return aggregatingNotifierListener.addListener( delayedServiceNotifierListener );
+    }
+
+    public boolean removeDelayedServiceNotifierListener( DelayedServiceNotifierListener delayedServiceNotifierListener ) {
+        return aggregatingNotifierListener.removeListener( delayedServiceNotifierListener );
+    }
+
+    public int getOutstandingServiceNotifierListeners() {
+        return aggregatingNotifierListener.getCount();
     }
 
     // FOR UNIT TEST ONLY

@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2014 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -43,17 +43,20 @@ public class DelayedServiceNotifier implements Runnable {
   private final Class<?> classToTrack;
   private final LifecycleEvent eventType;
   private final Object serviceObject;
+  private final DelayedServiceNotifierListener delayedServiceNotifierListener;
 
   public DelayedServiceNotifier( OSGIPluginTracker osgiPluginTracker, Class<?> classToTrack,
                                  LifecycleEvent eventType,
                                  Object serviceObject, Map<Class, List<OSGIServiceLifecycleListener>> listeners,
-                                 ScheduledExecutorService scheduler ) {
+                                 ScheduledExecutorService scheduler,
+                                 DelayedServiceNotifierListener delayedServiceNotifierListener ) {
     this.osgiPluginTracker = osgiPluginTracker;
     this.classToTrack = classToTrack;
     this.eventType = eventType;
     this.serviceObject = serviceObject;
     this.listeners = listeners;
     this.scheduler = scheduler;
+    this.delayedServiceNotifierListener = delayedServiceNotifierListener;
   }
 
   @Override
@@ -64,22 +67,28 @@ public class DelayedServiceNotifier implements Runnable {
     if ( ( factory == null || osgiPluginTracker.getProxyUnwrapper() == null ) && eventType != LifecycleEvent.STOP ) {
       ScheduledFuture<?> timeHandle = scheduler.schedule( this, 100, TimeUnit.MILLISECONDS );
     } else {
-      List<OSGIServiceLifecycleListener> listenerList = listeners.get( classToTrack );
-      if ( listenerList != null ) {
-        for ( OSGIServiceLifecycleListener listener : listenerList ) {
-          switch( eventType ) {
-            case START:
-              listener.pluginAdded( serviceObject );
-              break;
-            case STOP:
-              listener.pluginRemoved( serviceObject );
-              break;
-            case MODIFY:
-              listener.pluginChanged( serviceObject );
-              break;
-            default:
-              throw new IllegalStateException( "Unhandled enum value: " + eventType );
+      try {
+        List<OSGIServiceLifecycleListener> listenerList = listeners.get( classToTrack );
+        if ( listenerList != null ) {
+          for ( OSGIServiceLifecycleListener listener : listenerList ) {
+            switch ( eventType ) {
+              case START:
+                listener.pluginAdded( serviceObject );
+                break;
+              case STOP:
+                listener.pluginRemoved( serviceObject );
+                break;
+              case MODIFY:
+                listener.pluginChanged( serviceObject );
+                break;
+              default:
+                throw new IllegalStateException( "Unhandled enum value: " + eventType );
+            }
           }
+        }
+      } finally {
+        if ( delayedServiceNotifierListener != null ) {
+          delayedServiceNotifierListener.onRun( eventType, serviceObject );
         }
       }
     }

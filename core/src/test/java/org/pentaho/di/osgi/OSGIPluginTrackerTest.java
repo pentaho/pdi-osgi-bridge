@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2014 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -34,6 +34,8 @@ import org.osgi.framework.*;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
 import org.pentaho.di.osgi.service.lifecycle.OSGIServiceLifecycleListener;
+import org.pentaho.di.osgi.service.notifier.AggregatingNotifierListener;
+import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifierListener;
 import org.pentaho.osgi.api.BeanFactory;
 import org.pentaho.osgi.api.BeanFactoryLocator;
 import org.pentaho.osgi.api.ProxyUnwrapper;
@@ -57,10 +59,12 @@ public class OSGIPluginTrackerTest {
   private OSGIPluginTracker tracker;
   private BundleContext bundleContext;
   @Mock private ProxyUnwrapper mockProxyUnwrapper;
+  private AggregatingNotifierListener aggregatingNotifierListener;
 
   @Before
   public void setup() throws InvalidSyntaxException {
-    tracker = new OSGIPluginTracker();
+    aggregatingNotifierListener = mock( AggregatingNotifierListener.class );
+    tracker = new OSGIPluginTracker( aggregatingNotifierListener );
     tracker.setProxyUnwrapper( mockProxyUnwrapper );
     bundleContext = mock( BundleContext.class );
     Filter filter = mock( Filter.class );
@@ -353,5 +357,44 @@ public class OSGIPluginTrackerTest {
     assertTrue( tracker.registerPluginClass( Object.class ) );
     assertEquals( 1, tracker.getTrackers().size() );
     assertEquals( Object.class, new ArrayList<Class>( tracker.getTrackers().keySet() ).get( 0 ) );
+  }
+
+  @Test
+  public void testAddDelayedServiceNotifierListener() {
+    DelayedServiceNotifierListener delayedServiceNotifierListener = mock( DelayedServiceNotifierListener.class );
+    tracker.addDelayedServiceNotifierListener( delayedServiceNotifierListener );
+    verify( aggregatingNotifierListener ).addListener( delayedServiceNotifierListener );
+  }
+
+  @Test
+  public void testRemoveDelayedServiceNotifierListener() {
+    DelayedServiceNotifierListener delayedServiceNotifierListener = mock( DelayedServiceNotifierListener.class );
+    tracker.removeDelayedServiceNotifierListener( delayedServiceNotifierListener );
+    verify( aggregatingNotifierListener ).removeListener( delayedServiceNotifierListener );
+  }
+
+  @Test
+  public void testGetOutstandingServiceNotifierListeners() {
+    when( aggregatingNotifierListener.getCount() ).thenReturn( 1 ).thenReturn( 2 );
+    assertEquals( 1, tracker.getOutstandingServiceNotifierListeners() );
+    assertEquals( 2, tracker.getOutstandingServiceNotifierListeners() );
+  }
+
+  @Test
+  public void testServiceChangedAggregatingListenerInteraction() {
+    String instance = "instance";
+    ServiceReference<String> serviceReference = mock( ServiceReference.class );
+    BeanFactoryLocator beanFactoryLocator = mock( BeanFactoryLocator.class );
+    Bundle bundle = mock( Bundle.class );
+    BeanFactory beanFactory = mock( BeanFactory.class );
+
+    when( bundleContext.getService( serviceReference ) ).thenReturn( instance );
+    when( serviceReference.getBundle() ).thenReturn( bundle );
+    when( beanFactoryLocator.getBeanFactory( bundle ) ).thenReturn( beanFactory );
+    tracker.setBundleContext( bundleContext );
+    tracker.setBeanFactoryLookup( beanFactoryLocator );
+    tracker.serviceChanged( String.class, LifecycleEvent.START, serviceReference );
+    verify( aggregatingNotifierListener ).incrementCount();
+    verify( aggregatingNotifierListener ).onRun( LifecycleEvent.START, instance );
   }
 }

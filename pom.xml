@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.pentaho</groupId>
@@ -10,19 +9,16 @@
   </parent>
   <groupId>pentaho</groupId>
   <artifactId>pdi-osgi-bridge-parent</artifactId>
-  <version>6.0-SNAPSHOT</version>
+  <version>6.0.1.3-416</version>
   <packaging>pom</packaging>
-
-  <properties>
-    <dependency.pentaho-kettle.version>${project.version}</dependency.pentaho-kettle.version>
-    <dependency.pentaho-xul.revision>TRUNK-SNAPSHOT</dependency.pentaho-xul.revision>
-  </properties>
-
   <modules>
     <module>core</module>
     <module>activator</module>
     <module>examples/step</module>
     <module>examples/spoon</module>
   </modules>
-
+  <properties>
+    <dependency.pentaho-kettle.version>6.0.1.3-416</dependency.pentaho-kettle.version>
+    <dependency.pentaho-xul.revision>6.0.1.3-416</dependency.pentaho-xul.revision>
+  </properties>
 </project>

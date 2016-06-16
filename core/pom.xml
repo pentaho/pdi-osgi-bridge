@@ -5,20 +5,20 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pdi-osgi-bridge-parent</artifactId>
-    <version>6.1-SNAPSHOT</version>
+    <version>6.1.0.3-223</version>
   </parent>
   <artifactId>pdi-osgi-bridge-core</artifactId>
-  <version>6.1-SNAPSHOT</version>
+  <version>6.1.0.3-223</version>
   <properties>
-    <dependency.pentaho-platform.revision>6.1-SNAPSHOT</dependency.pentaho-platform.revision>
+    <dependency.pentaho-platform.revision>6.1.0.3-223</dependency.pentaho-platform.revision>
     <pentaho-osgi-utils.version>${project.version}</pentaho-osgi-utils.version>
-    <dependency.pentaho-kettle.version>6.1-SNAPSHOT</dependency.pentaho-kettle.version>
+    <dependency.pentaho-kettle.version>6.1.0.3-223</dependency.pentaho-kettle.version>
     <junit.version>4.11</junit.version>
     <exam.version>4.1.0</exam.version>
     <pentaho-karaf-assembly.version>${project.version}</pentaho-karaf-assembly.version>
     <felix.version>4.4.1</felix.version>
-    <karaf.version>3.0.3</karaf.version>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <karaf.version>3.0.3</karaf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <package.features>true</package.features>
     <mockito.version>1.9.5</mockito.version>

@@ -76,21 +76,21 @@ public class OSGIPluginTracker {
   private ProxyUnwrapper proxyUnwrapper;
   private Map<Class, OSGIServiceTracker> trackers = new WeakHashMap<Class, OSGIServiceTracker>();
   private Map<Class, List<OSGIServiceLifecycleListener>> listeners =
-    new WeakHashMap<Class, List<OSGIServiceLifecycleListener>>();
+      new WeakHashMap<Class, List<OSGIServiceLifecycleListener>>();
   private Map<Object, List<ServiceReferenceListener>> instanceListeners =
-    new WeakHashMap<Object, List<ServiceReferenceListener>>();
+      new WeakHashMap<Object, List<ServiceReferenceListener>>();
   // MapMaker provides a ConcurrentMap with weak keys and weak values
   private Map<Object, ServiceReference> instanceToReferenceMap =
-    new MapMaker().weakKeys().weakValues().makeMap();
+      new MapMaker().weakKeys().weakValues().makeMap();
   private Map<ServiceReference, Object> referenceToInstanceMap =
-    new MapMaker().weakKeys().weakValues().makeMap();
+      new MapMaker().weakKeys().weakValues().makeMap();
   private Map<BeanFactory, Bundle> beanFactoryToBundleMap =
-    new MapMaker().weakKeys().weakValues().makeMap();
+      new MapMaker().weakKeys().weakValues().makeMap();
   private Map<Object, BeanFactory> beanToFactoryMap =
-    new MapMaker().weakKeys().weakValues().makeMap();
+      new MapMaker().weakKeys().weakValues().makeMap();
   private Log logger = LogFactory.getLog( getClass().getName() );
   private List<Class<? extends PluginTypeInterface>> queuedClasses =
-    new ArrayList<Class<? extends PluginTypeInterface>>();
+      new ArrayList<Class<? extends PluginTypeInterface>>();
 
   // ONLY CALL EXTERNALLY FOR UNIT TESTS
   @VisibleForTesting
@@ -192,9 +192,9 @@ public class OSGIPluginTracker {
       for ( ServiceReference registeredService : registeredServices ) {
         Object registeredServiceProperty = registeredService.getProperty( "objectClass" );
         String proVal = ( registeredServiceProperty instanceof String ) ? (String) registeredServiceProperty
-          : ( (String[]) registeredServiceProperty )[ 0 ];
+            : ( (String[]) registeredServiceProperty )[ 0 ];
         if ( proVal.equals( PluginInterface.class.getName() )
-          && registeredService.getProperty( "PluginType" ).equals( pluginType.getName() ) ) {
+            && registeredService.getProperty( "PluginType" ).equals( pluginType.getName() ) ) {
           Object service = cxt.getService( registeredService );
           if ( service instanceof OSGIPlugin ) {
             if ( "ID".equalsIgnoreCase( prop ) ) {
@@ -232,7 +232,7 @@ public class OSGIPluginTracker {
   public ProxyUnwrapper getProxyUnwrapper() {
     if ( proxyUnwrapper == null ) {
       ServiceTracker<ProxyUnwrapper, ProxyUnwrapper> tracker =
-        new ServiceTracker( context, ProxyUnwrapper.class, null );
+          new ServiceTracker( context, ProxyUnwrapper.class, null );
       tracker.open();
       try {
         tracker.waitForService( 30000 );
@@ -260,10 +260,10 @@ public class OSGIPluginTracker {
 
     ServiceReference reference = instanceToReferenceMap.get( serviceObject );
     if ( reference == null ) {
-      throw new OSGIPluginTrackerException( "Service Reference is null. This is fatal.");
+      throw new OSGIPluginTrackerException( "Service Reference is null. This is fatal." );
     }
     Bundle objectBundle = reference.getBundle();
-    if( objectBundle == null ){
+    if ( objectBundle == null ) {
       throw new OSGIPluginTrackerException( "Service's Bundle is null, service no longer valid." );
     }
     BeanFactory factory = lookup.getBeanFactory( objectBundle );
@@ -303,7 +303,7 @@ public class OSGIPluginTracker {
     // Not sure who is watching instances, instancesListeners never seems to be modified.
     // TODO: Verify not needed then remove
     context.addServiceListener( new BundleContextServiceListener( referenceToInstanceMap,
-      new DelayedInstanceNotifierFactory( instanceListeners, scheduler, this ) ) );
+        new DelayedInstanceNotifierFactory( instanceListeners, scheduler, this ) ) );
 
     for ( Class<? extends PluginTypeInterface> type : queuedClasses ) {
       registerPluginClass( type );

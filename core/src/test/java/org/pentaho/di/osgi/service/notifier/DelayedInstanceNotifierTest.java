@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2014 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,6 +25,7 @@ package org.pentaho.di.osgi.service.notifier;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.di.osgi.OSGIPluginTracker;
+import org.pentaho.di.osgi.OSGIPluginTrackerException;
 import org.pentaho.di.osgi.ServiceReferenceListener;
 import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
 import org.pentaho.osgi.api.BeanFactory;
@@ -61,7 +62,7 @@ public class DelayedInstanceNotifierTest {
   @Test
   public void testFactoryEqualNotNull() throws Exception {
     DelayedInstanceNotifier delayedInstanceNotifier =
-      new DelayedInstanceNotifier( osgiPluginTracker, eventType, serviceObject, instanceListeners, scheduler );
+        new DelayedInstanceNotifier( osgiPluginTracker, eventType, serviceObject, instanceListeners, scheduler );
     ServiceReferenceListener listener = mock( ServiceReferenceListener.class );
     List<ServiceReferenceListener> listeners = new ArrayList<ServiceReferenceListener>( Arrays.asList( listener ) );
     instanceListeners.put( serviceObject, listeners );
@@ -74,9 +75,20 @@ public class DelayedInstanceNotifierTest {
   @Test
   public void testFactoryEqualNull() throws Exception {
     DelayedInstanceNotifier delayedInstanceNotifier =
-      new DelayedInstanceNotifier( osgiPluginTracker, eventType, serviceObject, instanceListeners, scheduler );
+        new DelayedInstanceNotifier( osgiPluginTracker, eventType, serviceObject, instanceListeners, scheduler );
     when( osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject ) ).thenReturn( null );
     delayedInstanceNotifier.run();
+    verify( scheduler ).schedule( delayedInstanceNotifier, 2, TimeUnit.SECONDS );
+  }
+
+  @Test
+  public void testExceptionFromTracker() throws Exception {
+    DelayedInstanceNotifier delayedInstanceNotifier =
+        new DelayedInstanceNotifier( osgiPluginTracker, eventType, serviceObject, instanceListeners, scheduler );
+    when( osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject ) )
+        .thenThrow( new OSGIPluginTrackerException( "Error" ) );
+    delayedInstanceNotifier.run();
+    // because we caused an exception in the findOrCreateBeanFactoryFor call, it should schedule for a later try
     verify( scheduler ).schedule( delayedInstanceNotifier, 2, TimeUnit.SECONDS );
   }
 }

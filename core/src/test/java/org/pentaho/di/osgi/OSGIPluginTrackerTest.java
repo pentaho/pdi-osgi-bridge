@@ -30,7 +30,11 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Filter;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
 import org.pentaho.di.osgi.service.lifecycle.OSGIServiceLifecycleListener;
@@ -68,12 +72,12 @@ public class OSGIPluginTrackerTest {
     tracker.setProxyUnwrapper( mockProxyUnwrapper );
     bundleContext = mock( BundleContext.class );
     Filter filter = mock( Filter.class );
-    when( bundleContext.createFilter( anyString())).thenReturn( filter );
+    when( bundleContext.createFilter( anyString() ) ).thenReturn( filter );
     when( mockProxyUnwrapper.unwrap( anyObject() ) ).thenAnswer( new Answer<Object>() {
       @Override
       public Object answer( InvocationOnMock invocation ) throws Throwable {
         // return the same object that was passed in
-        return invocation.getArguments()[0];
+        return invocation.getArguments()[ 0 ];
       }
     } );
   }
@@ -117,7 +121,7 @@ public class OSGIPluginTrackerTest {
     String invalidSyntaxMessage = "INVALID_SYNTAX";
     InvalidSyntaxException invalidSyntaxException = new InvalidSyntaxException( invalidSyntaxMessage, null );
     when( bundleContext.getServiceReferences( eq( clazz.getName() ), anyString() ) )
-      .thenThrow( invalidSyntaxException );
+        .thenThrow( invalidSyntaxException );
     tracker.getServiceObjects( clazz, props );
     verify( logger ).error( invalidSyntaxMessage, invalidSyntaxException );
   }
@@ -206,11 +210,11 @@ public class OSGIPluginTrackerTest {
     BundleContext cxt = mock( BundleContext.class );
     when( bundle.getBundleContext() ).thenReturn( cxt );
     ServiceReference ref = mock( ServiceReference.class );
-    when( ref.getProperty( "objectClass")).thenReturn(PluginInterface.class.getName());
-    when( ref.getProperty( "PluginType")).thenReturn(OSGIPluginType.class.getName());
-    when(bundle.getRegisteredServices()).thenReturn( new ServiceReference[]{ref} );
-    when(cxt.getServiceReferences(eq(PluginInterface.class.getName()), anyString()))
-      .thenReturn( new ServiceReference[] { ref } );
+    when( ref.getProperty( "objectClass" ) ).thenReturn( PluginInterface.class.getName() );
+    when( ref.getProperty( "PluginType" ) ).thenReturn( OSGIPluginType.class.getName() );
+    when( bundle.getRegisteredServices() ).thenReturn( new ServiceReference[] { ref } );
+    when( cxt.getServiceReferences( eq( PluginInterface.class.getName() ), anyString() ) )
+        .thenReturn( new ServiceReference[] { ref } );
     OSGIPlugin plugin = new OSGIPlugin();
     String ID = "PLUGIN_ID";
     plugin.setID( ID );
@@ -239,7 +243,7 @@ public class OSGIPluginTrackerTest {
     BundleContext cxt = mock( BundleContext.class );
     when( bundle.getBundleContext() ).thenReturn( cxt );
     when( cxt.getServiceReferences( eq( PluginInterface.class.getName() ), anyString() ) )
-      .thenReturn( new ServiceReference[] { } );
+        .thenReturn( new ServiceReference[] {} );
     OSGIPlugin plugin = new OSGIPlugin();
     String ID = "PLUGIN_ID";
     plugin.setID( ID );
@@ -267,7 +271,7 @@ public class OSGIPluginTrackerTest {
     BundleContext cxt = mock( BundleContext.class );
     when( bundle.getBundleContext() ).thenReturn( cxt );
     when( cxt.getServiceReferences( eq( PluginInterface.class.getName() ), anyString() ) )
-      .thenReturn( null );
+        .thenReturn( null );
     OSGIPlugin plugin = new OSGIPlugin();
     String ID = "PLUGIN_ID";
     plugin.setID( ID );
@@ -396,5 +400,33 @@ public class OSGIPluginTrackerTest {
     tracker.serviceChanged( String.class, LifecycleEvent.START, serviceReference );
     verify( aggregatingNotifierListener ).incrementCount();
     verify( aggregatingNotifierListener ).onRun( LifecycleEvent.START, instance );
+  }
+
+  @Test
+  public void findOrCreateBeanFactoryFor() throws Exception {
+    String instance = "instance";
+    BeanFactory beanFactoryFor = tracker.findOrCreateBeanFactoryFor( instance );
+    assertNull( beanFactoryFor );
+    BeanFactoryLocator locator = mock( BeanFactoryLocator.class );
+    tracker.setBeanFactoryLookup( locator );
+    try {
+      tracker.findOrCreateBeanFactoryFor( instance );
+      fail( "Should have thrown an OSGIPluginTrackerException" );
+    } catch ( OSGIPluginTrackerException expected ) {
+    }
+
+    ServiceReference<String> serviceReference = mock( ServiceReference.class );
+    BeanFactoryLocator beanFactoryLocator = mock( BeanFactoryLocator.class );
+    when( bundleContext.getService( serviceReference ) ).thenReturn( instance );
+    when( serviceReference.getBundle() ).thenReturn( null );
+    tracker.setBundleContext( bundleContext );
+    tracker.setBeanFactoryLookup( beanFactoryLocator );
+    tracker.serviceChanged( String.class, LifecycleEvent.START, serviceReference );
+    try {
+      tracker.findOrCreateBeanFactoryFor( instance );
+      fail( "Should have thrown an OSGIPluginTrackerException" );
+    } catch ( OSGIPluginTrackerException expected ) {
+    }
+
   }
 }

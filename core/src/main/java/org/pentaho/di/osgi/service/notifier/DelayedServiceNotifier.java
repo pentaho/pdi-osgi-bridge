@@ -23,9 +23,12 @@
 package org.pentaho.di.osgi.service.notifier;
 
 import org.pentaho.di.osgi.OSGIPluginTracker;
+import org.pentaho.di.osgi.OSGIPluginTrackerException;
 import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
 import org.pentaho.di.osgi.service.lifecycle.OSGIServiceLifecycleListener;
 import org.pentaho.osgi.api.BeanFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -44,6 +47,8 @@ public class DelayedServiceNotifier implements Runnable {
   private final LifecycleEvent eventType;
   private final Object serviceObject;
   private final DelayedServiceNotifierListener delayedServiceNotifierListener;
+  private Logger logger = LoggerFactory.getLogger( DelayedServiceNotifier.class );
+
 
   public DelayedServiceNotifier( OSGIPluginTracker osgiPluginTracker, Class<?> classToTrack,
                                  LifecycleEvent eventType,
@@ -61,7 +66,16 @@ public class DelayedServiceNotifier implements Runnable {
 
   @Override
   public void run() {
-    BeanFactory factory = osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject );
+    BeanFactory factory = null;
+    try {
+      factory = osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject );
+    } catch ( OSGIPluginTrackerException e ){
+      logger.error( "Error in the plugin tracker. We cannot proceed.", e );
+      notifyListener();
+    } catch ( Exception e ){
+      logger.error( "Error trying to notify on service registration", e);
+      notifyListener();
+    }
     // The beanfactory may not be registered yet. If not schedule a check every second until it is.
     // stopping services won't be able to find a beanfactory. Just skip
     if ( ( factory == null || osgiPluginTracker.getProxyUnwrapper() == null ) && eventType != LifecycleEvent.STOP ) {
@@ -87,10 +101,15 @@ public class DelayedServiceNotifier implements Runnable {
           }
         }
       } finally {
-        if ( delayedServiceNotifierListener != null ) {
-          delayedServiceNotifierListener.onRun( eventType, serviceObject );
-        }
+        notifyListener();
       }
+    }
+  }
+
+  public void notifyListener() {
+    // Notify the listener so he's not waiting for us, we're done here
+    if ( delayedServiceNotifierListener != null ) {
+      delayedServiceNotifierListener.onRun( eventType, serviceObject );
     }
   }
 }

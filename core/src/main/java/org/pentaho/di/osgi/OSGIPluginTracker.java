@@ -151,7 +151,13 @@ public class OSGIPluginTracker {
 
   public <T> T getBean( Class<T> clazz, Object serviceClass, String id ) {
 
-    BeanFactory factory = findOrCreateBeanFactoryFor( serviceClass );
+    BeanFactory factory = null;
+    try {
+      factory = findOrCreateBeanFactoryFor( serviceClass );
+    } catch ( OSGIPluginTrackerException e ) {
+      logger.error( e );
+      return null;
+    }
     if ( factory == null ) {
       return null;
     }
@@ -244,12 +250,22 @@ public class OSGIPluginTracker {
     this.proxyUnwrapper = proxyUnwrapper;
   }
 
-  public BeanFactory findOrCreateBeanFactoryFor( Object serviceObject ) {
-    ServiceReference reference = instanceToReferenceMap.get( serviceObject );
-    if ( reference == null || lookup == null ) {
+  public BeanFactory findOrCreateBeanFactoryFor( Object serviceObject ) throws OSGIPluginTrackerException {
+
+    if ( lookup == null ) {
+      // This is not fatal, lookup could come later
+      logger.debug( "BeanFactoryLookup is currently not set, returning null" );
       return null;
     }
+
+    ServiceReference reference = instanceToReferenceMap.get( serviceObject );
+    if ( reference == null ) {
+      throw new OSGIPluginTrackerException( "Service Reference is null. This is fatal.");
+    }
     Bundle objectBundle = reference.getBundle();
+    if( objectBundle == null ){
+      throw new OSGIPluginTrackerException( "Service's Bundle is null, service no longer valid." );
+    }
     BeanFactory factory = lookup.getBeanFactory( objectBundle );
     if ( factory == null ) {
       return null;

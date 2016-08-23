@@ -59,7 +59,7 @@ public class DelayedInstanceNotifierTest {
   }
 
   @Test
-  public void testFactoryEqualNotNull() {
+  public void testFactoryEqualNotNull() throws Exception {
     DelayedInstanceNotifier delayedInstanceNotifier =
       new DelayedInstanceNotifier( osgiPluginTracker, eventType, serviceObject, instanceListeners, scheduler );
     ServiceReferenceListener listener = mock( ServiceReferenceListener.class );
@@ -72,7 +72,7 @@ public class DelayedInstanceNotifierTest {
   }
 
   @Test
-  public void testFactoryEqualNull() {
+  public void testFactoryEqualNull() throws Exception {
     DelayedInstanceNotifier delayedInstanceNotifier =
       new DelayedInstanceNotifier( osgiPluginTracker, eventType, serviceObject, instanceListeners, scheduler );
     when( osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject ) ).thenReturn( null );

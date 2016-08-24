@@ -25,6 +25,7 @@ package org.pentaho.di.osgi.service.notifier;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.di.osgi.OSGIPluginTracker;
+import org.pentaho.di.osgi.OSGIPluginTrackerException;
 import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
 import org.pentaho.di.osgi.service.lifecycle.OSGIServiceLifecycleListener;
 import org.pentaho.osgi.api.BeanFactory;
@@ -64,13 +65,13 @@ public class DelayedServiceNotifierTest {
   }
 
   @Test
-  public void testFactoryEqualNotNullStarting() {
+  public void testFactoryEqualNotNullStarting() throws Exception {
     DelayedServiceNotifier delayedServiceNotifier =
-      new DelayedServiceNotifier( osgiPluginTracker, clazz, LifecycleEvent.START, serviceObject,
-        instanceListeners, scheduler, delayedServiceNotifierListener );
+        new DelayedServiceNotifier( osgiPluginTracker, clazz, LifecycleEvent.START, serviceObject,
+            instanceListeners, scheduler, delayedServiceNotifierListener );
     OSGIServiceLifecycleListener listener = mock( OSGIServiceLifecycleListener.class );
     List<OSGIServiceLifecycleListener> listeners =
-      new ArrayList<OSGIServiceLifecycleListener>( Arrays.asList( listener ) );
+        new ArrayList<OSGIServiceLifecycleListener>( Arrays.asList( listener ) );
     instanceListeners.put( clazz, listeners );
     BeanFactory beanFactory = mock( BeanFactory.class );
     when( osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject ) ).thenReturn( beanFactory );
@@ -80,13 +81,13 @@ public class DelayedServiceNotifierTest {
   }
 
   @Test
-  public void testFactoryEqualNotNullStopping() {
+  public void testFactoryEqualNotNullStopping() throws Exception {
     DelayedServiceNotifier delayedServiceNotifier =
-      new DelayedServiceNotifier( osgiPluginTracker, clazz, LifecycleEvent.STOP, serviceObject,
-        instanceListeners, scheduler, delayedServiceNotifierListener );
+        new DelayedServiceNotifier( osgiPluginTracker, clazz, LifecycleEvent.STOP, serviceObject,
+            instanceListeners, scheduler, delayedServiceNotifierListener );
     OSGIServiceLifecycleListener listener = mock( OSGIServiceLifecycleListener.class );
     List<OSGIServiceLifecycleListener> listeners =
-      new ArrayList<OSGIServiceLifecycleListener>( Arrays.asList( listener ) );
+        new ArrayList<OSGIServiceLifecycleListener>( Arrays.asList( listener ) );
     instanceListeners.put( clazz, listeners );
     BeanFactory beanFactory = mock( BeanFactory.class );
     when( osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject ) ).thenReturn( beanFactory );
@@ -95,13 +96,13 @@ public class DelayedServiceNotifierTest {
   }
 
   @Test
-  public void testFactoryEqualNotNullModified() {
+  public void testFactoryEqualNotNullModified() throws Exception {
     DelayedServiceNotifier delayedServiceNotifier =
-      new DelayedServiceNotifier( osgiPluginTracker, clazz, LifecycleEvent.MODIFY, serviceObject,
-        instanceListeners, scheduler, delayedServiceNotifierListener );
+        new DelayedServiceNotifier( osgiPluginTracker, clazz, LifecycleEvent.MODIFY, serviceObject,
+            instanceListeners, scheduler, delayedServiceNotifierListener );
     OSGIServiceLifecycleListener listener = mock( OSGIServiceLifecycleListener.class );
     List<OSGIServiceLifecycleListener> listeners =
-      new ArrayList<OSGIServiceLifecycleListener>( Arrays.asList( listener ) );
+        new ArrayList<OSGIServiceLifecycleListener>( Arrays.asList( listener ) );
     instanceListeners.put( clazz, listeners );
     BeanFactory beanFactory = mock( BeanFactory.class );
     when( osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject ) ).thenReturn( beanFactory );
@@ -111,15 +112,15 @@ public class DelayedServiceNotifierTest {
   }
 
   @Test
-  public void testAllEventTypesLegal() {
+  public void testAllEventTypesLegal() throws Exception {
     // This test will catch an unhandled event type
     for ( LifecycleEvent eventType : LifecycleEvent.values() ) {
       DelayedServiceNotifier delayedServiceNotifier =
-        new DelayedServiceNotifier( osgiPluginTracker, clazz, eventType, serviceObject,
-          instanceListeners, scheduler, delayedServiceNotifierListener );
+          new DelayedServiceNotifier( osgiPluginTracker, clazz, eventType, serviceObject,
+              instanceListeners, scheduler, delayedServiceNotifierListener );
       OSGIServiceLifecycleListener listener = mock( OSGIServiceLifecycleListener.class );
       List<OSGIServiceLifecycleListener> listeners =
-        new ArrayList<OSGIServiceLifecycleListener>( Arrays.asList( listener ) );
+          new ArrayList<OSGIServiceLifecycleListener>( Arrays.asList( listener ) );
       instanceListeners.put( clazz, listeners );
       BeanFactory beanFactory = mock( BeanFactory.class );
       when( osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject ) ).thenReturn( beanFactory );
@@ -128,20 +129,20 @@ public class DelayedServiceNotifierTest {
   }
 
   @Test
-  public void testFactoryEqualNull() {
+  public void testFactoryEqualNull() throws Exception {
     DelayedServiceNotifier delayedServiceNotifier =
-      new DelayedServiceNotifier( osgiPluginTracker, clazz, LifecycleEvent.START, serviceObject,
-        instanceListeners, scheduler, delayedServiceNotifierListener );
+        new DelayedServiceNotifier( osgiPluginTracker, clazz, LifecycleEvent.START, serviceObject,
+            instanceListeners, scheduler, delayedServiceNotifierListener );
     when( osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject ) ).thenReturn( null );
     delayedServiceNotifier.run();
     verify( scheduler ).schedule( delayedServiceNotifier, 100, TimeUnit.MILLISECONDS );
   }
 
   @Test
-  public void testDelayedServiceNotifierListener() {
+  public void testDelayedServiceNotifierListener() throws Exception {
     DelayedServiceNotifier delayedServiceNotifier =
-      new DelayedServiceNotifier( osgiPluginTracker, clazz, LifecycleEvent.START, serviceObject,
-        instanceListeners, scheduler, delayedServiceNotifierListener );
+        new DelayedServiceNotifier( osgiPluginTracker, clazz, LifecycleEvent.START, serviceObject,
+            instanceListeners, scheduler, delayedServiceNotifierListener );
     BeanFactory beanFactory = mock( BeanFactory.class );
     when( osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject ) ).thenReturn( beanFactory );
     when( osgiPluginTracker.getProxyUnwrapper() ).thenReturn( mock( ProxyUnwrapper.class ) );
@@ -150,10 +151,10 @@ public class DelayedServiceNotifierTest {
   }
 
   @Test
-  public void testDelayedServiceNotifierListenerNull() {
+  public void testDelayedServiceNotifierListenerNull() throws Exception {
     DelayedServiceNotifier delayedServiceNotifier =
-      new DelayedServiceNotifier( osgiPluginTracker, clazz, LifecycleEvent.START, serviceObject,
-        instanceListeners, scheduler, null );
+        new DelayedServiceNotifier( osgiPluginTracker, clazz, LifecycleEvent.START, serviceObject,
+            instanceListeners, scheduler, null );
     OSGIServiceLifecycleListener osgiServiceLifecycleListener = mock( OSGIServiceLifecycleListener.class );
     instanceListeners.put( clazz, new ArrayList<>( Arrays.asList( osgiServiceLifecycleListener ) ) );
     BeanFactory beanFactory = mock( BeanFactory.class );
@@ -162,4 +163,36 @@ public class DelayedServiceNotifierTest {
     delayedServiceNotifier.run();
     verify( osgiServiceLifecycleListener ).pluginAdded( serviceObject );
   }
+
+  /**
+   * Checked Exception is thrown from tracker but listener still called
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testExceptionFromTracker() throws Exception {
+    DelayedServiceNotifier delayedServiceNotifier =
+        new DelayedServiceNotifier( osgiPluginTracker, clazz, LifecycleEvent.START, serviceObject,
+            instanceListeners, scheduler, delayedServiceNotifierListener );
+    OSGIPluginTrackerException exception = new OSGIPluginTrackerException( "Error" );
+    when( osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject ) ).thenThrow( exception );
+    delayedServiceNotifier.run();
+    verify( delayedServiceNotifierListener ).onRun( LifecycleEvent.START, serviceObject );
+  }
+
+  /**
+   * Unchecked Exception is thrown from tracker but listener still called
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testRuntimeExceptionFromTracker() throws Exception {
+    DelayedServiceNotifier delayedServiceNotifier =
+        new DelayedServiceNotifier( osgiPluginTracker, clazz, LifecycleEvent.START, serviceObject,
+            instanceListeners, scheduler, delayedServiceNotifierListener );
+    when( osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject ) ).thenThrow( new NullPointerException() );
+    delayedServiceNotifier.run();
+    verify( delayedServiceNotifierListener ).onRun( LifecycleEvent.START, serviceObject );
+  }
+
 }

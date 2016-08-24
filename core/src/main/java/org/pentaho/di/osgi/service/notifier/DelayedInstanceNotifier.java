@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2014 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,9 +23,12 @@
 package org.pentaho.di.osgi.service.notifier;
 
 import org.pentaho.di.osgi.OSGIPluginTracker;
+import org.pentaho.di.osgi.OSGIPluginTrackerException;
 import org.pentaho.di.osgi.ServiceReferenceListener;
 import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
 import org.pentaho.osgi.api.BeanFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -42,6 +45,7 @@ public class DelayedInstanceNotifier implements Runnable {
   private final OSGIPluginTracker osgiPluginTracker;
   private final LifecycleEvent eventType;
   private final Object serviceObject;
+  private final Logger logger = LoggerFactory.getLogger( getClass() );
 
   public DelayedInstanceNotifier( OSGIPluginTracker osgiPluginTracker, LifecycleEvent eventType,
                                   Object serviceObject, Map<Object, List<ServiceReferenceListener>> instanceListeners,
@@ -55,7 +59,12 @@ public class DelayedInstanceNotifier implements Runnable {
 
   @Override
   public void run() {
-    BeanFactory factory = osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject );
+    BeanFactory factory = null;
+    try {
+      factory = osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject );
+    } catch ( OSGIPluginTrackerException e ) {
+      logger.error( "Error getting bean factory", e );
+    }
     if ( factory == null ) {
       ScheduledFuture<?> timeHandle = scheduler.schedule( this, 2, TimeUnit.SECONDS );
     } else {

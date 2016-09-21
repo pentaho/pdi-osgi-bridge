@@ -24,10 +24,12 @@ package org.pentaho.di.osgi.service.tracker;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.util.tracker.ServiceTracker;
 import org.pentaho.di.osgi.OSGIPluginTracker;
 
 import static org.junit.Assert.assertEquals;
@@ -46,8 +48,8 @@ public class OSGIServiceTrackerTest {
     bundleContext = mock( BundleContext.class );
     pluginTracker = mock( OSGIPluginTracker.class );
     when( pluginTracker.getBundleContext() ).thenReturn( bundleContext );
-      Filter filter = mock( Filter.class );
-      when( bundleContext.createFilter( anyString())).thenReturn( filter );
+    Filter filter = mock( Filter.class );
+    when( bundleContext.createFilter( anyString() ) ).thenReturn( filter );
 
   }
 
@@ -56,9 +58,9 @@ public class OSGIServiceTrackerTest {
     ServiceReference serviceReference = mock( ServiceReference.class );
     Object service = mock( Object.class );
     when( bundleContext.getService( serviceReference ) ).thenReturn( service );
-      Filter filter = mock( Filter.class );
-    when( bundleContext.createFilter( anyString())).thenReturn(filter);
-    assertEquals(service, new OSGIServiceTracker(pluginTracker, Object.class).addingService(serviceReference));
+    Filter filter = mock( Filter.class );
+    when( bundleContext.createFilter( anyString() ) ).thenReturn( filter );
+    assertEquals( service, new OSGIServiceTracker( pluginTracker, Object.class ).addingService( serviceReference ) );
     verify( pluginTracker ).serviceChanged( Object.class, START, serviceReference );
   }
 
@@ -69,6 +71,20 @@ public class OSGIServiceTrackerTest {
     new OSGIServiceTracker( pluginTracker, Object.class ).removedService( serviceReference, service );
     verify( pluginTracker ).serviceChanged( Object.class, STOP, serviceReference );
     verify( bundleContext ).ungetService( serviceReference );
+  }
+
+  @Test
+  @SuppressWarnings( "unchecked" )
+  public void testRemovedServiceBundleInvalid() {
+    ServiceReference serviceReference = mock( ServiceReference.class );
+    Object service = mock( Object.class );
+    OSGIServiceTracker tracker = spy( new OSGIServiceTracker( pluginTracker, Object.class ) );
+
+    doThrow( new IllegalStateException() ).when( tracker ).notifySuperOfRemoval( serviceReference, service );
+
+    tracker.removedService( serviceReference, service );
+
+    verify( pluginTracker ).serviceChanged( Object.class, STOP, serviceReference );
   }
 
   @Test

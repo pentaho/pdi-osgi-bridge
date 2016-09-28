@@ -429,4 +429,31 @@ public class OSGIPluginTrackerTest {
     }
 
   }
+
+
+
+  @Test
+  public void testInvalidBundleContextOnServiceRemoved() {
+    String instance = "instance";
+    ServiceReference<String> serviceReference = mock( ServiceReference.class );
+    BeanFactoryLocator beanFactoryLocator = mock( BeanFactoryLocator.class );
+    Bundle bundle = mock( Bundle.class );
+    BeanFactory beanFactory = mock( BeanFactory.class );
+
+    when( bundleContext.getService( serviceReference ) ).thenReturn( instance );
+    when( serviceReference.getBundle() ).thenReturn( bundle );
+    when( beanFactoryLocator.getBeanFactory( bundle ) ).thenReturn( beanFactory );
+    tracker.setBundleContext( bundleContext );
+    tracker.setBeanFactoryLookup( beanFactoryLocator );
+    tracker.serviceChanged( String.class, LifecycleEvent.START, serviceReference );
+
+    // Now invalidate the bundleContext and send a Stop event
+
+    when( bundleContext.getService( serviceReference ) ).thenThrow( new IllegalStateException( "BundleContext Invalid" ) );
+    tracker.serviceChanged( String.class, LifecycleEvent.STOP, serviceReference );
+
+    verify( aggregatingNotifierListener, times(1) ).onRun( LifecycleEvent.STOP, instance );
+
+  }
+
 }

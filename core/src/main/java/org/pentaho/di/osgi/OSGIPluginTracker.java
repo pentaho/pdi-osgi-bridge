@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -76,21 +77,21 @@ public class OSGIPluginTracker {
   private ProxyUnwrapper proxyUnwrapper;
   private Map<Class, OSGIServiceTracker> trackers = new WeakHashMap<Class, OSGIServiceTracker>();
   private Map<Class, List<OSGIServiceLifecycleListener>> listeners =
-      new WeakHashMap<Class, List<OSGIServiceLifecycleListener>>();
+    new WeakHashMap<Class, List<OSGIServiceLifecycleListener>>();
   private Map<Object, List<ServiceReferenceListener>> instanceListeners =
-      new WeakHashMap<Object, List<ServiceReferenceListener>>();
+    new WeakHashMap<Object, List<ServiceReferenceListener>>();
   // MapMaker provides a ConcurrentMap with weak keys and weak values
   private Map<Object, ServiceReference> instanceToReferenceMap =
-      new MapMaker().weakKeys().weakValues().makeMap();
+    new MapMaker().weakKeys().weakValues().makeMap();
   private Map<ServiceReference, Object> referenceToInstanceMap =
-      new MapMaker().weakKeys().weakValues().makeMap();
+    new MapMaker().weakKeys().weakValues().makeMap();
   private Map<BeanFactory, Bundle> beanFactoryToBundleMap =
-      new MapMaker().weakKeys().weakValues().makeMap();
+    new MapMaker().weakKeys().weakValues().makeMap();
   private Map<Object, BeanFactory> beanToFactoryMap =
-      new MapMaker().weakKeys().weakValues().makeMap();
+    new MapMaker().weakKeys().weakValues().makeMap();
   private Log logger = LogFactory.getLog( getClass().getName() );
   private List<Class<? extends PluginTypeInterface>> queuedClasses =
-      new ArrayList<Class<? extends PluginTypeInterface>>();
+    new ArrayList<Class<? extends PluginTypeInterface>>();
 
   // ONLY CALL EXTERNALLY FOR UNIT TESTS
   @VisibleForTesting
@@ -192,9 +193,9 @@ public class OSGIPluginTracker {
       for ( ServiceReference registeredService : registeredServices ) {
         Object registeredServiceProperty = registeredService.getProperty( "objectClass" );
         String proVal = ( registeredServiceProperty instanceof String ) ? (String) registeredServiceProperty
-            : ( (String[]) registeredServiceProperty )[ 0 ];
+          : ( (String[]) registeredServiceProperty )[ 0 ];
         if ( proVal.equals( PluginInterface.class.getName() )
-            && registeredService.getProperty( "PluginType" ).equals( pluginType.getName() ) ) {
+          && registeredService.getProperty( "PluginType" ).equals( pluginType.getName() ) ) {
           Object service = cxt.getService( registeredService );
           if ( service instanceof OSGIPlugin ) {
             if ( "ID".equalsIgnoreCase( prop ) ) {
@@ -232,7 +233,7 @@ public class OSGIPluginTracker {
   public ProxyUnwrapper getProxyUnwrapper() {
     if ( proxyUnwrapper == null ) {
       ServiceTracker<ProxyUnwrapper, ProxyUnwrapper> tracker =
-          new ServiceTracker( context, ProxyUnwrapper.class, null );
+        new ServiceTracker( context, ProxyUnwrapper.class, null );
       tracker.open();
       try {
         tracker.waitForService( 30000 );
@@ -303,7 +304,7 @@ public class OSGIPluginTracker {
     // Not sure who is watching instances, instancesListeners never seems to be modified.
     // TODO: Verify not needed then remove
     context.addServiceListener( new BundleContextServiceListener( referenceToInstanceMap,
-        new DelayedInstanceNotifierFactory( instanceListeners, scheduler, this ) ) );
+      new DelayedInstanceNotifierFactory( instanceListeners, scheduler, this ) ) );
 
     for ( Class<? extends PluginTypeInterface> type : queuedClasses ) {
       registerPluginClass( type );
@@ -340,8 +341,27 @@ public class OSGIPluginTracker {
   }
 
   public void serviceChanged( Class<?> cls, LifecycleEvent evt, ServiceReference serviceObject ) {
-    Object instance = context.getService( serviceObject );
-    instance = getProxyUnwrapper().unwrap( instance );
+    Object instance = null;
+    try {
+      instance = context.getService( serviceObject );
+      instance = getProxyUnwrapper().unwrap( instance );
+    } catch ( IllegalStateException ignored ) {
+      // This can happen when the service bundle is already stopped. Ignore.
+    }
+    if( instance == null ){
+      // See if an instance is already in the map for this ServiceReference
+      Set<Map.Entry<Object, ServiceReference>> entries = instanceToReferenceMap.entrySet();
+      for ( Map.Entry<Object, ServiceReference> entry : entries ) {
+        if( entry.getValue() == serviceObject ) {
+          instance = entry.getKey();
+          break;
+        }
+      }
+    }
+    if( instance == null ) {
+      // Nothing to do here.
+      return;
+    }
     instanceToReferenceMap.put( instance, serviceObject );
     aggregatingNotifierListener.incrementCount();
     new DelayedServiceNotifier( this, cls, evt, instance, listeners, scheduler, aggregatingNotifierListener ).run();

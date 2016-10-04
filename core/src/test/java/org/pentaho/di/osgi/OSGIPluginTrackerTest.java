@@ -103,6 +103,7 @@ public class OSGIPluginTrackerTest {
     Object service = new Object();
     when( bundleContext.getService( serviceReference ) ).thenReturn( service );
     List<Object> services = tracker.getServiceObjects( clazz, props );
+    verify( mockProxyUnwrapper, times( 1 ) ).unwrap( service );
     assertEquals( 1, services.size() );
     assertEquals( service, services.get( 0 ) );
   }

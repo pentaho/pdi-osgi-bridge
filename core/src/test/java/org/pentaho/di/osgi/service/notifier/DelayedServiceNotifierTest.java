@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -165,12 +166,15 @@ public class DelayedServiceNotifierTest {
   }
 
   /**
-   * Checked Exception is thrown from tracker but listener still called
+   * Checked Exception is thrown from tracker but listener still called. Scheduler should not attempt redelivery
    *
    * @throws Exception
    */
   @Test
   public void testExceptionFromTracker() throws Exception {
+    OSGIServiceLifecycleListener osgiServiceLifecycleListener = mock( OSGIServiceLifecycleListener.class );
+    instanceListeners.put( clazz, new ArrayList<>( Arrays.asList( osgiServiceLifecycleListener ) ) );
+
     DelayedServiceNotifier delayedServiceNotifier =
         new DelayedServiceNotifier( osgiPluginTracker, clazz, LifecycleEvent.START, serviceObject,
             instanceListeners, scheduler, delayedServiceNotifierListener );
@@ -178,6 +182,8 @@ public class DelayedServiceNotifierTest {
     when( osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject ) ).thenThrow( exception );
     delayedServiceNotifier.run();
     verify( delayedServiceNotifierListener ).onRun( LifecycleEvent.START, serviceObject );
+
+    verify( scheduler, times( 0 ) ).schedule( delayedServiceNotifier, 100, TimeUnit.MILLISECONDS );
   }
 
   /**
@@ -193,6 +199,8 @@ public class DelayedServiceNotifierTest {
     when( osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject ) ).thenThrow( new NullPointerException() );
     delayedServiceNotifier.run();
     verify( delayedServiceNotifierListener ).onRun( LifecycleEvent.START, serviceObject );
+
+    verify( scheduler, times( 0 ) ).schedule( delayedServiceNotifier, 100, TimeUnit.MILLISECONDS );
   }
 
 }

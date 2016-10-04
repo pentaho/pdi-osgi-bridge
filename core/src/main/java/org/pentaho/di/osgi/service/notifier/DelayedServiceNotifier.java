@@ -72,9 +72,11 @@ public class DelayedServiceNotifier implements Runnable {
     } catch ( OSGIPluginTrackerException e ) {
       logger.debug( "Error in the plugin tracker. We cannot proceed.", e );
       notifyListener();
+      return;
     } catch ( Exception e ) {
       logger.debug( "Error trying to notify on service registration", e );
       notifyListener();
+      return;
     }
     // The beanfactory may not be registered yet. If not schedule a check every second until it is.
     // stopping services won't be able to find a beanfactory. Just skip

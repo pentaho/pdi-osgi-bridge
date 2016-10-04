@@ -50,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -118,12 +117,19 @@ public class OSGIPluginTracker {
         return Collections.emptyList();
       }
       for ( ServiceReference ref : refs ) {
-        T serv = (T) context.getService( ref );
 
-        instanceToReferenceMap.put( serv, ref );
-        referenceToInstanceMap.put( ref, serv );
+        Object instance = null;
+        try {
+          instance = context.getService( ref );
+          instance = getProxyUnwrapper().unwrap( instance );
+        } catch ( IllegalStateException ignored ) {
+          // This can happen when the service bundle is already stopped. Ignore.
+        }
 
-        services.add( serv );
+        instanceToReferenceMap.put( instance, ref );
+        referenceToInstanceMap.put( ref, instance);
+
+        services.add( (T) instance );
       }
     } catch ( InvalidSyntaxException e ) {
       logger.error( e.getMessage(), e );
@@ -348,21 +354,16 @@ public class OSGIPluginTracker {
     } catch ( IllegalStateException ignored ) {
       // This can happen when the service bundle is already stopped. Ignore.
     }
-    if( instance == null ){
+    if ( instance == null ) {
       // See if an instance is already in the map for this ServiceReference
-      Set<Map.Entry<Object, ServiceReference>> entries = instanceToReferenceMap.entrySet();
-      for ( Map.Entry<Object, ServiceReference> entry : entries ) {
-        if( entry.getValue() == serviceObject ) {
-          instance = entry.getKey();
-          break;
-        }
-      }
+      instance = referenceToInstanceMap.get( serviceObject );
     }
-    if( instance == null ) {
+    if ( instance == null ) {
       // Nothing to do here.
       return;
     }
     instanceToReferenceMap.put( instance, serviceObject );
+    referenceToInstanceMap.put( serviceObject, instance );
     aggregatingNotifierListener.incrementCount();
     new DelayedServiceNotifier( this, cls, evt, instance, listeners, scheduler, aggregatingNotifierListener ).run();
   }

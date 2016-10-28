@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2014 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,6 +22,7 @@
 
 package org.pentaho.di.osgi;
 
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.plugins.ClassLoadingPluginInterface;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginTypeInterface;
@@ -73,7 +74,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
     return translateString( category );
   }
 
-  private static String translateString( String str ){
+  private static String translateString( String str ) {
 
     if ( str == null ) {
       return null;
@@ -84,7 +85,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
       if ( parts.length != 3 ) {
         return str;
       } else {
-        return BaseMessages.getString(parts[1], parts[2]);
+        return BaseMessages.getString( parts[1], parts[2] );
       }
     }
 
@@ -101,7 +102,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
   @Override
   public Map<Class<?>, String> getClassMap() {
     HashMap<Class<?>, String> classMap = new HashMap<>();
-    for( String typeName : getClassToBeanMap().keySet() ) {
+    for ( String typeName : getClassToBeanMap().keySet() ) {
       try {
         Class<?> type = Class.forName( typeName );
         Object bean = loadClass( type );
@@ -246,7 +247,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
 
   @Override
   public String getDocumentationUrl() {
-    return documentationUrl;
+    return Const.getDocUrl( documentationUrl );
   }
 
   @Override

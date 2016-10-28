@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2014 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -155,9 +155,16 @@ public class OSGIPluginTest {
 
   @Test
   public void testSetDocumentationUrl() {
-    String docUrl = "DOC_URL";
+    String docUrl = "http://DOC_URL";
     osgiPlugin.setDocumentationUrl( docUrl );
     assertEquals( docUrl, osgiPlugin.getDocumentationUrl() );
+  }
+
+  @Test
+  public void testSetDocumentationUrlFragment() {
+    String docUrl = "DOC_URL_FRAGMENT";
+    osgiPlugin.setDocumentationUrl( docUrl );
+    assertTrue( osgiPlugin.getDocumentationUrl().startsWith( "http" ) );
   }
 
   @Test

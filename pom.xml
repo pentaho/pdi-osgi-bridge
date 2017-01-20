@@ -9,7 +9,7 @@
   </parent>
   <groupId>pentaho</groupId>
   <artifactId>pdi-osgi-bridge-parent</artifactId>
-  <version>6.1-SNAPSHOT</version>
+  <version>6.1.0.10-322</version>
   <packaging>pom</packaging>
   <modules>
     <module>core</module>
@@ -18,7 +18,7 @@
     <module>examples/spoon</module>
   </modules>
   <properties>
-    <dependency.pentaho-kettle.version>6.1-SNAPSHOT</dependency.pentaho-kettle.version>
-    <dependency.pentaho-xul.revision>6.1-SNAPSHOT</dependency.pentaho-xul.revision>
+    <dependency.pentaho-kettle.version>6.1.0.10-322</dependency.pentaho-kettle.version>
+    <dependency.pentaho-xul.revision>6.1.0.10-322</dependency.pentaho-xul.revision>
   </properties>
 </project>

@@ -52,5 +52,31 @@ Marks the enclosing bean as a class containing Annotations describing a PDI Plug
   </xsd:element>
 
 
+  <xsd:complexType name="TdiPluginSupplementalMappings">
+    <xsd:annotation>
+      <xsd:documentation>
+        <![CDATA[
+Defines the di-plugin element with one attribute named 'type'
+]]>
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="di-plugin-mapping" type="TdiPluginMapping"
+                   minOccurs="0" maxOccurs="unbounded" />
+    </xsd:sequence>
+    <xsd:attribute name="type" type="xsd:string"/>
+    <xsd:attribute name="id" type="xsd:string"/>
+  </xsd:complexType>
+
+  <xsd:element name="di-plugin-mappings" type="TdiPluginSupplementalMappings">
+
+    <xsd:annotation>
+      <xsd:documentation>
+        <![CDATA[
+Marks the enclosing bean as a class containing Annotations describing a PDI Plugin Type
+]]>
+      </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
 
 </xsd:schema>

@@ -182,14 +182,6 @@ public class OSGIPluginTest {
   }
 
   @Test
-  public void testSetClassToBeanMap() {
-    Map<String, String> map = new HashMap<String, String>();
-    map.put( "A", "B" );
-    osgiPlugin.setClassToBeanMap( map );
-    assertEquals( map, osgiPlugin.getClassToBeanMap() );
-  }
-
-  @Test
   public void testGetClassLoader() {
     ClassLoader classLoader = mock( ClassLoader.class );
     when( osgiPluginTracker.getClassLoader( osgiPlugin ) ).thenReturn( classLoader );
@@ -198,11 +190,11 @@ public class OSGIPluginTest {
 
   @Test
   public void testLoadClassInBeanMap() throws KettlePluginException {
-    Map<String, String> map = new HashMap<String, String>();
-    map.put( "java.lang.Object", "list" );
-    osgiPlugin.setClassToBeanMap( map );
+
+    BlueprintBeanFactory beanFactory = mock( BlueprintBeanFactory.class );
+    osgiPlugin.addClassFactory( Object.class, beanFactory );
     Object result = new Object();
-    when( osgiPluginTracker.getBean( Object.class, osgiPlugin, "list" ) ).thenReturn( result );
+    when( beanFactory.create( Object.class ) ).thenReturn( result );
     Object object = osgiPlugin.loadClass( Object.class );
     assertEquals( result, object );
   }
@@ -211,8 +203,9 @@ public class OSGIPluginTest {
   public void testClassMap() {
     String id = "myListBean";
     List<Object> bean = new ArrayList<>();
-    osgiPlugin.setClassToBeanMap( Collections.singletonMap( List.class.getName(), id ) );
-    when( osgiPluginTracker.getBean( List.class, osgiPlugin, id ) ).thenReturn( bean );
+    BlueprintBeanFactory beanFactory = mock( BlueprintBeanFactory.class );
+    when( beanFactory.create( List.class ) ).thenReturn( bean );
+    osgiPlugin.addClassFactory( List.class, beanFactory );
     Map<Class<List>, String> expected = Collections.singletonMap( List.class, ArrayList.class.getName() );
     assertEquals( expected, osgiPlugin.getClassMap() );
   }

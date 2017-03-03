@@ -35,6 +35,7 @@ import org.osgi.service.blueprint.reflect.ComponentMetadata;
 import org.osgi.service.blueprint.reflect.Metadata;
 import org.osgi.service.blueprint.reflect.ServiceMetadata;
 import org.pentaho.di.osgi.AnnotationBasedOsgiPlugin;
+import org.pentaho.di.osgi.PdiPluginSupplementalClassMappings;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -51,7 +52,9 @@ import java.util.Set;
  */
 public class PentahoNamespaceHandler implements NamespaceHandler {
   public static final String DI_PLUGIN = "di-plugin";
+  public static final String DI_PLUGIN_EXTRA_MAPPINGS = "di-plugin-mappings";
   public static final String TYPE = "type";
+  public static final String ID = "id";
   public static final String AUTO_PDI_PLUGIN = "auto_pdi_plugin_";
   private BundleContext bundleContext;
 
@@ -77,17 +80,26 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
     if ( nodeName.contains( ":" ) ) {
       nodeName = nodeName.substring( nodeName.indexOf( ":" ) + 1 );
     }
-    if ( DI_PLUGIN.equals( nodeName ) ) {     // <pen:di-plugin type="..."/>
+    switch( nodeName ) {
+      case DI_PLUGIN: {
+        MutableBeanMetadata pluginBeanMetadata = createKettlePluginBean( node, componentMetadata, parserContext );
+        MutableServiceMetadata serviceMetadata =
+          createServiceMeta( componentMetadata, parserContext, pluginBeanMetadata );
 
-      MutableBeanMetadata pluginBeanMetadata = createKettlePluginBean( node, componentMetadata, parserContext );
-      MutableServiceMetadata serviceMetadata = createServiceMeta( componentMetadata, parserContext, pluginBeanMetadata );
+        // Register with Blueprint Container
+        parserContext.getComponentDefinitionRegistry().registerComponentDefinition( pluginBeanMetadata );
+        parserContext.getComponentDefinitionRegistry().registerComponentDefinition( serviceMetadata );
+      }
+      break;
+      case DI_PLUGIN_EXTRA_MAPPINGS : {
+        MutableBeanMetadata pluginBeanMetadata = createExtraMappingsBean( node, componentMetadata, parserContext );
+        MutableServiceMetadata serviceMetadata =
+          createServiceMeta( componentMetadata, parserContext, pluginBeanMetadata );
 
-
-      // Register with Blueprint Container
-      parserContext.getComponentDefinitionRegistry().registerComponentDefinition( pluginBeanMetadata );
-      parserContext.getComponentDefinitionRegistry().registerComponentDefinition( serviceMetadata );
-
-
+        // Register with Blueprint Container
+        parserContext.getComponentDefinitionRegistry().registerComponentDefinition( pluginBeanMetadata );
+        parserContext.getComponentDefinitionRegistry().registerComponentDefinition( serviceMetadata );
+      }
     }
     // We return the original component.
     return componentMetadata;
@@ -154,11 +166,59 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
     MutableRefMetadata beanReferenceMeta = parserContext.createMetadata( MutableRefMetadata.class );
     beanReferenceMeta.setComponentId( componentMetadata.getId() );
 
+    // BlueprintContainer
+    MutableRefMetadata containerReferenceMeta = parserContext.createMetadata( MutableRefMetadata.class );
+    containerReferenceMeta.setComponentId( "blueprintContainer" );
+
     // name of Bean
     MutableValueMetadata beanNameMeta = parserContext.createMetadata( MutableValueMetadata.class );
     beanNameMeta.setStringValue( componentMetadata.getId() );
 
     // Class Map
+    MutableMapMetadata classToBeanMap = createMapping( parserContext, node );
+
+    // Set Arguments
+    pluginBeanMetadata.addArgument( kettlePluginTypeMeta, null, 0 );
+    pluginBeanMetadata.addArgument( beanReferenceMeta, null, 1 );
+    pluginBeanMetadata.addArgument( beanNameMeta, null, 2 );
+    pluginBeanMetadata.addArgument( classToBeanMap, null, 3 );
+    pluginBeanMetadata.addArgument( containerReferenceMeta, null, 4 );
+
+    // Give it an ID (required)
+    pluginBeanMetadata.setId( AUTO_PDI_PLUGIN + componentMetadata.getId() );
+
+    return pluginBeanMetadata;
+  }
+
+
+
+  private MutableBeanMetadata createExtraMappingsBean( Node node, ComponentMetadata componentMetadata,
+                                                       ParserContext parserContext ) {
+    // Extract the kettle plugin type from the attribute
+    String kettlePluginType = node.getAttributes().getNamedItem( TYPE ).getTextContent();
+    String pluginId = node.getAttributes().getNamedItem( ID ).getTextContent();
+
+    // Construct a new Bean of type AnnotationBasedOsgiPlugin which will extract values from the target bean
+    MutableBeanMetadata mappingBeanMeta = parserContext.createMetadata( MutableBeanMetadata.class );
+
+    mappingBeanMeta.setClassName( PdiPluginSupplementalClassMappings.class.getName() );
+
+
+    MutableRefMetadata containerReferenceMeta = parserContext.createMetadata( MutableRefMetadata.class );
+    containerReferenceMeta.setComponentId( "blueprintContainer" );
+
+
+
+    // Class Map
+    MutableMapMetadata classToBeanMap = createMapping( parserContext, node );
+
+
+    mappingBeanMeta.addArgument( containerReferenceMeta, null, 0 );
+    mappingBeanMeta.addArgument( classToBeanMap, null, 1 );
+    return mappingBeanMeta;
+  }
+
+  private MutableMapMetadata createMapping( ParserContext parserContext, Node node ) {
     MutableMapMetadata classToBeanMap = parserContext.createMetadata( MutableMapMetadata.class );
     NodeList nodeList = node.getChildNodes();
     for ( int i = 0; i < nodeList.getLength(); i++ ) {
@@ -173,24 +233,12 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
         continue;
       }
       prop.setStringValue( classProp.getNodeValue() );
-      prop.setType( String.class.getName() );
+      prop.setType( Class.class.getName() );
       MutableValueMetadata propVal = parserContext.createMetadata( MutableValueMetadata.class );
       propVal.setStringValue( refProp.getNodeValue() );
       propVal.setType( String.class.getName() );
       classToBeanMap.addEntry( prop, propVal );
     }
-
-
-
-    // Set Arguments
-    pluginBeanMetadata.addArgument( kettlePluginTypeMeta, null, 0 );
-    pluginBeanMetadata.addArgument( beanReferenceMeta, null, 1 );
-    pluginBeanMetadata.addArgument( beanNameMeta, null, 2 );
-    pluginBeanMetadata.addArgument( classToBeanMap, null, 3 );
-
-    // Give it an ID (required)
-    pluginBeanMetadata.setId( AUTO_PDI_PLUGIN + componentMetadata.getId() );
-
-    return pluginBeanMetadata;
+    return classToBeanMap;
   }
 }

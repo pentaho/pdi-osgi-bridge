@@ -42,6 +42,7 @@ import org.pentaho.di.osgi.service.notifier.DelayedInstanceNotifierFactory;
 import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifier;
 import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifierListener;
 import org.pentaho.di.osgi.service.tracker.OSGIServiceTracker;
+import org.pentaho.di.osgi.service.tracker.PdiPluginSupplementalClassMappingsTracker;
 import org.pentaho.osgi.api.BeanFactory;
 import org.pentaho.osgi.api.BeanFactoryLocator;
 import org.pentaho.osgi.api.ProxyUnwrapper;
@@ -267,7 +268,12 @@ public class OSGIPluginTracker {
 
     ServiceReference reference = instanceToReferenceMap.get( serviceObject );
     if ( reference == null ) {
-      throw new OSGIPluginTrackerException( "Service Reference is null. This is fatal." );
+      // serviceObject might already be a blueprint container
+      BeanFactory beanFactory = lookup.getBeanFactory( serviceObject );
+      if( beanFactory == null ) {
+        throw new OSGIPluginTrackerException( "Service Reference is null. This is fatal." );
+      }
+      return beanFactory;
     }
     Bundle objectBundle = reference.getBundle();
     if ( objectBundle == null ) {
@@ -365,6 +371,7 @@ public class OSGIPluginTracker {
     instanceToReferenceMap.put( instance, serviceObject );
     referenceToInstanceMap.put( serviceObject, instance );
     aggregatingNotifierListener.incrementCount();
+
     new DelayedServiceNotifier( this, cls, evt, instance, listeners, scheduler, aggregatingNotifierListener ).run();
   }
 

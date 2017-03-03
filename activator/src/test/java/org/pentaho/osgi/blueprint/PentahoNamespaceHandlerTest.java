@@ -141,6 +141,6 @@ public class PentahoNamespaceHandlerTest {
     verify( node ).getAttributes();
     verify( node ).getChildNodes();
     verify( parserContext, times( 2 ) ).getComponentDefinitionRegistry();
-    verify( parserContext, times( 13 ) ).createMetadata( (Class) anyObject() );
+    verify( parserContext, times( 14 ) ).createMetadata( (Class) anyObject() );
   }
 }

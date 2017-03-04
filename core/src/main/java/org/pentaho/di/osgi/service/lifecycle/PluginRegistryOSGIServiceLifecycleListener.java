@@ -24,11 +24,15 @@ package org.pentaho.di.osgi.service.lifecycle;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.PluginTypeInterface;
 import org.pentaho.di.osgi.OSGIPlugin;
+import org.pentaho.di.osgi.OSGIPluginTracker;
+import org.pentaho.di.osgi.service.tracker.PdiPluginSupplementalClassMappingsTracker;
 
 /**
  * Created by bryan on 8/15/14.
@@ -52,11 +56,22 @@ public class PluginRegistryOSGIServiceLifecycleListener implements OSGIServiceLi
       Class<? extends PluginTypeInterface> pluginTypeFromPlugin = osgiPlugin.getPluginType();
       try {
         registry.registerPlugin( pluginTypeFromPlugin, serviceObject );
+        openServiceTracker( pluginTypeFromPlugin, osgiPlugin);
       } catch ( KettlePluginException e ) {
         logger.error( e.getMessage(), e );
       }
     } catch ( Exception e ) {
       logger.error( "Error notifying listener of plugin addition", e );
+    }
+  }
+
+  private void openServiceTracker( Class<? extends PluginTypeInterface> pluginTypeFromPlugin, OSGIPlugin osgiPlugin ) {
+
+    try {
+      new PdiPluginSupplementalClassMappingsTracker( OSGIPluginTracker.getInstance().getBundleContext(), pluginTypeFromPlugin, osgiPlugin );
+    } catch ( InvalidSyntaxException e ) {
+      // Should never happen, this is from constructing the filter
+      logger.error( "Error constructing filter for Class Mapping Tracker", e );
     }
   }
 

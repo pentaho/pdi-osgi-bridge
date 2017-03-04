@@ -25,6 +25,8 @@ package org.pentaho.di.osgi.registryExtension;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleReference;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -98,7 +100,6 @@ public class OSGIPluginRegistryExtension implements PluginRegistryExtension {
     return boot;
   }
 
-  @Override
   public synchronized void init( final PluginRegistry registry ) {
     if ( PentahoSystem.getInitializedStatus() != PentahoSystem.SYSTEM_INITIALIZED_OK && !initializedKaraf.getAndSet( true )) {
       PentahoSystem.init();
@@ -106,6 +107,7 @@ public class OSGIPluginRegistryExtension implements PluginRegistryExtension {
     }
     PluginRegistry.addPluginType( OSGIPluginType.getInstance() );
     tracker.registerPluginClass( PluginInterface.class );
+
     tracker.addPluginLifecycleListener( PluginInterface.class,
       new PluginRegistryOSGIServiceLifecycleListener( registry ) );
   }

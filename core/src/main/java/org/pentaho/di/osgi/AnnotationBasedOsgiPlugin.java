@@ -12,7 +12,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,10 +29,10 @@ public class AnnotationBasedOsgiPlugin extends OSGIPlugin {
 
 
   public AnnotationBasedOsgiPlugin( Class<PluginTypeInterface> pluginTypeInterface, Object bean, String id, Map
-      <String, String> classToBeanMap )
-      throws IllegalAccessException, InstantiationException {
+    <Class, String> classToBeanMap, Object blueprintContainer )
+    throws IllegalAccessException, InstantiationException {
     this.bean = bean;
-    if( ! BasePluginType.class.isAssignableFrom( pluginTypeInterface )){
+    if ( !BasePluginType.class.isAssignableFrom( pluginTypeInterface ) ) {
       throw new IllegalArgumentException( "PluginTypeInterface must extend BasePluginType" );
     }
     boolean trySingleton = false;
@@ -41,24 +40,24 @@ public class AnnotationBasedOsgiPlugin extends OSGIPlugin {
     try {
       constructor = pluginTypeInterface.getConstructor();
     } catch ( NoSuchMethodException e ) {
-      logger.debug( "Error getting Constructor for BasePluginType of [ " + pluginTypeInterface.getName() + " ]");
+      logger.debug( "Error getting Constructor for BasePluginType of [ " + pluginTypeInterface.getName() + " ]" );
       trySingleton = true;
     }
-    if(constructor != null && constructor.isAccessible()){
-    try {
-        basePluginType = (BasePluginType) constructor.newInstance(  );
+    if ( constructor != null && constructor.isAccessible() ) {
+      try {
+        basePluginType = (BasePluginType) constructor.newInstance();
       } catch ( InvocationTargetException e ) {
-        logger.debug( "Error calling Constructor for BasePluginType of [ " + pluginTypeInterface.getName() + " ]");        
+        logger.debug( "Error calling Constructor for BasePluginType of [ " + pluginTypeInterface.getName() + " ]" );
         trySingleton = true;
       }
     } else {
       trySingleton = true;
     }
-    if( trySingleton ){
+    if ( trySingleton ) {
       Method getInstance = null;
       try {
         getInstance = pluginTypeInterface.getMethod( "getInstance" );
-        if( getInstance != null ){
+        if ( getInstance != null ) {
           basePluginType = (BasePluginType) getInstance.invoke( pluginTypeInterface );
         }
       } catch ( NoSuchMethodException e ) {
@@ -70,18 +69,21 @@ public class AnnotationBasedOsgiPlugin extends OSGIPlugin {
 
     Class<? extends Annotation> annotationCls = pluginTypeInterface.getAnnotation( PluginAnnotationType.class ).value();
     annotation = bean.getClass().getAnnotation( annotationCls );
-    if( basePluginType == null ){
+    if ( basePluginType == null ) {
       throw new IllegalStateException( "Bean's PluginType could not be constructed, <pen:di-plugin> cannot be used." );
     }
-    if( annotation == null ){
+    if ( annotation == null ) {
       throw new IllegalStateException( "Bean class does not have required PluginType annotation" );
     }
     super.setPluginTypeInterface( pluginTypeInterface );
-    if( classToBeanMap == null ){
-      classToBeanMap = new HashMap<String, String>(  );
+    if ( classToBeanMap == null ) {
+      classToBeanMap = new HashMap<>();
     }
-    classToBeanMap.put( getMainType().getName(), id );
-    super.setClassToBeanMap( classToBeanMap );
+    classToBeanMap.put( getMainType(), id );
+    classToBeanMap.forEach( ( cls, beanId ) -> {
+      super.addClassFactory( cls, new BlueprintBeanFactory( beanId, blueprintContainer ) );
+    } );
+
     exposer = new BasePluginTypeExposer( basePluginType, bean );
   }
 
@@ -104,7 +106,7 @@ public class AnnotationBasedOsgiPlugin extends OSGIPlugin {
 
   @Override public Class<?> getMainType() {
     PluginMainClassType mainType = getPluginType().getAnnotation( PluginMainClassType.class );
-    if( mainType != null ){
+    if ( mainType != null ) {
       return mainType.value();
     }
     return null;

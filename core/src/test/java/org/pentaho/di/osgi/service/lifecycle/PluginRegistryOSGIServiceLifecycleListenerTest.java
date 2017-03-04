@@ -27,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.osgi.framework.BundleContext;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.PluginTypeInterface;
@@ -47,6 +48,7 @@ public class PluginRegistryOSGIServiceLifecycleListenerTest {
   public void setup() {
     logger = mock( Log.class );
     pluginRegistry = mock( PluginRegistry.class );
+    BundleContext bundleContext = mock( BundleContext.class );
     pluginRegistryOSGIServiceLifecycleListener = new PluginRegistryOSGIServiceLifecycleListener( pluginRegistry );
     pluginRegistryOSGIServiceLifecycleListener.setLogger( logger );
     plugin = mock( OSGIPlugin.class );

@@ -36,6 +36,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * User: nbaker Date: 12/9/10
@@ -57,7 +59,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
   private String casesUrl;
   private String documentationUrl;
   private String forumUrl;
-  private Map<String, String> classToBeanMap = new HashMap<String, String>();
+  private Map<Class<?>, BlueprintBeanFactory> classFactoryMap = new HashMap<>();
 
   private Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -85,7 +87,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
       if ( parts.length != 3 ) {
         return str;
       } else {
-        return BaseMessages.getString( parts[1], parts[2] );
+        return BaseMessages.getString( parts[ 1 ], parts[ 2 ] );
       }
     }
 
@@ -97,21 +99,14 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
   }
 
   /**
-   * Generated from {@link #getClassToBeanMap}
+   * Not sure the purpose of this.
    */
   @Override
   public Map<Class<?>, String> getClassMap() {
-    HashMap<Class<?>, String> classMap = new HashMap<>();
-    for ( String typeName : getClassToBeanMap().keySet() ) {
-      try {
-        Class<?> type = Class.forName( typeName );
-        Object bean = loadClass( type );
-        classMap.put( type, bean.getClass().getName() );
-      } catch ( ClassNotFoundException e ) {
-        logger.error( "Error instancing plugin class: ", e );
-      }
-    }
-    return classMap;
+
+    return classFactoryMap.keySet().stream()
+      .collect( Collectors.toMap( Function.identity(), aClass -> loadClass( aClass ).getClass().getName() ) );
+
   }
 
   @Override
@@ -134,7 +129,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
 
   @Override
   public String[] getIds() {
-    return new String[]{ getID() };
+    return new String[] { getID() };
   }
 
   public String getID() {
@@ -208,18 +203,21 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
 
   @Override
   public <T> T loadClass( Class<T> pluginClass ) {
-    String id = classToBeanMap.get( pluginClass.getName() );
-    if ( id != null ) {
-      return osgiPluginTracker.getBean( pluginClass, this, id );
-    } else {
-      try {
-        return pluginClass.newInstance();
-      } catch ( Exception e ) {
-        logger.error( "Error instancing plugin class: ", e );
-        return null;
-//        throw new KettlePluginException( e );
-      }
+    if ( classFactoryMap.containsKey( pluginClass ) ) {
+      return classFactoryMap.get( pluginClass ).create( pluginClass );
     }
+
+    // I don't know the usefulness of this, probably matching existing PluginRegistry behavior
+    try {
+      return pluginClass.newInstance();
+    } catch ( Exception e ) {
+      logger.error(
+        "Plugin Class not found in Plugin Class Mapping: " + pluginClass.getName() + " : " + this.getPluginType()
+          + " : "
+          + this.getID() );
+      return null;
+    }
+
   }
 
   public BeanFactory getBeanFactory() {
@@ -275,11 +273,11 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
     // noop
   }
 
-  public Map<String, String> getClassToBeanMap() {
-    return classToBeanMap;
+  public void setClassToBeanMap( Map<Class, String> classToBeanMap ) {
+    classToBeanMap.forEach( ( aClass, s ) -> addClassFactory( aClass, new BlueprintBeanFactory( s, this ) ) );
   }
 
-  public void setClassToBeanMap( Map<String, String> classToBeanMap ) {
-    this.classToBeanMap = classToBeanMap;
+  public void addClassFactory( Class<?> aClass, BlueprintBeanFactory blueprintBeanFactory ) {
+    classFactoryMap.put( aClass, blueprintBeanFactory );
   }
 }

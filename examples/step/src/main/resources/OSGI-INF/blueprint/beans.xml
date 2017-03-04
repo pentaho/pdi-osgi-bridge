@@ -8,12 +8,12 @@
            default-timeout="20000">
 
   <bean id="YamlInput_StepMeta" class="org.pentaho.di.plugins.examples.step.YamlInputMeta" scope="prototype">
-    <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType">
-
-      <!-- Reference the extra class for the StepData -->
-      <pen:di-plugin-mapping class="org.pentaho.di.trans.step.StepDataInterface" ref="YamlInput_StepData"/>
-    </pen:di-plugin>
+    <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
+
+  <pen:di-plugin-mappings type="org.pentaho.di.core.plugins.StepPluginType" id="YamlInput">
+    <pen:di-plugin-mapping class="org.pentaho.di.trans.step.StepDataInterface" ref="YamlInput_StepData"/>
+  </pen:di-plugin-mappings>
 
   <bean id="YamlInput_StepData" class="org.pentaho.di.plugins.examples.step.YamlInputData" scope="prototype"/>
 

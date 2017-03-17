@@ -2,34 +2,36 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pdi-osgi-bridge-parent</artifactId>
     <version>7.1-SNAPSHOT</version>
   </parent>
+
   <artifactId>pdi-osgi-bridge-activator</artifactId>
   <version>7.1-SNAPSHOT</version>
   <packaging>bundle</packaging>
-  <properties>
-    <exam.version>4.1.0</exam.version>
-    <mockito.version>1.9.5</mockito.version>
-  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.apache.aries.blueprint</groupId>
       <artifactId>org.apache.aries.blueprint.core</artifactId>
-      <version>1.4.2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.aries.blueprint</groupId>
+      <artifactId>org.apache.aries.blueprint.api</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.aries</groupId>
       <artifactId>org.apache.aries.util</artifactId>
-      <version>1.1.0</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.karaf.features</groupId>
       <artifactId>org.apache.karaf.features.core</artifactId>
-      <version>3.0.3</version>
       <exclusions>
         <exclusion>
           <artifactId>org.osgi.core</artifactId>
@@ -40,7 +42,6 @@
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>
-      <version>${dependency.pentaho-kettle.version}</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
@@ -52,13 +53,11 @@
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-engine</artifactId>
-      <version>${dependency.pentaho-kettle.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.framework</artifactId>
-      <version>4.4.1</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -68,88 +67,51 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.aries.blueprint</groupId>
-      <artifactId>org.apache.aries.blueprint.core</artifactId>
-      <version>1.4.2</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.aries.blueprint</groupId>
-      <artifactId>org.apache.aries.blueprint.api</artifactId>
-      <version>1.0.1</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.aries</groupId>
-      <artifactId>org.apache.aries.util</artifactId>
-      <version>1.1.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>17.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-capability-manager</artifactId>
-      <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.ops4j.pax.exam</groupId>
+      <artifactId>pax-exam-cdi</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.ops4j.pax.tinybundles</groupId>
+      <artifactId>tinybundles</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-core</artifactId>
-      <version>0.9.29</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>0.9.29</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.7</version>
-    </dependency>
-    <dependency>
-      <groupId>org.ops4j.pax.exam</groupId>
-      <artifactId>pax-exam-cdi</artifactId>
-      <version>4.1.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.ops4j.pax.tinybundles</groupId>
-      <artifactId>tinybundles</artifactId>
-      <version>2.0.0</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>org.osgi.core</artifactId>
-          <groupId>org.osgi</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
+
   <build>
     <finalName>${project.artifactId}</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <version>2.3.7</version>
         <extensions>true</extensions>
         <configuration>
           <instructions>

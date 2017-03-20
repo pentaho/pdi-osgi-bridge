@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -61,7 +61,7 @@ import org.w3c.dom.Node;
  *
  * <step id="YamlInput"> <description>i18n:org.pentaho.di.trans.step:BaseStep.TypeLongDesc.YamlInput</description> <classname>org.pentaho.di.trans.steps.yamlinput.YamlInputMeta</classname> <category>i18n:org.pentaho.di.trans.step:BaseStep.Category.Input</category> <tooltip>i18n:org.pentaho.di.trans.step:BaseStep.TypeTooltipDesc.YamlInput</tooltip> <iconfile>ui/images/YamlI.png</iconfile> <documentation_url/> <cases_url/> <forum_url/> </step>
  */
-@Step( id="YamlInput", image = "YamlI.png", name = "YAML Input Step", categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Input")
+@Step( id = "YamlInputOSGI", image = "YamlI.png", name = "YAML Input Step from OSGI", categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Input" )
 public class YamlInputMeta extends BaseStepMeta implements StepMetaInterface {
   private static Class<?> PKG = YamlInputMeta.class; // for i18n purposes, needed by Translator2!!
 

@@ -37,6 +37,8 @@ import org.pentaho.di.osgi.PdiPluginSupplementalClassMappings;
  * This OSGI ServiceTracker watches for Supplemental PDI Plugin mappings which need to be added to the already created
  * OSGI Plugin.
  *
+ * This mechanism is no longer needed now that PluginRegistry.addClassFactory has been added.
+ *
  * Created by nbaker on 3/2/17.
  */
 public class PdiPluginSupplementalClassMappingsTracker

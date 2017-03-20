@@ -36,16 +36,16 @@ import java.util.Map;
  * Created by nbaker on 3/2/17.
  */
 public class PdiPluginSupplementalClassMappings {
-  private Map<Class<?>, String> classToBeanNameMap = new HashMap<>(  );
+  private Map<Class, String> classToBeanNameMap = new HashMap<>(  );
   private Object container;
 
-  public PdiPluginSupplementalClassMappings( Map<Class<?>, String> classToBeanNameMap,
+  public PdiPluginSupplementalClassMappings( Map<Class, String> classToBeanNameMap,
                                              Object container ) {
     this.classToBeanNameMap = classToBeanNameMap;
     this.container = container;
   }
 
-  public Map<Class<?>, String> getClassToBeanNameMap() {
+  public Map<Class, String> getClassToBeanNameMap() {
     return classToBeanNameMap;
   }
 

@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -52,7 +52,7 @@ public class BridgeActivatorTest {
   public void testStart() throws Exception {
     bridgeActivator.start( bundleContext );
     verify( bundleContext, atLeastOnce() ).createFilter( anyString() );
-    verify( bundleContext, times( 7 ) ).addServiceListener( (ServiceListener) anyObject(), anyString() );
+    verify( bundleContext, times( 8 ) ).addServiceListener( (ServiceListener) anyObject(), anyString() );
     verify( bundleContext, atLeastOnce() ).registerService( ExecutorService.class,
         ExecutorUtil.getExecutor(), new Hashtable<String, Object>() );
   }

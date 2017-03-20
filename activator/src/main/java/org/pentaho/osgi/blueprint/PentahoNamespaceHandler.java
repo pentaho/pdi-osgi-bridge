@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -43,6 +43,7 @@ import org.w3c.dom.NodeList;
 
 import java.net.URL;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * A Custom Blueprint (Aries) NamespaceHandler. This class is responsible for parsing all namespaced elements from the
@@ -56,6 +57,7 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
   public static final String TYPE = "type";
   public static final String ID = "id";
   public static final String AUTO_PDI_PLUGIN = "auto_pdi_plugin_";
+  public static final String AUTO_DI_PLUGIN_MAPPINGS = "auto_di_plugin_mappings_";
   private BundleContext bundleContext;
 
   public PentahoNamespaceHandler( BundleContext bundleContext ) {
@@ -71,6 +73,9 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
   }
 
   @Override public Metadata parse( Element element, ParserContext parserContext ) {
+    if ( element.getNodeName() != null && element.getNodeName().endsWith( DI_PLUGIN_EXTRA_MAPPINGS ) ) {
+      return processExtraMappings( element, parserContext );
+    }
     return null;
   }
 
@@ -80,8 +85,8 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
     if ( nodeName.contains( ":" ) ) {
       nodeName = nodeName.substring( nodeName.indexOf( ":" ) + 1 );
     }
-    switch( nodeName ) {
-      case DI_PLUGIN: {
+    switch ( nodeName ) {
+      case DI_PLUGIN:
         MutableBeanMetadata pluginBeanMetadata = createKettlePluginBean( node, componentMetadata, parserContext );
         MutableServiceMetadata serviceMetadata =
           createServiceMeta( componentMetadata, parserContext, pluginBeanMetadata );
@@ -89,26 +94,45 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
         // Register with Blueprint Container
         parserContext.getComponentDefinitionRegistry().registerComponentDefinition( pluginBeanMetadata );
         parserContext.getComponentDefinitionRegistry().registerComponentDefinition( serviceMetadata );
-      }
-      break;
-      case DI_PLUGIN_EXTRA_MAPPINGS : {
-        MutableBeanMetadata pluginBeanMetadata = createExtraMappingsBean( node, componentMetadata, parserContext );
-        MutableServiceMetadata serviceMetadata =
-          createServiceMeta( componentMetadata, parserContext, pluginBeanMetadata );
-
-        // Register with Blueprint Container
-        parserContext.getComponentDefinitionRegistry().registerComponentDefinition( pluginBeanMetadata );
-        parserContext.getComponentDefinitionRegistry().registerComponentDefinition( serviceMetadata );
-      }
+        break;
     }
     // We return the original component.
     return componentMetadata;
   }
 
+  private MutableBeanMetadata processExtraMappings( Node node, ParserContext parserContext ) {
+
+    MutableBeanMetadata pluginBeanMetadata = createExtraMappingsBean( node, parserContext );
+
+    // Extract the kettle plugin type from the attribute
+    String kettlePluginType = node.getAttributes().getNamedItem( TYPE ).getTextContent();
+    String pluginId = node.getAttributes().getNamedItem( ID ).getTextContent();
+
+    MutableServiceMetadata serviceMetadata =
+      createServiceMeta( pluginBeanMetadata, parserContext, pluginBeanMetadata );
+
+
+    serviceMetadata.addServiceProperty( createValue( parserContext, ID ), createValue( parserContext, pluginId ) );
+    MutableValueMetadata value = createValue( parserContext, kettlePluginType );
+    value.setType( Class.class.getName() );
+    serviceMetadata
+      .addServiceProperty( createValue( parserContext, TYPE ), value );
+
+    // Register with Blueprint Container
+    parserContext.getComponentDefinitionRegistry().registerComponentDefinition( serviceMetadata );
+    return pluginBeanMetadata;
+  }
+
+  private MutableValueMetadata createValue( ParserContext parserContext, String value ) {
+    MutableValueMetadata metadata = parserContext.createMetadata( MutableValueMetadata.class );
+    metadata.setStringValue( value );
+    return metadata;
+  }
+
   /**
    * Constructs a Service element publishing the Kettle Plugin to the OSGI Service Registry. The effect is as if the
    * following was written in the Blueprint file:
-   *
+   * <p>
    * <service auto-export="interfaces" ref="kettlePluginBean"/>
    *
    * @param componentMetadata
@@ -126,7 +150,7 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
     mutableRefMetadata.setComponentId( pluginBeanMetadata.getId() );
 
     serviceMetadata.setServiceComponent( mutableRefMetadata );
-    serviceMetadata.setAutoExport( ServiceMetadata.AUTO_EXPORT_INTERFACES );
+    serviceMetadata.setAutoExport( ServiceMetadata.AUTO_EXPORT_ALL_CLASSES );
     serviceMetadata.setId( "auto_pdi_plugin_service_" + componentMetadata.getId() );
     return serviceMetadata;
 
@@ -135,11 +159,11 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
   /**
    * Constructs a new Bean of type AnnotationBasedOsgiPlugin which will extract values from the target bean. The effect
    * is as if the user had written the following bean in their blueprint container
-   *
+   * <p>
    * <bean class="org.pentaho.di.osgi.AnnotationBasedOsgiPlugin">
-   *   <argument>org.pentaho.di.core.plugins.KettleLifecyclePluginType</argument>
-   *   <argument ref="targetBeanID"/>
-   *   <argument>targetBeanID</argument>
+   * <argument>org.pentaho.di.core.plugins.KettleLifecyclePluginType</argument>
+   * <argument ref="targetBeanID"/>
+   * <argument>targetBeanID</argument>
    * </bean>
    *
    * @param node
@@ -147,7 +171,7 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
    * @param parserContext
    */
   private MutableBeanMetadata createKettlePluginBean( Node node, ComponentMetadata componentMetadata,
-                                                   ParserContext parserContext ) {
+                                                      ParserContext parserContext ) {
     // Extract the kettle plugin type from the attribute
     String kettlePluginType = node.getAttributes().getNamedItem( TYPE ).getTextContent();
 
@@ -191,15 +215,11 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
   }
 
 
-
-  private MutableBeanMetadata createExtraMappingsBean( Node node, ComponentMetadata componentMetadata,
-                                                       ParserContext parserContext ) {
-    // Extract the kettle plugin type from the attribute
-    String kettlePluginType = node.getAttributes().getNamedItem( TYPE ).getTextContent();
-    String pluginId = node.getAttributes().getNamedItem( ID ).getTextContent();
+  private MutableBeanMetadata createExtraMappingsBean( Node node, ParserContext parserContext ) {
 
     // Construct a new Bean of type AnnotationBasedOsgiPlugin which will extract values from the target bean
     MutableBeanMetadata mappingBeanMeta = parserContext.createMetadata( MutableBeanMetadata.class );
+    mappingBeanMeta.setId( AUTO_DI_PLUGIN_MAPPINGS + UUID.randomUUID() );
 
     mappingBeanMeta.setClassName( PdiPluginSupplementalClassMappings.class.getName() );
 
@@ -208,13 +228,12 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
     containerReferenceMeta.setComponentId( "blueprintContainer" );
 
 
-
     // Class Map
     MutableMapMetadata classToBeanMap = createMapping( parserContext, node );
 
 
-    mappingBeanMeta.addArgument( containerReferenceMeta, null, 0 );
-    mappingBeanMeta.addArgument( classToBeanMap, null, 1 );
+    mappingBeanMeta.addArgument( classToBeanMap, null, 0 );
+    mappingBeanMeta.addArgument( containerReferenceMeta, null, 1 );
     return mappingBeanMeta;
   }
 

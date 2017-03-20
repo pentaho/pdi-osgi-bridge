@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2014 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,6 +26,7 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.osgi.service.tracker.BeanFactoryLookupServiceTracker;
+import org.pentaho.di.osgi.service.tracker.PdiPluginSupplementalClassMappingsTrackerForPluginRegistry;
 import org.pentaho.di.osgi.service.tracker.ProxyUnwrapperServiceTracker;
 import org.pentaho.osgi.api.BeanFactory;
 
@@ -37,6 +38,8 @@ public class OSGIActivator implements BundleActivator {
   private BundleContext bundleContext;
   private BeanFactoryLookupServiceTracker beanFactoryLookupServiceTracker;
   private ProxyUnwrapperServiceTracker proxyUnwrapperServiceTracker;
+  private PdiPluginSupplementalClassMappingsTrackerForPluginRegistry
+    pdiPluginSupplementalClassMappingsTrackerForPluginRegistry;
 
   public OSGIActivator() {
     osgiPluginTracker = OSGIPluginTracker.getInstance();
@@ -60,6 +63,9 @@ public class OSGIActivator implements BundleActivator {
     osgiPluginTracker.registerPluginClass( PluginInterface.class );
     beanFactoryLookupServiceTracker = new BeanFactoryLookupServiceTracker( bundleContext, osgiPluginTracker );
     beanFactoryLookupServiceTracker.open();
+    pdiPluginSupplementalClassMappingsTrackerForPluginRegistry =
+      new PdiPluginSupplementalClassMappingsTrackerForPluginRegistry( bundleContext );
+    pdiPluginSupplementalClassMappingsTrackerForPluginRegistry.open();
 
     // Make sure all activation is done BEFORE this call. It will block until all bundles are registered
     KarafLifecycleListener.getInstance().setBundleContext( bundleContext );
@@ -69,5 +75,6 @@ public class OSGIActivator implements BundleActivator {
     osgiPluginTracker.shutdown();
     beanFactoryLookupServiceTracker.close();
     proxyUnwrapperServiceTracker.close();
+    pdiPluginSupplementalClassMappingsTrackerForPluginRegistry.close();
   }
 }

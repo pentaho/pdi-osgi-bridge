@@ -68,7 +68,7 @@ public class PluginRegistryOSGIServiceLifecycleListener implements OSGIServiceLi
   private void openServiceTracker( Class<? extends PluginTypeInterface> pluginTypeFromPlugin, OSGIPlugin osgiPlugin ) {
 
     try {
-      new PdiPluginSupplementalClassMappingsTracker( OSGIPluginTracker.getInstance().getBundleContext(), pluginTypeFromPlugin, osgiPlugin );
+      new PdiPluginSupplementalClassMappingsTracker( OSGIPluginTracker.getInstance().getBundleContext(), pluginTypeFromPlugin, osgiPlugin ).open();
     } catch ( InvalidSyntaxException e ) {
       // Should never happen, this is from constructing the filter
       logger.error( "Error constructing filter for Class Mapping Tracker", e );

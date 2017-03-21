@@ -50,7 +50,7 @@ public class PdiPluginSupplementalClassMappingsTracker
                                                     Class<? extends PluginTypeInterface> pluginTypeFromPlugin,
                                                     OSGIPlugin osgiPlugin ) throws InvalidSyntaxException {
     super( bundleContext, bundleContext.createFilter(
-      "(&(objectClass=" + PdiPluginSupplementalClassMappings.class.getName() + ")&(plugin-id=" + osgiPlugin.getID()
+      "(&(objectClass=" + PdiPluginSupplementalClassMappings.class.getName() + ")&(id=" + osgiPlugin.getID()
         + "))" ), null );
     this.osgiPlugin = osgiPlugin;
   }

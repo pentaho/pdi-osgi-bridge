@@ -37,6 +37,7 @@ import org.pentaho.di.osgi.OSGIPluginTracker;
 import org.pentaho.di.osgi.OSGIPluginType;
 import org.pentaho.di.osgi.StatusGetter;
 import org.pentaho.di.osgi.service.lifecycle.PluginRegistryOSGIServiceLifecycleListener;
+import org.pentaho.platform.api.engine.IApplicationContext;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.platform.engine.core.system.StandaloneApplicationContext;
 import org.pentaho.platform.osgi.KarafBoot;
@@ -102,7 +103,9 @@ public class OSGIPluginRegistryExtension implements PluginRegistryExtension {
 
   public synchronized void init( final PluginRegistry registry ) {
     if ( PentahoSystem.getInitializedStatus() != PentahoSystem.SYSTEM_INITIALIZED_OK && !initializedKaraf.getAndSet( true )) {
-      PentahoSystem.init();
+      String userDir = System.getProperty("pentaho.user.dir", ".");
+      IApplicationContext context = new StandaloneApplicationContext( userDir, userDir );
+      PentahoSystem.init(context);
       boot.startup( null );
     }
     PluginRegistry.addPluginType( OSGIPluginType.getInstance() );

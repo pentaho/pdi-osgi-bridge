@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -29,7 +29,7 @@ import org.osgi.framework.BundleContext;
 import java.util.Hashtable;
 
 /**
- * An Activator which registers the Pentaho Blueprint NamespaceHandler
+ * An Activator which registers the Hitachi Vantara Blueprint NamespaceHandler
  * <p/>
  * Created by nbaker on 2/11/15.
  */

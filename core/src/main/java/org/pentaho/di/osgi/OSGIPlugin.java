@@ -207,17 +207,7 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
       return classFactoryMap.get( pluginClass ).create( pluginClass );
     }
 
-    // I don't know the usefulness of this, probably matching existing PluginRegistry behavior
-    try {
-      return pluginClass.newInstance();
-    } catch ( Exception e ) {
-      logger.error(
-        "Plugin Class not found in Plugin Class Mapping: " + pluginClass.getName() + " : " + this.getPluginType()
-          + " : "
-          + this.getID() );
-      return null;
-    }
-
+    return null;
   }
 
   public BeanFactory getBeanFactory() {

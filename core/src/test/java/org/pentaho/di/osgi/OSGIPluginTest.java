@@ -31,7 +31,6 @@ import org.pentaho.osgi.api.BeanFactory;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -213,8 +212,7 @@ public class OSGIPluginTest {
   @Test
   public void testLoadClassNotInBeanMap() throws KettlePluginException {
     ArrayList result = osgiPlugin.loadClass( ArrayList.class );
-    assertNotNull( result );
-    assertTrue( result instanceof ArrayList );
+    assertNull( result );
   }
 
   public void testLoadClassInstantiationException() throws KettlePluginException {

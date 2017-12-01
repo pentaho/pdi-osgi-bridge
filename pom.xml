@@ -26,15 +26,15 @@
     <pax-url-aether.version>1.4.0</pax-url-aether.version>
     <pentaho-osgi-utils.version>${project.version}</pentaho-osgi-utils.version>
     <logback.version>0.9.29</logback.version>
-    <dependency.pentaho-kettle.version>8.1-SNAPSHOT</dependency.pentaho-kettle.version>
+    <pdi.version>8.1-SNAPSHOT</pdi.version>
     <slf4j.version>1.7.7</slf4j.version>
     <aries.blueprint.core.version>1.4.2</aries.blueprint.core.version>
     <felix.version>4.4.1</felix.version>
     <exam.version>4.1.0</exam.version>
     <aries.util.version>1.1.0</aries.util.version>
-    <dependency.pentaho-xul.revision>8.1-SNAPSHOT</dependency.pentaho-xul.revision>
+    <pentaho-xul.version>8.1-SNAPSHOT</pentaho-xul.version>
     <guava.version>17.0</guava.version>
-    <dependency.pentaho-platform.revision>8.1-SNAPSHOT</dependency.pentaho-platform.revision>
+    <platform.version>8.1-SNAPSHOT</platform.version>
     <karaf.version>3.0.3</karaf.version>
   </properties>
   <dependencyManagement>
@@ -42,12 +42,12 @@
       <dependency>
         <groupId>pentaho</groupId>
         <artifactId>pentaho-platform-core</artifactId>
-        <version>${dependency.pentaho-platform.revision}</version>
+        <version>${platform.version}</version>
       </dependency>
       <dependency>
         <groupId>pentaho</groupId>
         <artifactId>pentaho-platform-extensions</artifactId>
-        <version>${dependency.pentaho-platform.revision}</version>
+        <version>${platform.version}</version>
         <exclusions>
           <exclusion>
             <artifactId>xbean</artifactId>
@@ -68,22 +68,22 @@
       <dependency>
         <groupId>pentaho-kettle</groupId>
         <artifactId>kettle-core</artifactId>
-        <version>${dependency.pentaho-kettle.version}</version>
+        <version>${pdi.version}</version>
       </dependency>
       <dependency>
         <groupId>pentaho-kettle</groupId>
         <artifactId>kettle-engine</artifactId>
-        <version>${dependency.pentaho-kettle.version}</version>
+        <version>${pdi.version}</version>
       </dependency>
       <dependency>
         <groupId>pentaho-kettle</groupId>
         <artifactId>kettle-ui-swt</artifactId>
-        <version>${dependency.pentaho-kettle.version}</version>
+        <version>${pdi.version}</version>
       </dependency>
       <dependency>
         <groupId>pentaho</groupId>
         <artifactId>pentaho-xul-core</artifactId>
-        <version>${dependency.pentaho-xul.revision}</version>
+        <version>${pentaho-xul.version}</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>

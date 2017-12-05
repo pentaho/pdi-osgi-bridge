@@ -142,6 +142,19 @@ public class KarafCapabilityProvider extends ServiceTracker<FeaturesService, Fea
     return null;
   }
 
+  @Override public boolean capabilityExist( String id ) {
+    try {
+      Feature feature = featuresService.getFeature( id );
+      if ( feature == null ) {
+        return false;
+      }
+      return true;
+    } catch ( Exception e ) {
+      logger.error( "Unknown error retrieving feature: " + id, e );
+      return false;
+    }
+  }
+
   @Override public Set<ICapability> getAllCapabilities() {
     Set<ICapability> capabilities = new HashSet<ICapability>();
     try {

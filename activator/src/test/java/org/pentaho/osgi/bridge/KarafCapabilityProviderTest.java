@@ -102,6 +102,22 @@ public class KarafCapabilityProviderTest {
   }
 
   @Test
+  public void testCapabilityExist() throws Exception {
+    Feature feature = mock( Feature.class );
+    when( featuresService.getFeature( anyString() )).thenReturn( feature );
+    karafCapabilityProvider = new KarafCapabilityProvider( bundleContext );
+    ServiceReference serviceReference = mock( ServiceReference.class );
+    karafCapabilityProvider.addingService( serviceReference );
+
+    boolean exists = karafCapabilityProvider.capabilityExist( TEST_CAPABILITY_ID );
+    assertTrue( exists );
+
+    when( featuresService.getFeature( anyString() )).thenReturn( null );
+    boolean doesNotExist = karafCapabilityProvider.capabilityExist( "bad" );
+    assertFalse( doesNotExist );
+  }
+
+  @Test
   public void testGetAllCapabilities() throws Exception {
     ServiceReference serviceReference = mock( ServiceReference.class );
     karafCapabilityProvider = new KarafCapabilityProvider( bundleContext );

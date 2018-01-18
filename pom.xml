@@ -32,7 +32,7 @@
     <felix.version>4.4.1</felix.version>
     <exam.version>4.1.0</exam.version>
     <aries.util.version>1.1.0</aries.util.version>
-    <pentaho-xul.version>8.1.0.0-SNAPSHOT</pentaho-xul.version>
+    <commons-xul.version>8.1.0.0-SNAPSHOT</commons-xul.version>
     <guava.version>17.0</guava.version>
     <platform.version>8.1.0.0-SNAPSHOT</platform.version>
     <karaf.version>3.0.3</karaf.version>
@@ -81,9 +81,9 @@
         <version>${pdi.version}</version>
       </dependency>
       <dependency>
-        <groupId>pentaho</groupId>
-        <artifactId>pentaho-xul-core</artifactId>
-        <version>${pentaho-xul.version}</version>
+        <groupId>org.pentaho</groupId>
+        <artifactId>commons-xul-core</artifactId>
+        <version>${commons-xul.version}</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>

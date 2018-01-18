@@ -28,8 +28,8 @@
       <artifactId>kettle-ui-swt</artifactId>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-xul-core</artifactId>
+      <groupId>org.pentaho</groupId>
+      <artifactId>commons-xul-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

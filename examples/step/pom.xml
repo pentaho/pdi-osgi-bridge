@@ -31,8 +31,8 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-xul-core</artifactId>
+      <groupId>org.pentaho</groupId>
+      <artifactId>commons-xul-core</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>

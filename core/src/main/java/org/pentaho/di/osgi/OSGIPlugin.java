@@ -264,11 +264,11 @@ public class OSGIPlugin implements PluginInterface, ClassLoadingPluginInterface 
   }
 
   @Override
-  public void setSuggestedStep( String suggestedStep ) {
+  public void setSuggestion( String suggestion ) {
   }
 
   @Override
-  public String getSuggestedStep() {
+  public String getSuggestion() {
     return null;
   }
 

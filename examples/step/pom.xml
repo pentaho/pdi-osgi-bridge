@@ -2,22 +2,18 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pdi-osgi-bridge-parent</artifactId>
-    <version>7.1-SNAPSHOT</version>
+    <version>7.1.0.16-160</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
-
   <artifactId>pentaho-osgi-step-examples-step</artifactId>
-  <version>7.1-SNAPSHOT</version>
+  <version>7.1.0.16-160</version>
   <packaging>bundle</packaging>
-
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
   <url>http://www.pentaho.com</url>
-
   <dependencies>
     <dependency>
       <groupId>pentaho-kettle</groupId>
@@ -44,7 +40,6 @@
       <artifactId>snakeyaml</artifactId>
     </dependency>
   </dependencies>
-
   <build>
     <finalName>${project.artifactId}</finalName>
     <plugins>

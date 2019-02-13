@@ -22,11 +22,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.aries</groupId>
-      <artifactId>org.apache.aries.util</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>org.apache.karaf.features</groupId>
       <artifactId>org.apache.karaf.features.core</artifactId>
       <exclusions>

@@ -21,14 +21,12 @@
     <snakeyaml.version>1.13</snakeyaml.version>
     <mockito.version>1.9.5</mockito.version>
     <javax.servlet-api.version>3.0.1</javax.servlet-api.version>
-    <aries.blueprint.api.version>1.0.1</aries.blueprint.api.version>
     <tinybundles.version>2.0.0</tinybundles.version>
     <pax-url-aether.version>1.4.0</pax-url-aether.version>
     <pentaho-osgi-utils.version>${project.version}</pentaho-osgi-utils.version>
     <logback.version>0.9.29</logback.version>
     <pdi.version>8.3.0.0-SNAPSHOT</pdi.version>
     <slf4j.version>1.7.7</slf4j.version>
-    <aries.blueprint.core.version>1.4.2</aries.blueprint.core.version>
     <felix.version>4.4.1</felix.version>
     <exam.version>4.1.0</exam.version>
     <aries.util.version>1.1.0</aries.util.version>
@@ -106,11 +104,6 @@
         <version>${karaf.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.aries.blueprint</groupId>
-        <artifactId>org.apache.aries.blueprint.core</artifactId>
-        <version>${aries.blueprint.core.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.apache.aries</groupId>
         <artifactId>org.apache.aries.util</artifactId>
         <version>${aries.util.version}</version>
@@ -170,11 +163,6 @@
             <groupId>org.osgi</groupId>
           </exclusion>
         </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.aries.blueprint</groupId>
-        <artifactId>org.apache.aries.blueprint.api</artifactId>
-        <version>${aries.blueprint.api.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.karaf.features</groupId>

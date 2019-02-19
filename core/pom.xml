@@ -55,11 +55,6 @@
       <artifactId>pentaho-osgi-utils-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.felix</groupId>
-      <artifactId>org.apache.felix.framework</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>org.apache.karaf</groupId>
       <artifactId>org.apache.karaf.main</artifactId>
       <scope>provided</scope>

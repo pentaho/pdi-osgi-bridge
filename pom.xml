@@ -5,11 +5,11 @@
   <parent>
     <groupId>org.pentaho</groupId>
     <artifactId>pentaho-ce-bundle-parent-pom</artifactId>
-    <version>8.2.0.0-SNAPSHOT</version>
+    <version>8.2.0.3-539</version>
   </parent>
   <groupId>pentaho</groupId>
   <artifactId>pdi-osgi-bridge-parent</artifactId>
-  <version>8.2.0.0-SNAPSHOT</version>
+  <version>8.2.0.3-539</version>
   <packaging>pom</packaging>
   <modules>
     <module>core</module>
@@ -26,15 +26,15 @@
     <pax-url-aether.version>1.4.0</pax-url-aether.version>
     <pentaho-osgi-utils.version>${project.version}</pentaho-osgi-utils.version>
     <logback.version>0.9.29</logback.version>
-    <pdi.version>8.2.0.0-SNAPSHOT</pdi.version>
+    <pdi.version>8.2.0.3-539</pdi.version>
     <slf4j.version>1.7.7</slf4j.version>
     <aries.blueprint.core.version>1.4.2</aries.blueprint.core.version>
     <felix.version>4.4.1</felix.version>
     <exam.version>4.1.0</exam.version>
     <aries.util.version>1.1.0</aries.util.version>
-    <commons-xul.version>8.2.0.0-SNAPSHOT</commons-xul.version>
+    <commons-xul.version>8.2.0.3-539</commons-xul.version>
     <guava.version>17.0</guava.version>
-    <platform.version>8.2.0.0-SNAPSHOT</platform.version>
+    <platform.version>8.2.0.3-539</platform.version>
     <karaf.version>3.0.3</karaf.version>
   </properties>
   <dependencyManagement>

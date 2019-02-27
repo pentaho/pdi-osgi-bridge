@@ -30,7 +30,6 @@
     <commons-xul.version>8.3.0.0-SNAPSHOT</commons-xul.version>
     <guava.version>17.0</guava.version>
     <platform.version>8.3.0.0-SNAPSHOT</platform.version>
-    <karaf.version>3.0.3</karaf.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -91,11 +90,6 @@
         <version>${slf4j.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.karaf</groupId>
-        <artifactId>org.apache.karaf.main</artifactId>
-        <version>${karaf.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-all</artifactId>
         <version>${mockito.version}</version>
@@ -139,17 +133,6 @@
         <groupId>org.ops4j.pax.tinybundles</groupId>
         <artifactId>tinybundles</artifactId>
         <version>${tinybundles.version}</version>
-        <exclusions>
-          <exclusion>
-            <artifactId>org.osgi.core</artifactId>
-            <groupId>org.osgi</groupId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.karaf.features</groupId>
-        <artifactId>org.apache.karaf.features.core</artifactId>
-        <version>${karaf.version}</version>
         <exclusions>
           <exclusion>
             <artifactId>org.osgi.core</artifactId>

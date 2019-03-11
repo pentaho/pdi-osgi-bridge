@@ -25,7 +25,6 @@
     <pentaho-osgi-utils.version>${project.version}</pentaho-osgi-utils.version>
     <logback.version>0.9.29</logback.version>
     <pdi.version>8.3.0.0-SNAPSHOT</pdi.version>
-    <slf4j.version>1.7.7</slf4j.version>
     <exam.version>4.1.0</exam.version>
     <commons-xul.version>8.3.0.0-SNAPSHOT</commons-xul.version>
     <guava.version>17.0</guava.version>
@@ -78,16 +77,6 @@
         <groupId>org.pentaho</groupId>
         <artifactId>commons-xul-core</artifactId>
         <version>${commons-xul.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>${slf4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-log4j12</artifactId>
-        <version>${slf4j.version}</version>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>

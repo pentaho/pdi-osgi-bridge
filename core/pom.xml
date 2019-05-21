@@ -2,20 +2,16 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pdi-osgi-bridge-parent</artifactId>
-    <version>7.1-SNAPSHOT</version>
+    <version>7.1.0.24-200</version>
   </parent>
-
   <artifactId>pdi-osgi-bridge-core</artifactId>
-  <version>7.1-SNAPSHOT</version>
-
+  <version>7.1.0.24-200</version>
   <properties>
     <package.features>true</package.features>
   </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -129,7 +125,6 @@
       <artifactId>guava</artifactId>
     </dependency>
   </dependencies>
-
   <build>
     <plugins>
       <plugin>

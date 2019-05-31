@@ -58,6 +58,7 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
   public static final String ID = "id";
   public static final String AUTO_PDI_PLUGIN = "auto_pdi_plugin_";
   public static final String AUTO_DI_PLUGIN_MAPPINGS = "auto_di_plugin_mappings_";
+  public static final String PENTAHO_BLUEPRINT_SCHEMA = "http://www.pentaho.com/xml/schemas/pentaho-blueprint";
   private BundleContext bundleContext;
 
   public PentahoNamespaceHandler( BundleContext bundleContext ) {
@@ -65,7 +66,12 @@ public class PentahoNamespaceHandler implements NamespaceHandler {
   }
 
   @Override public URL getSchemaLocation( String s ) {
-    return getClass().getResource( "/pentaho-blueprint.xsd" );
+    if ( PENTAHO_BLUEPRINT_SCHEMA.equals(s) )
+      return getClass().getResource("/pentaho-blueprint.xsd");
+
+    // prevent "NamespaceHandler org.pentaho.osgi.blueprint.PentahoNamespaceHandler is behaving
+    // badly and should be fixed" warnings
+    return null;
   }
 
   @Override public Set<Class> getManagedClasses() {

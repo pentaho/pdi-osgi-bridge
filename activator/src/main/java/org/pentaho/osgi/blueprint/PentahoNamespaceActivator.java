@@ -40,7 +40,7 @@ public class PentahoNamespaceActivator implements BundleActivator {
         new Hashtable<String, String>() {
           {
             put( "osgi.service.blueprint.namespace",
-                "http://www.pentaho.com/xml/schemas/pentaho-blueprint" );
+                PentahoNamespaceHandler.PENTAHO_BLUEPRINT_SCHEMA );
           }
         }
     );

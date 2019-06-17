@@ -103,16 +103,6 @@
         <version>${exam.version}</version>
       </dependency>
       <dependency>
-        <groupId>ch.qos.logback</groupId>
-        <artifactId>logback-core</artifactId>
-        <version>${logback.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>ch.qos.logback</groupId>
-        <artifactId>logback-classic</artifactId>
-        <version>${logback.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.ops4j.pax.exam</groupId>
         <artifactId>pax-exam-cdi</artifactId>
         <version>${exam.version}</version>

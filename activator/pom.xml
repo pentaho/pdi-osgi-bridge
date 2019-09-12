@@ -115,7 +115,6 @@
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Bundle-Version>${project.version}</Bundle-Version>
             <Bundle-Activator>org.pentaho.osgi.bridge.activator.BridgeActivator</Bundle-Activator>
-            <Import-Package>com.google.common.cache;version=16.0.1,*</Import-Package>
           </instructions>
         </configuration>
       </plugin>

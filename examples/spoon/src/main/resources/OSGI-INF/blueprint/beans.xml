@@ -84,23 +84,20 @@
   </bean>
 
   <!-- HttpService Whiteboard registration of Servlet -->
-  <service interface="javax.servlet.http.HttpServlet" ref="HelloWorldMessageServlet">
+  <service interface="javax.servlet.Servlet" ref="HelloWorldMessageServlet">
     <service-properties>
-      <entry key="alias" value="/helloworld/message"/>
+      <entry key="osgi.http.whiteboard.servlet.pattern" value="/helloworld/message"/>
     </service-properties>
   </service>
 
   <!-- HttpService Whiteboard registration of web assets -->
-  <service interface="org.ops4j.pax.web.extender.whiteboard.ResourceMapping">
-    <bean class="org.ops4j.pax.web.extender.whiteboard.runtime.DefaultResourceMapping">
+  <service interface="java.lang.String">
+    <service-properties>
+      <entry key="osgi.http.whiteboard.resource.pattern" value="/helloworld/*"/>
+      <entry key="osgi.http.whiteboard.resource.prefix" value="/web"/>
+    </service-properties>
 
-      <!-- http path -->
-      <property name="alias" value="/helloworld"/>
-
-      <!--Local Folder -->
-      <property name="path" value="/web"/>
-
-    </bean>
+    <bean class="java.lang.String"/>
   </service>
 
 

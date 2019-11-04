@@ -42,6 +42,7 @@ import javax.xml.soap.Node;
 import java.net.URL;
 import java.util.Set;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
@@ -61,10 +62,19 @@ public class PentahoNamespaceHandlerTest {
   public void testGetSchemaLocation() throws Exception {
     pentahoNamespaceHandler = new PentahoNamespaceHandler( bundleContext );
 
-    URL url = pentahoNamespaceHandler.getSchemaLocation( "test" );
+    URL url = pentahoNamespaceHandler.getSchemaLocation( PentahoNamespaceHandler.PENTAHO_BLUEPRINT_SCHEMA );
 
     assertNotNull( url );
     assert( url.getPath().contains( "pentaho-blueprint" ) );
+  }
+
+  @Test
+  public void testGetOtherSchemaLocation() throws Exception {
+    pentahoNamespaceHandler = new PentahoNamespaceHandler( bundleContext );
+
+    URL url = pentahoNamespaceHandler.getSchemaLocation( "test" );
+
+    assertNull( url );
   }
 
   @Test

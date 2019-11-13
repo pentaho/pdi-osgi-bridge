@@ -76,7 +76,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
       try {
         result = Long.parseLong( timeoutProp );
       } catch ( Exception e ) {
-        logger.warn( "Failed to parse custom timeout property of " + timeoutProp + ", returning default of 100,000" );
+        logger.warn( "Failed to parse custom timeout property of {}, returning default of 100,000", timeoutProp );
       }
     }
     return result;
@@ -118,8 +118,8 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
         if ( !initialized.get() ) {
           // We fell out due to time or an exception. Ensure that we release the lifecycle hold
           logger.error(
-            "The Kettle Karaf Lifecycle Listener failed to execute properly after waiting for " + TimeUnit.MILLISECONDS
-              .toSeconds( timeout ) + " seconds. Releasing lifecycle hold, but some services may be unavailable." );
+            "The Kettle Karaf Lifecycle Listener failed to execute properly after waiting for {} seconds. Releasing lifecycle hold, but some services may be unavailable.",
+            TimeUnit.MILLISECONDS.toSeconds( timeout ) );
           event.accept();
         }
       }
@@ -129,55 +129,14 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     t.start();
   }
 
+
   private void maybeStartWatchers() {
     if ( bundleContext != null && listenerActive.get() ) {
 
-      Thread thread = new Thread( new Runnable() {
-        @Override public void run() {
-          ServiceReference<IKarafFeatureWatcher> featureWatcherServiceReference =
-              bundleContext.getServiceReference( IKarafFeatureWatcher.class );
-          try {
-            if ( featureWatcherServiceReference == null ) {
-              throw new IKarafFeatureWatcher.FeatureWatcherException( "No IKarafFeatureWatcher service available" );
-            }
-            IKarafFeatureWatcher karafFeatureWatcher = bundleContext.getService( featureWatcherServiceReference );
-            karafFeatureWatcher.waitForFeatures();
-          } catch ( IKarafFeatureWatcher.FeatureWatcherException e ) {
-            logger.error( "Error in Feature Watcher", e );
-
-            // We're not going to kill the system in the case of Feature errors, for now.
-            //event.exception( e );
-          }
-
-          ServiceReference<IKarafBlueprintWatcher>
-              blueprintWatcherServiceReference =
-              bundleContext.getServiceReference( IKarafBlueprintWatcher.class );
-          try {
-            if ( blueprintWatcherServiceReference == null ) {
-              throw new IKarafBlueprintWatcher.BlueprintWatcherException(
-                  "No IKarafBlueprintWatcher service available" );
-            }
-            IKarafBlueprintWatcher karafBlueprintWatcher = bundleContext.getService( blueprintWatcherServiceReference );
-            karafBlueprintWatcher.waitForBlueprint();
-          } catch ( IKarafBlueprintWatcher.BlueprintWatcherException e ) {
-            logger.error( "Error in Blueprint Watcher", e );
-          }
-
-          final AtomicBoolean accepted = new AtomicBoolean( false );
-          DelayedServiceNotifierListener delayedServiceNotifierListener = new DelayedServiceNotifierListener() {
-            @Override public void onRun( LifecycleEvent lifecycleEvent, Object serviceObject ) {
-              if ( osgiPluginTracker.getOutstandingServiceNotifierListeners() == 0 && !accepted.getAndSet( true ) ) {
-                logger.debug( "Done waiting on delayed service notifiers" );
-                event.accept();
-                osgiPluginTracker.removeDelayedServiceNotifierListener( this );
-              }
-            }
-          };
-
-          logger.debug( "About to start waiting on delayed service notifiers" );
-          osgiPluginTracker.addDelayedServiceNotifierListener( delayedServiceNotifierListener );
-          delayedServiceNotifierListener.onRun( null, null );
-        }
+      Thread thread = new Thread( () -> {
+        waitForFeatures();
+        waitForBlueprints();
+        acceptEventOnDelayedServiceNotifiersDone();
       } );
       thread.setDaemon( true );
       thread.start();
@@ -185,10 +144,61 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     }
   }
 
+
+  private <T> T getOsgiService( Class<T> serviceClass ) {
+    ServiceReference<T> serviceReference = bundleContext.getServiceReference( serviceClass );
+    if ( serviceReference == null ) {
+      return null;
+    }
+    return bundleContext.getService( serviceReference );
+  }
+
+  private void waitForFeatures() {
+    IKarafFeatureWatcher karafFeatureWatcher = getOsgiService( IKarafFeatureWatcher.class );
+    try {
+      if ( karafFeatureWatcher == null ) {
+        throw new IKarafFeatureWatcher.FeatureWatcherException( "No IKarafFeatureWatcher service available." );
+      }
+      karafFeatureWatcher.waitForFeatures();
+    } catch ( IKarafFeatureWatcher.FeatureWatcherException e ) {
+      logger.error( "Error in Feature Watcher", e );
+    }
+  }
+
+  private void waitForBlueprints() {
+    IKarafBlueprintWatcher karafBlueprintWatcher = getOsgiService( IKarafBlueprintWatcher.class );
+    try {
+      if( karafBlueprintWatcher == null ) {
+        throw new IKarafBlueprintWatcher.BlueprintWatcherException( "No IKarafBlueprintWatcher service available." );
+      }
+      karafBlueprintWatcher.waitForBlueprint();
+    } catch ( IKarafBlueprintWatcher.BlueprintWatcherException e ) {
+      logger.error( "Error in Blueprint Watcher", e );
+    }
+  }
+
+  private void acceptEventOnDelayedServiceNotifiersDone() {
+    final AtomicBoolean accepted = new AtomicBoolean( false );
+    DelayedServiceNotifierListener delayedServiceNotifierListener = new DelayedServiceNotifierListener() {
+      @Override public void onRun( LifecycleEvent lifecycleEvent, Object serviceObject ) {
+        if ( osgiPluginTracker.getOutstandingServiceNotifierListeners() == 0 && !accepted.getAndSet( true ) ) {
+          logger.debug( "Done waiting on delayed service notifiers" );
+          event.accept();
+          osgiPluginTracker.removeDelayedServiceNotifierListener( this );
+        }
+      }
+    };
+
+    logger.debug( "About to start waiting on delayed service notifiers" );
+    osgiPluginTracker.addDelayedServiceNotifierListener( delayedServiceNotifierListener );
+    delayedServiceNotifierListener.onRun( null, null );
+
+  }
+
   public void setBundleContext( BundleContext bundleContext ) {
 
     this.bundleContext = bundleContext;
-    bundleContext.registerService( ExecutorService.class, ExecutorUtil.getExecutor(), new Hashtable<String, Object>() );
+    bundleContext.registerService( ExecutorService.class, ExecutorUtil.getExecutor(), new Hashtable<>() );
     maybeStartWatchers();
 
   }

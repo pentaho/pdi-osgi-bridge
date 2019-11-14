@@ -24,9 +24,11 @@ package org.pentaho.osgi.bridge.activator;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceListener;
+import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.pentaho.di.core.util.ExecutorUtil;
 
 import java.util.Hashtable;
@@ -42,7 +44,7 @@ public class BridgeActivatorTest {
 
   @Before
   public void setUp() throws Exception {
-    bundleContext = mock( BundleContext.class );
+    bundleContext = mockBundleContext( 100 );
     Filter mockFilter = mock( Filter.class );
     when( bundleContext.createFilter( anyString() )).thenReturn( mockFilter );
     bridgeActivator = new BridgeActivator();
@@ -60,5 +62,18 @@ public class BridgeActivatorTest {
   @Test
   public void testStop() throws Exception {
     bridgeActivator.stop( bundleContext );
+  }
+
+  private BundleContext mockBundleContext( int beginningStartLevel ) {
+    FrameworkStartLevel frameworkStartLevel = mock( FrameworkStartLevel.class );
+    when( frameworkStartLevel.getStartLevel() ).thenReturn( beginningStartLevel );
+
+    Bundle systemBundle = mock( Bundle.class );
+    when( systemBundle.adapt( eq( FrameworkStartLevel.class ) )).thenReturn( frameworkStartLevel );
+
+    bundleContext = mock( BundleContext.class );
+    when( bundleContext.getBundle( eq(0l) ) ).thenReturn( systemBundle );
+
+    return bundleContext;
   }
 }

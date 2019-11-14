@@ -25,8 +25,10 @@ package org.pentaho.di.osgi;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifierListener;
 import org.pentaho.osgi.api.IKarafBlueprintWatcher;
 import org.pentaho.osgi.api.IKarafFeatureWatcher;
@@ -38,6 +40,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
@@ -61,10 +66,11 @@ public class KarafLifecycleListenerTest {
   @Before
   public void setup() {
     timeout = 500;
+    int beginningStartLevel = 100;
     osgiPluginTracker = mock( OSGIPluginTracker.class );
-    karafLifecycleListener = new KarafLifecycleListener( timeout, osgiPluginTracker );
+    karafLifecycleListener = new KarafLifecycleListener( timeout, osgiPluginTracker, beginningStartLevel );
 
-    bundleContext = mock( BundleContext.class );
+    bundleContext = mockBundleContext( beginningStartLevel );
     karafLifecycleListener.setBundleContext( bundleContext );
 
     featureWatcherServiceReference = mock( ServiceReference.class );
@@ -114,7 +120,7 @@ public class KarafLifecycleListenerTest {
     IKarafFeatureWatcher featureWatcher = mock( IKarafFeatureWatcher.class );
     IKarafBlueprintWatcher blueprintWatcher = mock( IKarafBlueprintWatcher.class );
 
-    BundleContext bundleContext = mock( BundleContext.class );
+    BundleContext bundleContext = mockBundleContext( 100 );
     ServiceReference reference = mock( ServiceReference.class );
     ServiceReference reference2 = mock( ServiceReference.class );
 
@@ -187,5 +193,18 @@ public class KarafLifecycleListenerTest {
     verify( iPhasedLifecycleEvent ).accept();
     delayedServiceNotifierListenerArgumentCaptor.getValue().onRun( null, null );
     verify( iPhasedLifecycleEvent, times( 1 ) ).accept();
+  }
+
+  private BundleContext mockBundleContext( int beginningStartLevel ) {
+    FrameworkStartLevel frameworkStartLevel = mock( FrameworkStartLevel.class );
+    when( frameworkStartLevel.getStartLevel() ).thenReturn( beginningStartLevel );
+
+    Bundle systemBundle = mock( Bundle.class );
+    when( systemBundle.adapt( eq( FrameworkStartLevel.class ) )).thenReturn( frameworkStartLevel );
+
+    bundleContext = mock( BundleContext.class );
+    when( bundleContext.getBundle( eq(0l) ) ).thenReturn( systemBundle );
+
+    return bundleContext;
   }
 }

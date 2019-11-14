@@ -24,7 +24,9 @@ package org.pentaho.di.osgi;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.pentaho.di.core.util.ExecutorUtil;
 import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
 import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifierListener;
@@ -39,12 +41,13 @@ import java.util.Hashtable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 /**
  * Created by nbaker on 2/19/15.
  */
 public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLifecycleEvent> {
-  private static KarafLifecycleListener INSTANCE = new KarafLifecycleListener( );
+  private static KarafLifecycleListener instance;
   private static Logger logger = LoggerFactory.getLogger( KarafLifecycleListener.class );
   private final long timeout;
   private final OSGIPluginTracker osgiPluginTracker;
@@ -53,9 +56,12 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
   private BundleContext bundleContext;
   private IPhasedLifecycleEvent<KettleLifecycleEvent> event;
 
+  private final Integer frameworkBeginningStartLevel;
+  private FrameworkStartLevel frameworkStartLevel;
+
   @VisibleForTesting
   KarafLifecycleListener() {
-    this( calculateTimeout() );
+    this( getSystemProperty( KarafLifecycleListener.class.getCanonicalName() + ".timeout", TimeUnit.SECONDS.toMillis( 100 ), Long::parseLong ) );
   }
 
   @VisibleForTesting
@@ -65,25 +71,32 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
 
   @VisibleForTesting
   KarafLifecycleListener( long timeout, OSGIPluginTracker osgiPluginTracker ) {
-    this.timeout = timeout;
-    this.osgiPluginTracker = osgiPluginTracker;
+    this( timeout, osgiPluginTracker, getSystemProperty( Constants.FRAMEWORK_BEGINNING_STARTLEVEL, 100, Integer::parseInt ) );
   }
 
-  private static long calculateTimeout() {
-    long result = TimeUnit.SECONDS.toMillis( 100 );
-    String timeoutProp = System.getProperty( KarafLifecycleListener.class.getCanonicalName() + ".timeout" );
-    if ( timeoutProp != null ) {
-      try {
-        result = Long.parseLong( timeoutProp );
-      } catch ( Exception e ) {
-        logger.warn( "Failed to parse custom timeout property of {}, returning default of 100,000", timeoutProp );
-      }
+  @VisibleForTesting
+  KarafLifecycleListener( long timeout, OSGIPluginTracker osgiPluginTracker, int frameworkBeginningStartLevel ) {
+    this.timeout = timeout;
+    this.osgiPluginTracker = osgiPluginTracker;
+    this.frameworkBeginningStartLevel = frameworkBeginningStartLevel;
+  }
+
+  private static <T> T getSystemProperty( String propertyKey, T defaultValue, Function<String, T> parseFunction ) {
+    String propertyValue = System.getProperty( propertyKey );
+    T result = defaultValue;
+    try {
+      result = parseFunction.apply( propertyValue );
+    } catch ( Exception e ) {
+      logger.warn( "Failed to parse {} property of value {}, returning default value of {}.", propertyKey, propertyValue, defaultValue );
     }
     return result;
   }
 
-  public static KarafLifecycleListener getInstance() {
-    return INSTANCE;
+  public static synchronized KarafLifecycleListener getInstance() {
+    if ( instance == null ) {
+      instance = new KarafLifecycleListener();
+    }
+    return instance;
   }
 
   @Override public void onPhaseChange( final IPhasedLifecycleEvent<KettleLifecycleEvent> event ) {
@@ -134,7 +147,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     if ( bundleContext != null && listenerActive.get() ) {
 
       Thread thread = new Thread( () -> {
-        waitForFeatures();
+        waitForBundlesStarted();
         waitForBlueprints();
         acceptEventOnDelayedServiceNotifiersDone();
       } );
@@ -144,6 +157,16 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     }
   }
 
+  /**
+   * Actively wait until bundles from startup.properties, from boot features and Pentaho runtime features are started.
+   *
+   * Because waitForFeatures works with empty caches and waitForFrameworkStarted only indicates "all" bundles for full caches
+   * we need both to make sure all pertinent bundles have started in all boot scenarios.
+   */
+  private void waitForBundlesStarted() {
+    waitForFeatures();
+    waitForFrameworkStarted();
+  }
 
   private <T> T getOsgiService( Class<T> serviceClass ) {
     ServiceReference<T> serviceReference = bundleContext.getServiceReference( serviceClass );
@@ -153,6 +176,15 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     return bundleContext.getService( serviceReference );
   }
 
+  /**
+   * Actively wait until features are installed.
+   *
+   * The current used implementation of IKarafFeatureWatcher, which is org.pentaho.osgi.impl.KarafFeatureWatcherImpl,
+   * is only properly functioning when booting Karaf with empty caches. This is because of a behaviour (bug?) of the
+   * Karaf Feature Service that, when booting with full caches, hydrates the persisted state with all features marked
+   * as installed and started. As such, when asking the Feature Service if a given feature is installed, it will
+   * reply positively even if its bundles haven't been started yet.
+   */
   private void waitForFeatures() {
     IKarafFeatureWatcher karafFeatureWatcher = getOsgiService( IKarafFeatureWatcher.class );
     try {
@@ -168,7 +200,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
   private void waitForBlueprints() {
     IKarafBlueprintWatcher karafBlueprintWatcher = getOsgiService( IKarafBlueprintWatcher.class );
     try {
-      if( karafBlueprintWatcher == null ) {
+      if ( karafBlueprintWatcher == null ) {
         throw new IKarafBlueprintWatcher.BlueprintWatcherException( "No IKarafBlueprintWatcher service available." );
       }
       karafBlueprintWatcher.waitForBlueprint();
@@ -195,10 +227,35 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
 
   }
 
+  /**
+   * Actively wait until the OSGi framework has started.
+   *
+   * When booting Karaf with empty caches it only waits until the bundles defined in the startup.properties have started,
+   * while when booting with full caches it waits until all cached bundles have started.
+   */
+  private void waitForFrameworkStarted() {
+    /* According to OSGi Core specs V6.0 Section 9.3.2, the OSGi framework should broadcast a FrameworkEvent.STARTED
+       event when the beginning start level is reached. According to the example in 9.4.2, this event can be used to
+       to determine that the system has been initialized.
+       Unfortunately, our current used OSGi framework, Felix framework Version 5.6.12, is currently immediately firing
+       the event on start: https://github.com/apache/felix/blob/3bf3c664eb64aef08df9968d1099b51c4c300ff8/src/main/java/org/apache/felix/framework/Felix.java#L999
+       As such, we're directly checking the current framework start level to verify if it has reached the framework
+       beginning start level to determine if the framework has started and consequently the system has been initialized. */
+    while ( frameworkStartLevel.getStartLevel() < frameworkBeginningStartLevel ) {
+      try {
+        Thread.sleep( 100 );
+      } catch ( InterruptedException e ) {
+        logger.debug( "Thread interrupted while waiting for OSGi framework start level to reach the beginning start level." );
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
+
   public void setBundleContext( BundleContext bundleContext ) {
 
     this.bundleContext = bundleContext;
     bundleContext.registerService( ExecutorService.class, ExecutorUtil.getExecutor(), new Hashtable<>() );
+    this.frameworkStartLevel = bundleContext.getBundle( 0 ).adapt( FrameworkStartLevel.class );
     maybeStartWatchers();
 
   }

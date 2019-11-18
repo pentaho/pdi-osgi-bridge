@@ -24,13 +24,17 @@ package org.pentaho.di.osgi;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.osgi.api.BeanFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by bryan on 8/15/14.
@@ -43,7 +47,7 @@ public class OSGIActivatorTest {
   @Before
   public void setup() {
     osgiPluginTracker = mock( OSGIPluginTracker.class );
-    bundleContext = mock( BundleContext.class );
+    bundleContext = mockBundleContext( 100 );
     osgiActivator = new OSGIActivator();
     osgiActivator.setOsgiPluginTracker( osgiPluginTracker );
   }
@@ -68,5 +72,18 @@ public class OSGIActivatorTest {
     osgiActivator.start( bundleContext );
     osgiActivator.stop( bundleContext );
     verify( osgiPluginTracker ).shutdown();
+  }
+
+  private BundleContext mockBundleContext( int beginningStartLevel ) {
+    FrameworkStartLevel frameworkStartLevel = mock( FrameworkStartLevel.class );
+    when( frameworkStartLevel.getStartLevel() ).thenReturn( beginningStartLevel );
+
+    Bundle systemBundle = mock( Bundle.class );
+    when( systemBundle.adapt( eq( FrameworkStartLevel.class ) )).thenReturn( frameworkStartLevel );
+
+    bundleContext = mock( BundleContext.class );
+    when( bundleContext.getBundle( eq(0l) ) ).thenReturn( systemBundle );
+
+    return bundleContext;
   }
 }

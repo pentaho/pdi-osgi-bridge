@@ -87,7 +87,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     try {
       result = parseFunction.apply( propertyValue );
     } catch ( Exception e ) {
-      logger.warn( "Failed to parse {} property of value {}, returning default value of {}.", propertyKey, propertyValue, defaultValue );
+      logger.debug( "Failed to parse {} property of value {}, returning default value of {}.", propertyKey, propertyValue, defaultValue );
     }
     return result;
   }

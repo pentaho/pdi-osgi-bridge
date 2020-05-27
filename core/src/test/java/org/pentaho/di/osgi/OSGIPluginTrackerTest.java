@@ -22,7 +22,7 @@
 
 package org.pentaho.di.osgi;
 
-import org.apache.commons.logging.Log;
+import org.slf4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -110,7 +110,7 @@ public class OSGIPluginTrackerTest {
 
   @Test
   public void testGetServiceObjectsInvalidSyntaxException() throws InvalidSyntaxException {
-    Log logger = mock( Log.class );
+    Logger logger = mock( Logger.class );
     tracker.setLogger( logger );
     tracker.setBundleContext( bundleContext );
     Class<Object> clazz = Object.class;
@@ -162,7 +162,7 @@ public class OSGIPluginTrackerTest {
 
   @Test
   public void testGetBeanPluginPropertyException() throws InvalidSyntaxException {
-    Log logger = mock( Log.class );
+    Logger logger = mock( Logger.class );
     tracker.setLogger( logger );
     tracker.setBundleContext( bundleContext );
     Class<Object> clazz = Object.class;
@@ -300,7 +300,7 @@ public class OSGIPluginTrackerTest {
 
   @Test
   public void testGetClassLoaderException() {
-    Log logger = mock( Log.class );
+    Logger logger = mock( Logger.class );
     tracker.setLogger( logger );
     tracker.setBundleContext( bundleContext );
     String message = "EXCEPTION_MESSAGE";

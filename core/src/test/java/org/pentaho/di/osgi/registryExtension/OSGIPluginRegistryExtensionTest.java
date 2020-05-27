@@ -22,11 +22,10 @@
 
 package org.pentaho.di.osgi.registryExtension;
 
-import org.apache.commons.logging.Log;
+import org.slf4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.osgi.framework.BundleContext;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -49,7 +48,7 @@ import static org.mockito.Mockito.*;
 public class OSGIPluginRegistryExtensionTest {
   private OSGIPluginRegistryExtension cachedInstance;
   private OSGIPluginTracker tracker;
-  private Log logger;
+  private Logger logger;
   private KarafBoot karafBoot;
   private StatusGetter<Boolean> kettleClientEnvironmentInitialized;
 
@@ -64,7 +63,7 @@ public class OSGIPluginRegistryExtensionTest {
     OSGIPluginRegistryExtension extension = new OSGIPluginRegistryExtension();
     tracker = mock( OSGIPluginTracker.class );
     extension.setTracker( tracker );
-    logger = mock( Log.class );
+    logger = mock( Logger.class );
     extension.setLogger( logger );
     karafBoot = mock( KarafBoot.class );
     extension.setKarafBoot( karafBoot );

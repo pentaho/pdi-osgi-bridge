@@ -22,9 +22,8 @@
 
 package org.pentaho.di.osgi.service.lifecycle;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.osgi.framework.BundleContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.osgi.framework.InvalidSyntaxException;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.plugins.PluginInterface;
@@ -39,13 +38,13 @@ import org.pentaho.di.osgi.service.tracker.PdiPluginSupplementalClassMappingsTra
  */
 public class PluginRegistryOSGIServiceLifecycleListener implements OSGIServiceLifecycleListener<PluginInterface> {
   private final PluginRegistry registry;
-  private Log logger = LogFactory.getLog( getClass().getName() );
+  private Logger logger = LoggerFactory.getLogger( getClass() );
 
   public PluginRegistryOSGIServiceLifecycleListener( PluginRegistry registry ) {
     this.registry = registry;
   }
 
-  protected void setLogger( Log logger ) {
+  protected void setLogger( Logger logger ) {
     this.logger = logger;
   }
 

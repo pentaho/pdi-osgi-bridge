@@ -112,6 +112,8 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
   }
 
   private void startTimeoutThread() {
+    final long endWaitTime = System.currentTimeMillis() + timeout;
+
     // start watch thread to prevent deadlock where the event is never accepted
     Thread t = new Thread( new Runnable() {
 
@@ -120,8 +122,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
       }
 
       @Override public void run() {
-        long endWaitTime = System.currentTimeMillis() + timeout;
-        while ( !initialized.get() && ( endWaitTime - System.currentTimeMillis() ) > 0 ) {
+        while ( !initialized.get() && !timedOut() ) {
           try {
             Thread.sleep( 100 );
           } catch ( InterruptedException e ) {
@@ -136,6 +137,15 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
           event.accept();
         }
       }
+
+      private boolean timedOut() {
+        // when timeout is negative consider that it never ends
+        if( timeout < 0 ) {
+          return false;
+        }
+        return System.currentTimeMillis() > endWaitTime;
+      }
+
     } );
     t.setDaemon( true );
     t.setName( "KarafLifecycleListener Timeout Thread" );

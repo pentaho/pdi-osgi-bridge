@@ -140,7 +140,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
 
       private boolean timedOut() {
         // when timeout is negative consider that it never ends
-        if( timeout < 0 ) {
+        if ( timeout < 0 ) {
           return false;
         }
         return System.currentTimeMillis() > endWaitTime;

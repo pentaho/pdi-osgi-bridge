@@ -23,10 +23,8 @@
 package org.pentaho.di.osgi.registryExtension;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -51,7 +49,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class OSGIPluginRegistryExtension implements PluginRegistryExtension {
   private static OSGIPluginRegistryExtension INSTANCE;
   private OSGIPluginTracker tracker = OSGIPluginTracker.getInstance();
-  private Log logger = LogFactory.getLog( getClass().getName() );
+  private Logger logger = LoggerFactory.getLogger( getClass() );
   private KarafBoot boot = new KarafBoot();
   private StatusGetter<Boolean> kettleClientEnvironmentInitialized = new StatusGetter<Boolean>() {
     @Override public Boolean get() {
@@ -82,7 +80,7 @@ public class OSGIPluginRegistryExtension implements PluginRegistryExtension {
   }
 
   // FOR UNIT TEST ONLY
-  protected void setLogger( Log logger ) {
+  protected void setLogger( Logger logger ) {
     this.logger = logger;
   }
 

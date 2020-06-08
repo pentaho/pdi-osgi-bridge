@@ -25,8 +25,8 @@ package org.pentaho.di.osgi;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.MapMaker;
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
@@ -42,7 +42,6 @@ import org.pentaho.di.osgi.service.notifier.DelayedInstanceNotifierFactory;
 import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifier;
 import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifierListener;
 import org.pentaho.di.osgi.service.tracker.OSGIServiceTracker;
-import org.pentaho.di.osgi.service.tracker.PdiPluginSupplementalClassMappingsTracker;
 import org.pentaho.osgi.api.BeanFactory;
 import org.pentaho.osgi.api.BeanFactoryLocator;
 import org.pentaho.osgi.api.ProxyUnwrapper;
@@ -89,7 +88,7 @@ public class OSGIPluginTracker {
     new MapMaker().weakKeys().weakValues().makeMap();
   private Map<Object, BeanFactory> beanToFactoryMap =
     new MapMaker().weakKeys().weakValues().makeMap();
-  private Log logger = LogFactory.getLog( getClass().getName() );
+  private Logger logger = LoggerFactory.getLogger( getClass() );
   private List<Class<? extends PluginTypeInterface>> queuedClasses =
     new ArrayList<Class<? extends PluginTypeInterface>>();
 
@@ -163,7 +162,7 @@ public class OSGIPluginTracker {
     try {
       factory = findOrCreateBeanFactoryFor( serviceClass );
     } catch ( OSGIPluginTrackerException e ) {
-      logger.error( e );
+      logger.error( e.getMessage(), e );
       return null;
     }
     if ( factory == null ) {
@@ -388,7 +387,7 @@ public class OSGIPluginTracker {
   }
 
   // FOR UNIT TEST ONLY
-  protected void setLogger( Log logger ) {
+  protected void setLogger( Logger logger ) {
     this.logger = logger;
   }
 

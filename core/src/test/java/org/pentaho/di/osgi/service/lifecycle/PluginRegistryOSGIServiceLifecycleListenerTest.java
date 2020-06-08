@@ -22,7 +22,7 @@
 
 package org.pentaho.di.osgi.service.lifecycle;
 
-import org.apache.commons.logging.Log;
+import org.slf4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -39,14 +39,14 @@ import static org.mockito.Mockito.*;
  * Created by bryan on 8/15/14.
  */
 public class PluginRegistryOSGIServiceLifecycleListenerTest {
-  private Log logger;
+  private Logger logger;
   private PluginRegistry pluginRegistry;
   private PluginRegistryOSGIServiceLifecycleListener pluginRegistryOSGIServiceLifecycleListener;
   private OSGIPlugin plugin;
 
   @Before
   public void setup() {
-    logger = mock( Log.class );
+    logger = mock( Logger.class );
     pluginRegistry = mock( PluginRegistry.class );
     BundleContext bundleContext = mock( BundleContext.class );
     pluginRegistryOSGIServiceLifecycleListener = new PluginRegistryOSGIServiceLifecycleListener( pluginRegistry );

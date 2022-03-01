@@ -153,7 +153,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
   }
 
 
-  private void maybeStartWatchers() {
+  private synchronized void maybeStartWatchers() {
     if ( bundleContext != null && listenerActive.get() ) {
 
       Thread thread = new Thread( () -> {
@@ -261,12 +261,12 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     }
   }
 
-  public void setBundleContext( BundleContext bundleContext ) {
-
+  public synchronized void setBundleContext( BundleContext bundleContext ) {
     this.bundleContext = bundleContext;
-    bundleContext.registerService( ExecutorService.class, ExecutorUtil.getExecutor(), new Hashtable<>() );
-    this.frameworkStartLevel = bundleContext.getBundle( 0 ).adapt( FrameworkStartLevel.class );
-    maybeStartWatchers();
-
+    if ( null != bundleContext ) {
+      bundleContext.registerService( ExecutorService.class, ExecutorUtil.getExecutor(), new Hashtable<>() );
+      this.frameworkStartLevel = bundleContext.getBundle( 0 ).adapt( FrameworkStartLevel.class );
+      maybeStartWatchers();
+    }
   }
 }

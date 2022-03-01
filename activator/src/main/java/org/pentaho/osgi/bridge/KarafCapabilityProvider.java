@@ -129,15 +129,17 @@ public class KarafCapabilityProvider extends ServiceTracker<FeaturesService, Fea
   }
 
   @Override public ICapability getCapabilityById( String id ) {
-    try {
-      Feature feature = featuresService.getFeature( id );
-      if ( feature == null ) {
-        logger.error( "No feature found matching id: " + id );
-        return null;
+    if ( initialized.get() ) {
+      try {
+        Feature feature = featuresService.getFeature( id );
+        if ( feature == null ) {
+          logger.error( "No feature found matching id: " + id );
+          return null;
+        }
+        return new KarafCapability( featuresService, feature, this );
+      } catch ( Exception e ) {
+        logger.error( "Unknown error retrieving feature: " + id, e );
       }
-      return new KarafCapability( featuresService, feature, this );
-    } catch ( Exception e ) {
-      logger.error( "Unknown error retrieving feature: " + id, e );
     }
     return null;
   }
@@ -202,6 +204,11 @@ public class KarafCapabilityProvider extends ServiceTracker<FeaturesService, Fea
         break;
     }
 
+  }
+
+  @Override public void close() {
+    super.close();
+    initialized.getAndSet( false );
   }
 
   @Override public void repositoryEvent( RepositoryEvent repositoryEvent ) {

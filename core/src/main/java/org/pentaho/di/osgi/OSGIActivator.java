@@ -72,6 +72,7 @@ public class OSGIActivator implements BundleActivator {
   }
 
   public void stop( BundleContext bundleContext ) throws Exception {
+    KarafLifecycleListener.getInstance().setBundleContext( null );
     osgiPluginTracker.shutdown();
     beanFactoryLookupServiceTracker.close();
     proxyUnwrapperServiceTracker.close();

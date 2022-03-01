@@ -55,6 +55,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
   private AtomicBoolean initialized = new AtomicBoolean( false );
   private BundleContext bundleContext;
   private IPhasedLifecycleEvent<KettleLifecycleEvent> event;
+  private Thread watcherThread;
 
   private final Integer frameworkBeginningStartLevel;
   private FrameworkStartLevel frameworkStartLevel;
@@ -117,15 +118,12 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     // start watch thread to prevent deadlock where the event is never accepted
     Thread t = new Thread( new Runnable() {
 
-      @Override protected void finalize() throws Throwable {
-        super.finalize();
-      }
-
       @Override public void run() {
         while ( !initialized.get() && !timedOut() ) {
           try {
             Thread.sleep( 100 );
           } catch ( InterruptedException e ) {
+            Thread.currentThread().interrupt();
             return;
           }
         }
@@ -156,13 +154,13 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
   private void maybeStartWatchers() {
     if ( bundleContext != null && listenerActive.get() ) {
 
-      Thread thread = new Thread( () -> {
+      watcherThread = new Thread( () -> {
         waitForBundlesStarted();
         waitForBlueprints();
         acceptEventOnDelayedServiceNotifiersDone();
       } );
-      thread.setDaemon( true );
-      thread.start();
+      watcherThread.setDaemon( true );
+      watcherThread.start();
       initialized.set( true );
     }
   }
@@ -178,12 +176,16 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     waitForFrameworkStarted();
   }
 
-  private <T> T getOsgiService( Class<T> serviceClass ) {
-    ServiceReference<T> serviceReference = bundleContext.getServiceReference( serviceClass );
-    if ( serviceReference == null ) {
+  private synchronized <T> T getOsgiService( Class<T> serviceClass ) {
+    if ( null != bundleContext ) {
+      ServiceReference<T> serviceReference = bundleContext.getServiceReference( serviceClass );
+      if ( serviceReference == null ) {
+        return null;
+      }
+      return bundleContext.getService( serviceReference );
+    } else {
       return null;
     }
-    return bundleContext.getService( serviceReference );
   }
 
   /**
@@ -199,11 +201,16 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     IKarafFeatureWatcher karafFeatureWatcher = getOsgiService( IKarafFeatureWatcher.class );
     try {
       if ( karafFeatureWatcher == null ) {
-        throw new IKarafFeatureWatcher.FeatureWatcherException( "No IKarafFeatureWatcher service available." );
+        if ( null != bundleContext ) {
+          throw new IKarafFeatureWatcher.FeatureWatcherException( "No IKarafFeatureWatcher service available." );
+        } // no-op if bundle is stopped
+      } else {
+        karafFeatureWatcher.waitForFeatures();
       }
-      karafFeatureWatcher.waitForFeatures();
     } catch ( IKarafFeatureWatcher.FeatureWatcherException e ) {
-      logger.error( "Error in Feature Watcher", e );
+      if ( null != bundleContext ) {
+        logger.error( "Error in Feature Watcher", e );
+      } // no-op if bundle is stopped
     }
   }
 
@@ -211,30 +218,36 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     IKarafBlueprintWatcher karafBlueprintWatcher = getOsgiService( IKarafBlueprintWatcher.class );
     try {
       if ( karafBlueprintWatcher == null ) {
-        throw new IKarafBlueprintWatcher.BlueprintWatcherException( "No IKarafBlueprintWatcher service available." );
+        if ( null != bundleContext ) {
+          throw new IKarafBlueprintWatcher.BlueprintWatcherException( "No IKarafBlueprintWatcher service available." );
+        } // no-op if bundle is stopped
+      } else {
+        karafBlueprintWatcher.waitForBlueprint();
       }
-      karafBlueprintWatcher.waitForBlueprint();
     } catch ( IKarafBlueprintWatcher.BlueprintWatcherException e ) {
-      logger.error( "Error in Blueprint Watcher", e );
+      if ( null != bundleContext ) {
+        logger.error( "Error in Blueprint Watcher", e );
+      } // no-op if bundle is stopped
     }
   }
 
   private void acceptEventOnDelayedServiceNotifiersDone() {
-    final AtomicBoolean accepted = new AtomicBoolean( false );
-    DelayedServiceNotifierListener delayedServiceNotifierListener = new DelayedServiceNotifierListener() {
-      @Override public void onRun( LifecycleEvent lifecycleEvent, Object serviceObject ) {
-        if ( osgiPluginTracker.getOutstandingServiceNotifierListeners() == 0 && !accepted.getAndSet( true ) ) {
-          logger.debug( "Done waiting on delayed service notifiers" );
-          event.accept();
-          osgiPluginTracker.removeDelayedServiceNotifierListener( this );
+    if ( null != bundleContext ) {
+      final AtomicBoolean accepted = new AtomicBoolean( false );
+      DelayedServiceNotifierListener delayedServiceNotifierListener = new DelayedServiceNotifierListener() {
+        @Override public void onRun( LifecycleEvent lifecycleEvent, Object serviceObject ) {
+          if ( osgiPluginTracker.getOutstandingServiceNotifierListeners() == 0 && !accepted.getAndSet( true ) ) {
+            logger.debug( "Done waiting on delayed service notifiers" );
+            event.accept();
+            osgiPluginTracker.removeDelayedServiceNotifierListener( this );
+          }
         }
-      }
-    };
+      };
 
-    logger.debug( "About to start waiting on delayed service notifiers" );
-    osgiPluginTracker.addDelayedServiceNotifierListener( delayedServiceNotifierListener );
-    delayedServiceNotifierListener.onRun( null, null );
-
+      logger.debug( "About to start waiting on delayed service notifiers" );
+      osgiPluginTracker.addDelayedServiceNotifierListener( delayedServiceNotifierListener );
+      delayedServiceNotifierListener.onRun( null, null );
+    }
   }
 
   /**
@@ -261,12 +274,20 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     }
   }
 
-  public void setBundleContext( BundleContext bundleContext ) {
-
+  public synchronized void setBundleContext( BundleContext bundleContext ) {
     this.bundleContext = bundleContext;
-    bundleContext.registerService( ExecutorService.class, ExecutorUtil.getExecutor(), new Hashtable<>() );
-    this.frameworkStartLevel = bundleContext.getBundle( 0 ).adapt( FrameworkStartLevel.class );
-    maybeStartWatchers();
-
+    if ( null != bundleContext ) {
+      logger.debug( "Bundle context set in KarafLifecycleListener" );
+      bundleContext.registerService( ExecutorService.class, ExecutorUtil.getExecutor(), new Hashtable<>() );
+      this.frameworkStartLevel = bundleContext.getBundle( 0 ).adapt( FrameworkStartLevel.class );
+      maybeStartWatchers();
+    } else {
+      logger.debug( "Bundle context cleared in KarafLifecycleListener" );
+      if ( null != watcherThread && watcherThread.isAlive() ) {
+        logger.debug( "Watcher thread interrupted" );
+        watcherThread.interrupt();
+        watcherThread = null;
+      }
+    }
   }
 }

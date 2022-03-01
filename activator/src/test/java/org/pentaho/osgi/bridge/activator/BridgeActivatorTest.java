@@ -61,6 +61,7 @@ public class BridgeActivatorTest {
 
   @Test
   public void testStop() throws Exception {
+    bridgeActivator.start( bundleContext );
     bridgeActivator.stop( bundleContext );
   }
 

@@ -203,10 +203,10 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
       if ( karafFeatureWatcher == null ) {
         if ( null != bundleContext ) {
           throw new IKarafFeatureWatcher.FeatureWatcherException( "No IKarafFeatureWatcher service available." );
-        }
+        } // no-op if bundle is stopped
       } else {
         karafFeatureWatcher.waitForFeatures();
-      } // no-op if bundle is stopped
+      }
     } catch ( IKarafFeatureWatcher.FeatureWatcherException e ) {
       if ( null != bundleContext ) {
         logger.error( "Error in Feature Watcher", e );

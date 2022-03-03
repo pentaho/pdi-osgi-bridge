@@ -33,15 +33,21 @@ import org.pentaho.osgi.bridge.KarafCapabilityProvider;
  * Created by nbaker on 2/13/15.
  */
 public class BridgeActivator implements BundleActivator {
+  private KarafCapabilityProvider karafCapabilityProvider;
+  private OSGIActivator osgiActivator;
+
   @Override public void start( BundleContext bundleContext ) throws Exception {
 
-    new KarafCapabilityProvider( bundleContext ).open();
+    this.karafCapabilityProvider = new KarafCapabilityProvider( bundleContext );
+    this.karafCapabilityProvider.open();
 
-    new OSGIActivator().start( bundleContext );
+    this.osgiActivator = new OSGIActivator();
+    this.osgiActivator.start( bundleContext );
     new PentahoNamespaceActivator().start( bundleContext );
   }
 
   @Override public void stop( BundleContext bundleContext ) throws Exception {
-
+    this.osgiActivator.stop( null );
+    this.karafCapabilityProvider.close();
   }
 }

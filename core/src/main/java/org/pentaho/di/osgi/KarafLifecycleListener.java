@@ -155,11 +155,13 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     if ( bundleContext != null && listenerActive.get() ) {
 
       watcherThread = new Thread( () -> {
+        logger.debug( "Watcher thread started" );
         waitForBundlesStarted();
         waitForBlueprints();
         acceptEventOnDelayedServiceNotifiersDone();
       } );
       watcherThread.setDaemon( true );
+      watcherThread.setName( "KarafLifecycleListener Watcher Thread" );
       watcherThread.start();
       initialized.set( true );
     }
@@ -177,15 +179,23 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
   }
 
   private synchronized <T> T getOsgiService( Class<T> serviceClass ) {
-    if ( null != bundleContext ) {
-      ServiceReference<T> serviceReference = bundleContext.getServiceReference( serviceClass );
-      if ( serviceReference == null ) {
-        return null;
+    ServiceReference<T> serviceReference = null;
+    try {
+      while ( null == serviceReference && null != bundleContext && !Thread.currentThread().isInterrupted() ) {
+        this.wait( 100 );
+        serviceReference = bundleContext.getServiceReference( serviceClass );
       }
+    } catch ( InterruptedException e ) {
+      logger.debug( String.format( "Watcher thread interrupted waiting for service %s", serviceClass.getName() ) );
+      Thread.currentThread().interrupt();
+      serviceReference = null; // ensure we return null; this thread should die
+    }
+    if ( null != serviceReference ) {
       return bundleContext.getService( serviceReference );
     } else {
       return null;
     }
+
   }
 
   /**
@@ -198,55 +208,75 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
    * reply positively even if its bundles haven't been started yet.
    */
   private void waitForFeatures() {
-    IKarafFeatureWatcher karafFeatureWatcher = getOsgiService( IKarafFeatureWatcher.class );
     try {
+      Thread.sleep( 100 );
+      IKarafFeatureWatcher karafFeatureWatcher = getOsgiService( IKarafFeatureWatcher.class );
       if ( karafFeatureWatcher == null ) {
-        if ( null != bundleContext ) {
+        if ( null != bundleContext && !Thread.currentThread().isInterrupted() ) {
           throw new IKarafFeatureWatcher.FeatureWatcherException( "No IKarafFeatureWatcher service available." );
         } // no-op if bundle is stopped
       } else {
         karafFeatureWatcher.waitForFeatures();
       }
     } catch ( IKarafFeatureWatcher.FeatureWatcherException e ) {
-      if ( null != bundleContext ) {
+      if ( null != bundleContext && !( e.getCause() instanceof InterruptedException ) ) {
         logger.error( "Error in Feature Watcher", e );
-      } // no-op if bundle is stopped
+      } else if ( e.getCause() instanceof InterruptedException ) {
+        logger.debug( "Watcher thread interrupted during karafFeatureWatcher.waitForFeatures" );
+        Thread.currentThread().interrupt();
+      }
+    } catch ( InterruptedException e ) {
+      logger.debug( "Watcher thread interrupted during waitForFeatures" );
+      Thread.currentThread().interrupt();
     }
   }
 
   private void waitForBlueprints() {
-    IKarafBlueprintWatcher karafBlueprintWatcher = getOsgiService( IKarafBlueprintWatcher.class );
     try {
+      Thread.sleep( 100 );
+      IKarafBlueprintWatcher karafBlueprintWatcher = getOsgiService( IKarafBlueprintWatcher.class );
       if ( karafBlueprintWatcher == null ) {
-        if ( null != bundleContext ) {
+        if ( null != bundleContext && !Thread.currentThread().isInterrupted() ) {
           throw new IKarafBlueprintWatcher.BlueprintWatcherException( "No IKarafBlueprintWatcher service available." );
         } // no-op if bundle is stopped
       } else {
         karafBlueprintWatcher.waitForBlueprint();
       }
     } catch ( IKarafBlueprintWatcher.BlueprintWatcherException e ) {
-      if ( null != bundleContext ) {
-        logger.error( "Error in Blueprint Watcher", e );
-      } // no-op if bundle is stopped
+      if ( null != bundleContext && !( e.getCause() instanceof InterruptedException ) ) {
+        logger.error( "Error in Feature Watcher", e );
+      } else if ( e.getCause() instanceof InterruptedException ) {
+        logger.debug( "Watcher thread interrupted during karafBlueprintWatcher.waitForBlueprint" );
+        Thread.currentThread().interrupt();
+      }
+    } catch ( InterruptedException e ) {
+      logger.debug( "Watcher thread interrupted during waitForBlueprints" );
+      Thread.currentThread().interrupt();
     }
   }
 
   private void acceptEventOnDelayedServiceNotifiersDone() {
-    if ( null != bundleContext ) {
-      final AtomicBoolean accepted = new AtomicBoolean( false );
-      DelayedServiceNotifierListener delayedServiceNotifierListener = new DelayedServiceNotifierListener() {
-        @Override public void onRun( LifecycleEvent lifecycleEvent, Object serviceObject ) {
-          if ( osgiPluginTracker.getOutstandingServiceNotifierListeners() == 0 && !accepted.getAndSet( true ) ) {
-            logger.debug( "Done waiting on delayed service notifiers" );
-            event.accept();
-            osgiPluginTracker.removeDelayedServiceNotifierListener( this );
+    try {
+      Thread.sleep( 100 );
+      if ( null != bundleContext && !Thread.currentThread().isInterrupted() ) {
+        final AtomicBoolean accepted = new AtomicBoolean( false );
+        DelayedServiceNotifierListener delayedServiceNotifierListener = new DelayedServiceNotifierListener() {
+          @Override public void onRun( LifecycleEvent lifecycleEvent, Object serviceObject ) {
+            if ( osgiPluginTracker.getOutstandingServiceNotifierListeners() == 0 && !accepted.getAndSet( true ) ) {
+              logger.debug( "Done waiting on delayed service notifiers" );
+              event.accept();
+              osgiPluginTracker.removeDelayedServiceNotifierListener( this );
+            }
           }
-        }
-      };
+        };
 
-      logger.debug( "About to start waiting on delayed service notifiers" );
-      osgiPluginTracker.addDelayedServiceNotifierListener( delayedServiceNotifierListener );
-      delayedServiceNotifierListener.onRun( null, null );
+        logger.debug( "About to start waiting on delayed service notifiers" );
+        osgiPluginTracker.addDelayedServiceNotifierListener( delayedServiceNotifierListener );
+        delayedServiceNotifierListener.onRun( null, null );
+      }
+    } catch ( InterruptedException e ) {
+      logger.debug( "Watcher thread interrupted during acceptEventOnDelayedServiceNotifiersDone" );
+      Thread.currentThread().interrupt();
     }
   }
 
@@ -275,8 +305,8 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
   }
 
   public synchronized void setBundleContext( BundleContext bundleContext ) {
-    this.bundleContext = bundleContext;
     if ( null != bundleContext ) {
+      this.bundleContext = bundleContext;
       logger.debug( "Bundle context set in KarafLifecycleListener" );
       bundleContext.registerService( ExecutorService.class, ExecutorUtil.getExecutor(), new Hashtable<>() );
       this.frameworkStartLevel = bundleContext.getBundle( 0 ).adapt( FrameworkStartLevel.class );
@@ -284,9 +314,18 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     } else {
       logger.debug( "Bundle context cleared in KarafLifecycleListener" );
       if ( null != watcherThread && watcherThread.isAlive() ) {
-        logger.debug( "Watcher thread interrupted" );
         watcherThread.interrupt();
+        logger.debug( "Watcher thread interrupted" );
+        while ( watcherThread.isAlive() ) {
+          try {
+            // give the thread a chance to get interrupted and stop before pulling out the bundle context
+            this.wait( 100 );
+          } catch ( InterruptedException e ) {
+            Thread.currentThread().interrupt();
+          }
+        }
         watcherThread = null;
+        this.bundleContext = null;
       }
     }
   }

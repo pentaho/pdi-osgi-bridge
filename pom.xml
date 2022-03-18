@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.pentaho</groupId>
     <artifactId>pentaho-ce-bundle-parent-pom</artifactId>
-    <version>9.2.0.0-SNAPSHOT</version>
+    <version>9.2.0.3-482</version>
   </parent>
   <groupId>pentaho</groupId>
   <artifactId>pdi-osgi-bridge-parent</artifactId>
@@ -22,13 +22,13 @@
     <javax.servlet-api.version>3.0.1</javax.servlet-api.version>
     <tinybundles.version>2.0.0</tinybundles.version>
     <pentaho-osgi-utils.version>${project.version}</pentaho-osgi-utils.version>
-    <pdi.version>9.2.0.0-SNAPSHOT</pdi.version>
+    <pdi.version>9.2.0.3-482</pdi.version>
     <exam.version>4.1.0</exam.version>
-    <commons-xul.version>9.2.0.0-SNAPSHOT</commons-xul.version>
+    <commons-xul.version>9.2.0.3-482</commons-xul.version>
     <commons-beanutils.version>1.9.3</commons-beanutils.version>
     <commons-io.version>2.4</commons-io.version>
     <guava.version>17.0</guava.version>
-    <platform.version>9.2.0.0-SNAPSHOT</platform.version>
+    <platform.version>9.2.0.3-482</platform.version>
   </properties>
   <dependencyManagement>
     <dependencies>

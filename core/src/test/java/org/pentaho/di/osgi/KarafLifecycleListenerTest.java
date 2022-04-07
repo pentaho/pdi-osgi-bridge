@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -33,16 +33,15 @@ import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifierListener;
 import org.pentaho.osgi.api.IKarafBlueprintWatcher;
 import org.pentaho.osgi.api.IKarafFeatureWatcher;
 import org.pentaho.platform.servicecoordination.api.IPhasedLifecycleEvent;
-import org.pentaho.platform.servicecoordination.api.IPhasedLifecycleManager;
 import org.pentaho.platform.servicecoordination.impl.BaseCountdownLatchLifecycleManager;
+import org.slf4j.Logger;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
@@ -193,6 +192,58 @@ public class KarafLifecycleListenerTest {
     verify( iPhasedLifecycleEvent ).accept();
     delayedServiceNotifierListenerArgumentCaptor.getValue().onRun( null, null );
     verify( iPhasedLifecycleEvent, times( 1 ) ).accept();
+  }
+
+  /**
+   * Forces the case where the bundleContext is invalidated before this bundle is told to restart;
+   * verifies that no errors or other unexpected log messages are displayed.
+   */
+  @Test
+  public void testBundleRestartedDuringWaitForFeatures() {
+    bundleContext = mockBundleContext( 100 );
+    Logger mockLogger = mock( Logger.class );
+    when( bundleContext.getServiceReference( IKarafFeatureWatcher.class ) ).thenThrow( new IllegalStateException( "Invalid BundleContext" ) );
+    karafLifecycleListener = new KarafLifecycleListener( 500 );
+    KarafLifecycleListener.setLogger( mockLogger );
+    karafLifecycleListener.setBundleContext( bundleContext );
+    verify( mockLogger).debug( "Bundle context set in KarafLifecycleListener" );
+
+    Thread t = new Thread( () -> {
+        karafLifecycleListener.waitForFeatures();
+        verify( mockLogger ).debug(
+          "Watcher thread interrupted waiting for service org.pentaho.osgi.api.IKarafFeatureWatcher" );
+        verify( mockLogger ).debug(
+          "Thread interrupted itself because bundle context was invalid; bundle likely restarting" );
+
+        karafLifecycleListener.waitForFrameworkStarted();
+        karafLifecycleListener.waitForBlueprints();
+        verify( mockLogger ).debug( "Watcher thread interrupted during waitForBlueprints" );
+        karafLifecycleListener.acceptEventOnDelayedServiceNotifiersDone();
+        verify( mockLogger ).debug( "Watcher thread interrupted during acceptEventOnDelayedServiceNotifiersDone" );
+    } );
+    t.start();
+  }
+
+  /**
+   * Forces the case where the bundleContext is invalidated before this bundle is told to restart;
+   * verifies that no errors or other unexpected log messages are displayed.
+   */
+  @Test
+  public void testBundleRestartedDuringWaitForBlueprints() {
+    bundleContext = mockBundleContext( 100 );
+    Logger mockLogger = mock( Logger.class );
+    when( bundleContext.getServiceReference( IKarafBlueprintWatcher.class ) ).thenThrow( new IllegalStateException( "Invalid BundleContext" ) );
+    karafLifecycleListener = new KarafLifecycleListener( 500 );
+    KarafLifecycleListener.setLogger( mockLogger );
+    karafLifecycleListener.setBundleContext( bundleContext );
+    verify( mockLogger).debug( "Bundle context set in KarafLifecycleListener" );
+
+    Thread t = new Thread( () -> {
+      karafLifecycleListener.waitForBlueprints();
+      verify( mockLogger).debug( "Watcher thread interrupted waiting for service org.pentaho.osgi.api.IKarafBlueprintWatcher" );
+      karafLifecycleListener.acceptEventOnDelayedServiceNotifiersDone();
+      verify( mockLogger).debug( "Watcher thread interrupted during acceptEventOnDelayedServiceNotifiersDone" );
+    });
   }
 
   private BundleContext mockBundleContext( int beginningStartLevel ) {

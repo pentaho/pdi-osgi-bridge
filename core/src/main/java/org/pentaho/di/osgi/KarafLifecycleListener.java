@@ -184,18 +184,18 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
       while ( null == serviceReference && null != bundleContext && !Thread.currentThread().isInterrupted() ) {
         this.wait( 100 );
         serviceReference = bundleContext.getServiceReference( serviceClass );
+        if ( serviceReference == null ) {
+          return null;
+        }
+        return bundleContext.getService( serviceReference );
       }
-    } catch ( InterruptedException e ) {
-      logger.debug( String.format( "Watcher thread interrupted waiting for service %s", serviceClass.getName() ) );
-      Thread.currentThread().interrupt();
-      serviceReference = null; // ensure we return null; this thread should die
+    } catch ( InterruptedException | IllegalStateException e ) {
+      if ( e instanceof InterruptedException || ( e instanceof IllegalStateException && ( (IllegalStateException) e ).getMessage().startsWith( "Invalid BundleContext" ) ) ) {
+        logger.debug( String.format( "Watcher thread interrupted waiting for service %s", serviceClass.getName() ) );
+        Thread.currentThread().interrupt();
+      }
     }
-    if ( null != serviceReference ) {
-      return bundleContext.getService( serviceReference );
-    } else {
-      return null;
-    }
-
+    return null;
   }
 
   /**
@@ -207,14 +207,17 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
    * as installed and started. As such, when asking the Feature Service if a given feature is installed, it will
    * reply positively even if its bundles haven't been started yet.
    */
-  private void waitForFeatures() {
+  @VisibleForTesting
+  void waitForFeatures() {
     try {
       Thread.sleep( 100 );
       IKarafFeatureWatcher karafFeatureWatcher = getOsgiService( IKarafFeatureWatcher.class );
       if ( karafFeatureWatcher == null ) {
         if ( null != bundleContext && !Thread.currentThread().isInterrupted() ) {
           throw new IKarafFeatureWatcher.FeatureWatcherException( "No IKarafFeatureWatcher service available." );
-        } // no-op if bundle is stopped
+        } else if ( Thread.currentThread().isInterrupted() ) {
+          logger.debug( "Thread interrupted itself because bundle context was invalid; bundle likely restarting" );
+        }
       } else {
         karafFeatureWatcher.waitForFeatures();
       }
@@ -231,14 +234,17 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     }
   }
 
-  private void waitForBlueprints() {
+  @VisibleForTesting
+  void waitForBlueprints() {
     try {
       Thread.sleep( 100 );
       IKarafBlueprintWatcher karafBlueprintWatcher = getOsgiService( IKarafBlueprintWatcher.class );
       if ( karafBlueprintWatcher == null ) {
         if ( null != bundleContext && !Thread.currentThread().isInterrupted() ) {
           throw new IKarafBlueprintWatcher.BlueprintWatcherException( "No IKarafBlueprintWatcher service available." );
-        } // no-op if bundle is stopped
+        } else if ( Thread.currentThread().isInterrupted() ) {
+          logger.debug( "Thread interrupted itself because bundle context was invalid; bundle likely restarting" );
+        }
       } else {
         karafBlueprintWatcher.waitForBlueprint();
       }
@@ -255,7 +261,8 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     }
   }
 
-  private void acceptEventOnDelayedServiceNotifiersDone() {
+  @VisibleForTesting
+  void acceptEventOnDelayedServiceNotifiersDone() {
     try {
       Thread.sleep( 100 );
       if ( null != bundleContext && !Thread.currentThread().isInterrupted() ) {
@@ -286,7 +293,8 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
    * When booting Karaf with empty caches it only waits until the bundles defined in the startup.properties have started,
    * while when booting with full caches it waits until all cached bundles have started.
    */
-  private void waitForFrameworkStarted() {
+  @VisibleForTesting
+  void waitForFrameworkStarted() {
     /* According to OSGi Core specs V6.0 Section 9.3.2, the OSGi framework should broadcast a FrameworkEvent.STARTED
        event when the beginning start level is reached. According to the example in 9.4.2, this event can be used to
        to determine that the system has been initialized.
@@ -328,5 +336,10 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
         this.bundleContext = null;
       }
     }
+  }
+
+  @VisibleForTesting
+  static void setLogger( Logger testLogger ) {
+    logger = testLogger;
   }
 }

@@ -194,7 +194,6 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
         logger.debug( String.format( "Watcher thread interrupted waiting for service %s", serviceClass.getName() ) );
         Thread.currentThread().interrupt();
       }
-      serviceReference = null; // ensure we return null; this thread should die
     }
     return null;
   }

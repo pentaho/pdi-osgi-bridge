@@ -184,18 +184,27 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
       while ( null == serviceReference && null != bundleContext && !Thread.currentThread().isInterrupted() ) {
         this.wait( 100 );
         serviceReference = bundleContext.getServiceReference( serviceClass );
-        if ( serviceReference == null ) {
-          return null;
-        }
-        return bundleContext.getService( serviceReference );
       }
     } catch ( InterruptedException | IllegalStateException e ) {
-      if ( e instanceof InterruptedException || ( e instanceof IllegalStateException && ( (IllegalStateException) e ).getMessage().startsWith( "Invalid BundleContext" ) ) ) {
+      if ( e instanceof InterruptedException || ( (IllegalStateException) e ).getMessage().startsWith( "Invalid BundleContext" ) ) {
         logger.debug( String.format( "Watcher thread interrupted waiting for service %s", serviceClass.getName() ) );
         Thread.currentThread().interrupt();
       }
+      serviceReference = null; // ensure we return null; this thread should die
     }
-    return null;
+    if ( null != serviceReference ) {
+      try {
+        return bundleContext.getService( serviceReference );
+      } catch ( IllegalStateException e ) {
+        if ( e.getMessage().startsWith( "Invalid BundleContext" ) ) {
+          logger.debug( String.format( "Watcher thread interrupted waiting for service %s", serviceClass.getName() ) );
+          Thread.currentThread().interrupt();
+        }
+        return null;
+      }
+    } else {
+      return null;
+    }
   }
 
   /**

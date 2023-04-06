@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -80,6 +80,7 @@ public class OSGIPluginRegistryExtensionTest {
   public void testInit() {
     PluginRegistry registry = mock( PluginRegistry.class );
     when( kettleClientEnvironmentInitialized.get() ).thenReturn( true );
+    when( tracker.registerPluginClass( any() ) ).thenReturn( true );
     OSGIPluginRegistryExtension.getInstance().init( registry );
     verify( karafBoot ).startup( null );
     verify( tracker ).registerPluginClass( PluginInterface.class );
@@ -89,6 +90,7 @@ public class OSGIPluginRegistryExtensionTest {
 
   @Test
   public void testSearchForType() {
+    when( tracker.registerPluginClass( any() ) ).thenReturn( true );
     OSGIPluginRegistryExtension.getInstance().searchForType( OSGIPluginType.getInstance() );
     verify( tracker ).registerPluginClass( OSGIPluginType.class );
   }

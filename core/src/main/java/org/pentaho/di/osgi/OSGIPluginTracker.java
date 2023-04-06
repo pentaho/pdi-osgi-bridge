@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,8 +25,6 @@ package org.pentaho.di.osgi;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.MapMaker;
 import org.apache.commons.beanutils.BeanUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
@@ -45,6 +43,8 @@ import org.pentaho.di.osgi.service.tracker.OSGIServiceTracker;
 import org.pentaho.osgi.api.BeanFactory;
 import org.pentaho.osgi.api.BeanFactoryLocator;
 import org.pentaho.osgi.api.ProxyUnwrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -310,7 +310,16 @@ public class OSGIPluginTracker {
     for ( OSGIServiceTracker tracker : trackers.values() ) {
       tracker.close();
     }
-    trackers.clear();
+    // If this bundle got restarted while we were in the middle of or after adding trackers,
+    // the PluginRegistry won't know to re-add any that were added before.  This should ensure that
+    // we still track everything.
+    for ( Class c : trackers.keySet() ) {
+      OSGIServiceTracker tracker = new OSGIServiceTracker( this, c );
+      tracker.open();
+      tracker = new OSGIServiceTracker( this, c, true );
+      tracker.open();
+      trackers.put( c, tracker );
+    }
 
     // Not sure who is watching instances, instancesListeners never seems to be modified.
     // TODO: Verify not needed then remove
@@ -337,18 +346,27 @@ public class OSGIPluginTracker {
       listeners.put( clazz, new ArrayList<OSGIServiceLifecycleListener>() );
     }
 
-    // Track the OsgiPlugin (PluginInterface) directly. This triggers PluginRegistry.registerPlugin()
-    OSGIServiceTracker tracker = new OSGIServiceTracker( this, clazz );
-    tracker.open();
+    try {
+      // Track the OsgiPlugin (PluginInterface) directly. This triggers PluginRegistry.registerPlugin()
+      OSGIServiceTracker tracker = new OSGIServiceTracker( this, clazz );
+      tracker.open();
 
-    // Track it as a PluginInterface with a PluginType of the given class. This one trigger type trackers in pdi.
-    // We're obscuring the other tracker, but the 'trackers' collection is just a marker
-    tracker = new OSGIServiceTracker( this, clazz, true );
-    tracker.open();
+      // Track it as a PluginInterface with a PluginType of the given class. This one trigger type trackers in pdi.
+      // We're obscuring the other tracker, but the 'trackers' collection is just a marker
+      tracker = new OSGIServiceTracker( this, clazz, true );
+      tracker.open();
 
-    trackers.put( clazz, tracker );
-
-    return true;
+      trackers.put( clazz, tracker );
+      return true;
+    } catch ( IllegalStateException e ) {
+      if ( e.getMessage().startsWith( "Invalid BundleContext" ) ) {
+        // presumably this happened because the OSGIActivator was stopped and it will be started again; just log an info message and return
+        logger.info( "BundleContext was invalid; assuming we are restarting." );
+      } else {
+        logger.error( "Exception adding OSGIServiceTracker", e );
+      }
+      return false;
+    }
   }
 
   public void serviceChanged( Class<?> cls, LifecycleEvent evt, ServiceReference serviceObject ) {

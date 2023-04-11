@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -63,7 +63,7 @@ public class DelayedInstanceNotifier implements Runnable {
     try {
       factory = osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject );
     } catch ( OSGIPluginTrackerException e ) {
-      logger.error( "Error getting bean factory", e );
+      logger.warn( "Error getting bean factory. If this error does not self-correct, there may be other startup problems.", e );
     }
     if ( factory == null ) {
       ScheduledFuture<?> timeHandle = scheduler.schedule( this, 2, TimeUnit.SECONDS );

@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -101,6 +101,11 @@ public class DelayedServiceNotifier implements Runnable {
                 throw new IllegalStateException( "Unhandled enum value: " + eventType );
             }
           }
+        }
+      } catch ( IllegalStateException e ) {
+        if ( e.getMessage().startsWith( "Invalid BundleContext" ) ) {
+          // try again later; bundle is restarting
+          ScheduledFuture<?> timeHandle = scheduler.schedule( this, 100, TimeUnit.MILLISECONDS );
         }
       } finally {
         notifyListener();

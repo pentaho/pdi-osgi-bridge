@@ -25,6 +25,8 @@ package org.pentaho.di.osgi;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.pentaho.di.core.plugins.PluginInterface;
+import org.pentaho.di.core.plugins.PluginRegistry;
+import org.pentaho.di.osgi.service.lifecycle.PluginRegistryOSGIServiceLifecycleListener;
 import org.pentaho.di.osgi.service.tracker.BeanFactoryLookupServiceTracker;
 import org.pentaho.di.osgi.service.tracker.PdiPluginSupplementalClassMappingsTrackerForPluginRegistry;
 import org.pentaho.di.osgi.service.tracker.ProxyUnwrapperServiceTracker;
@@ -67,6 +69,7 @@ public class OSGIActivator implements BundleActivator {
     osgiPluginTracker.registerPluginClass( PluginInterface.class );
     beanFactoryLookupServiceTracker = new BeanFactoryLookupServiceTracker( bundleContext, osgiPluginTracker );
     beanFactoryLookupServiceTracker.open();
+    osgiPluginTracker.addPluginLifecycleListener( PluginInterface.class, new PluginRegistryOSGIServiceLifecycleListener( PluginRegistry.getInstance() ) );
     pdiPluginSupplementalClassMappingsTrackerForPluginRegistry =
       new PdiPluginSupplementalClassMappingsTrackerForPluginRegistry( bundleContext );
     pdiPluginSupplementalClassMappingsTrackerForPluginRegistry.open();

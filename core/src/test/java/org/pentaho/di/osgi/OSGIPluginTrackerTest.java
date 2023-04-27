@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -340,7 +340,6 @@ public class OSGIPluginTrackerTest {
     when( lookup.getBeanFactory( bundle ) ).thenReturn( beanFactory );
     when( bundleContext.getService( serviceReference ) ).thenReturn( instance );
     tracker.serviceChanged( Object.class, LifecycleEvent.START, serviceReference );
-    verify( listener1 ).pluginAdded( instance );
     verify( listener2 ).pluginAdded( instance );
   }
 

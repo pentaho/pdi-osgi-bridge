@@ -74,9 +74,10 @@ public class OSGIPluginTracker {
   private BundleContext context;
   private BeanFactoryLocator lookup;
   private ProxyUnwrapper proxyUnwrapper;
-  private Map<Class, OSGIServiceTracker> trackers = new WeakHashMap<Class, OSGIServiceTracker>();
-  private Map<Class, List<OSGIServiceLifecycleListener>> listeners =
-    new WeakHashMap<Class, List<OSGIServiceLifecycleListener>>();
+  private Map<Class, OSGIServiceTracker> pluginInterfaceTrackers = new WeakHashMap<Class, OSGIServiceTracker>();
+  private Map<Class, OSGIServiceTracker> pluginTypeTrackers = new WeakHashMap<Class, OSGIServiceTracker>();
+  private Map<Class, OSGIServiceLifecycleListener> listeners =
+    new WeakHashMap<Class, OSGIServiceLifecycleListener>();
   private Map<Object, List<ServiceReferenceListener>> instanceListeners =
     new WeakHashMap<Object, List<ServiceReferenceListener>>();
   // MapMaker provides a ConcurrentMap with weak keys and weak values
@@ -287,18 +288,13 @@ public class OSGIPluginTracker {
   }
 
   public void shutdown() {
-    for ( Map.Entry<Class, OSGIServiceTracker> entry : trackers.entrySet() ) {
+    for ( Map.Entry<Class, OSGIServiceTracker> entry : pluginInterfaceTrackers.entrySet() ) {
       entry.getValue().close();
     }
   }
 
   public void addPluginLifecycleListener( Class clazzToTrack, OSGIServiceLifecycleListener listener ) {
-    List<OSGIServiceLifecycleListener> list = listeners.get( clazzToTrack );
-    if ( list == null ) {
-      list = new ArrayList<OSGIServiceLifecycleListener>();
-      listeners.put( clazzToTrack, list );
-    }
-    list.add( listener );
+    listeners.put( clazzToTrack, listener );
   }
 
   public BundleContext getBundleContext() {
@@ -307,18 +303,22 @@ public class OSGIPluginTracker {
 
   public void setBundleContext( BundleContext context ) {
     this.context = context;
-    for ( OSGIServiceTracker tracker : trackers.values() ) {
+    for ( OSGIServiceTracker tracker : pluginInterfaceTrackers.values() ) {
+      tracker.close();
+    }
+    for ( OSGIServiceTracker tracker : pluginTypeTrackers.values() ) {
       tracker.close();
     }
     // If this bundle got restarted while we were in the middle of or after adding trackers,
     // the PluginRegistry won't know to re-add any that were added before.  This should ensure that
     // we still track everything.
-    for ( Class c : trackers.keySet() ) {
+    for ( Class c : pluginInterfaceTrackers.keySet() ) {
       OSGIServiceTracker tracker = new OSGIServiceTracker( this, c );
       tracker.open();
-      tracker = new OSGIServiceTracker( this, c, true );
-      tracker.open();
-      trackers.put( c, tracker );
+      pluginTypeTrackers.put( c, tracker );
+      OSGIServiceTracker tracker2 = new OSGIServiceTracker( this, c, true );
+      tracker2.open();
+      pluginInterfaceTrackers.put( c, tracker2 );
     }
 
     // Not sure who is watching instances, instancesListeners never seems to be modified.
@@ -334,7 +334,7 @@ public class OSGIPluginTracker {
   }
 
   public boolean registerPluginClass( Class clazz ) {
-    if ( trackers.get( clazz ) != null ) {
+    if ( pluginInterfaceTrackers.get( clazz ) != null ) {
       // Already tracking
       return true;
     }
@@ -342,26 +342,42 @@ public class OSGIPluginTracker {
       queuedClasses.add( clazz );
       return false;
     }
-    if ( listeners.get( clazz ) == null ) {
-      listeners.put( clazz, new ArrayList<OSGIServiceLifecycleListener>() );
-    }
 
     try {
       // Track the OsgiPlugin (PluginInterface) directly. This triggers PluginRegistry.registerPlugin()
       OSGIServiceTracker tracker = new OSGIServiceTracker( this, clazz );
       tracker.open();
+      pluginTypeTrackers.put( clazz, tracker );
+
+      // see if any services are already available and invoke the callback immediately
+      if ( null != tracker.getServiceReferences() ) {
+        for ( ServiceReference serviceReference : tracker.getServiceReferences() ) {
+          OSGIPlugin osgiPlugin = (OSGIPlugin) context.getService( serviceReference );
+          logger.debug( "Found services for PluginInterface " + osgiPlugin.getID() + " " + osgiPlugin.getName() );
+          this.serviceChanged( clazz, LifecycleEvent.START, serviceReference );
+        }
+      }
 
       // Track it as a PluginInterface with a PluginType of the given class. This one trigger type trackers in pdi.
       // We're obscuring the other tracker, but the 'trackers' collection is just a marker
-      tracker = new OSGIServiceTracker( this, clazz, true );
-      tracker.open();
+      OSGIServiceTracker tracker2 = new OSGIServiceTracker( this, clazz, true );
+      tracker2.open();
 
-      trackers.put( clazz, tracker );
+      // see if any services are already available and invoke the callback immediately
+      if ( null != tracker2.getServiceReferences() ) {
+        for ( ServiceReference serviceReference : tracker2.getServiceReferences() ) {
+          OSGIPlugin osgiPlugin = (OSGIPlugin) context.getService( serviceReference );
+          logger.debug( "Found services for PluginType " + osgiPlugin.getID() + " " + osgiPlugin.getName() );
+          this.serviceChanged( clazz, LifecycleEvent.START, serviceReference );
+        }
+      }
+
+      pluginInterfaceTrackers.put( clazz, tracker2 );
       return true;
     } catch ( IllegalStateException e ) {
       if ( e.getMessage().startsWith( "Invalid BundleContext" ) ) {
         // presumably this happened because the OSGIActivator was stopped and it will be started again; just log an info message and return
-        logger.info( "BundleContext was invalid; assuming we are restarting." );
+        logger.debug( "BundleContext was invalid; assuming we are restarting." );
       } else {
         logger.error( "Exception adding OSGIServiceTracker", e );
       }
@@ -374,6 +390,10 @@ public class OSGIPluginTracker {
     try {
       instance = context.getService( serviceObject );
       instance = getProxyUnwrapper().unwrap( instance );
+      if ( logger.isInfoEnabled() && cls.isInstance( OSGIPlugin.class ) ) {
+        logger.debug( "serviceChanged " + evt.name() + " called for " + ( (OSGIPlugin) instance ).getID() + " "
+          + ( (OSGIPlugin) instance ).getName() );
+      }
     } catch ( IllegalStateException ignored ) {
       // This can happen when the service bundle is already stopped. Ignore.
     }
@@ -411,6 +431,6 @@ public class OSGIPluginTracker {
 
   // FOR UNIT TEST ONLY
   protected Map<Class, OSGIServiceTracker> getTrackers() {
-    return trackers;
+    return pluginInterfaceTrackers;
   }
 }

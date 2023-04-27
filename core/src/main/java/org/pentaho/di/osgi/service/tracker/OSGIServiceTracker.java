@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -88,6 +88,8 @@ public class OSGIServiceTracker extends ServiceTracker {
   @Override
   public Object addingService( ServiceReference
                                  reference ) {
+    logger.debug( "Called addingService on tracker " + clazzToTrack.getName() );
+    logger.debug( "total services tracked " + references.size() );
     references.add( reference );
     tracker.serviceChanged( clazzToTrack, LifecycleEvent.START, reference );
     Object retVal = super.addingService( reference );
@@ -97,6 +99,7 @@ public class OSGIServiceTracker extends ServiceTracker {
   @Override
   public void removedService( ServiceReference
                                 reference, Object service ) {
+    logger.debug( "Called removedService on tracker " + clazzToTrack.getName() );
     references.remove( reference );
     // wrapping super call in a method to allow Mockito overriding
     try {
@@ -114,6 +117,7 @@ public class OSGIServiceTracker extends ServiceTracker {
   @Override
   public void modifiedService( ServiceReference
                                  reference, Object service ) {
+    logger.debug( "Called modifiedService on tracker " + clazzToTrack.getName() );
     tracker.serviceChanged( clazzToTrack, LifecycleEvent.MODIFY, reference );
     super.modifiedService( reference, service );
   }

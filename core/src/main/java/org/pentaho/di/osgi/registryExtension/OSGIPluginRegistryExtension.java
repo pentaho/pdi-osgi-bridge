@@ -110,14 +110,13 @@ public class OSGIPluginRegistryExtension implements PluginRegistryExtension {
     }
     boolean success = false;
     PluginRegistry.addPluginType( OSGIPluginType.getInstance() );
+    tracker.addPluginLifecycleListener( PluginInterface.class,
+      new PluginRegistryOSGIServiceLifecycleListener( registry ) );
+    logger.info( "Registered lifecycle listener with OSGIPluginTracker" );
     while ( !success ) {
       success = tracker.registerPluginClass( PluginInterface.class );
-      logger.info( "Registered PluginInterface with OSGIPluginTracker" );
-
       if ( success ) {
-        tracker.addPluginLifecycleListener( PluginInterface.class,
-          new PluginRegistryOSGIServiceLifecycleListener( registry ) );
-        logger.info( "Registered lifecycle listener with OSGIPluginTracker" );
+        logger.info( "Registered PluginInterface with OSGIPluginTracker" );
       } else {
         logger.info( "Unable to register PluginInterface with OSGIPluginTracker; waiting and retrying" );
         try {

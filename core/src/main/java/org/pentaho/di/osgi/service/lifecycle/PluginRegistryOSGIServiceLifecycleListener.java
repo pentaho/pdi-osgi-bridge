@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -56,6 +56,7 @@ public class PluginRegistryOSGIServiceLifecycleListener implements OSGIServiceLi
       try {
         registry.registerPlugin( pluginTypeFromPlugin, serviceObject );
         openServiceTracker( pluginTypeFromPlugin, osgiPlugin);
+        logger.debug( "Registered in PluginRegistry " + osgiPlugin.getID() + " " + osgiPlugin.getName() );
       } catch ( KettlePluginException e ) {
         logger.error( e.getMessage(), e );
       }
@@ -68,6 +69,7 @@ public class PluginRegistryOSGIServiceLifecycleListener implements OSGIServiceLi
 
     try {
       new PdiPluginSupplementalClassMappingsTracker( OSGIPluginTracker.getInstance().getBundleContext(), pluginTypeFromPlugin, osgiPlugin ).open();
+      logger.debug( "PdiPluginSupplementalClassMappingsTracker started " + osgiPlugin.getID() + " " + osgiPlugin.getName() );
     } catch ( InvalidSyntaxException e ) {
       // Should never happen, this is from constructing the filter
       logger.error( "Error constructing filter for Class Mapping Tracker", e );
@@ -80,6 +82,7 @@ public class PluginRegistryOSGIServiceLifecycleListener implements OSGIServiceLi
       OSGIPlugin osgiPlugin = (OSGIPlugin) serviceObject;
       Class<? extends PluginTypeInterface> pluginTypeFromPlugin = osgiPlugin.getPluginType();
       registry.removePlugin( pluginTypeFromPlugin, serviceObject );
+      logger.debug( "REMOVED from PluginRegistry " + osgiPlugin.getID() + " " + osgiPlugin.getName() );
     } catch ( Exception e ) {
       logger.error( "Error notifying listener of plugin removal", e );
     }

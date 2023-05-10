@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -288,8 +289,12 @@ public class OSGIPluginTracker {
   }
 
   public void shutdown() {
-    for ( Map.Entry<Class, OSGIServiceTracker> entry : pluginInterfaceTrackers.entrySet() ) {
-      entry.getValue().close();
+    try {
+      for ( Map.Entry<Class, OSGIServiceTracker> entry : pluginInterfaceTrackers.entrySet() ) {
+        entry.getValue().close();
+      }
+    } catch ( ConcurrentModificationException e ) {
+      logger.debug( "Exception closing trackers during shutdown; ignoring for now", e );
     }
   }
 
@@ -302,9 +307,21 @@ public class OSGIPluginTracker {
   }
 
   public void setBundleContext( BundleContext context ) {
+    logger.debug( "setBundleContext" );
     this.context = context;
-    for ( OSGIServiceTracker tracker : pluginInterfaceTrackers.values() ) {
-      tracker.close();
+    int cleanupTries = 0;
+    // try to clean up twice if we get a ConcurrentModificationException
+    while ( cleanupTries < 2 ) {
+      try {
+        for ( OSGIServiceTracker tracker : pluginInterfaceTrackers.values() ) {
+          tracker.close();
+        }
+        // done, no need to repeat
+        cleanupTries = 2;
+      } catch ( ConcurrentModificationException e ) {
+        logger.debug( "Exception trying to clean up trackers on startup; retrying once", e );
+      }
+      ++cleanupTries;
     }
     for ( OSGIServiceTracker tracker : pluginTypeTrackers.values() ) {
       tracker.close();

@@ -24,7 +24,6 @@
     <pdi.version>10.1.0.0-SNAPSHOT</pdi.version>
     <exam.version>4.1.0</exam.version>
     <commons-xul.version>10.1.0.0-SNAPSHOT</commons-xul.version>
-    <commons-beanutils.version>1.9.3</commons-beanutils.version>
     <platform.version>10.1.0.0-SNAPSHOT</platform.version>
   </properties>
   <dependencyManagement>

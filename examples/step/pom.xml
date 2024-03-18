@@ -36,8 +36,8 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.yaml</groupId>
-      <artifactId>snakeyaml</artifactId>
+      <groupId>org.hitachivantara</groupId>
+      <artifactId>safeyaml</artifactId>
     </dependency>
   </dependencies>
   <build>

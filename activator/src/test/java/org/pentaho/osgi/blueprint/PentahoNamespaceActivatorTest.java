@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,7 +27,7 @@ import org.osgi.framework.BundleContext;
 
 import java.util.Dictionary;
 
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -52,9 +52,9 @@ public class PentahoNamespaceActivatorTest {
     pentahoNamespaceActivator.start( bundleContext );
     verify( bundleContext ).
         registerService(
-            ( Class ) anyObject(),
-            ( NamespaceHandler ) anyObject(),
-            ( Dictionary ) anyObject()
+            ( Class ) any(),
+            ( NamespaceHandler ) any(),
+            ( Dictionary ) any()
         );
   }
 

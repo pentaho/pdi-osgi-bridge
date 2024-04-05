@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -44,8 +44,8 @@ import java.util.Set;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.*;
 
 public class PentahoNamespaceHandlerTest {
@@ -151,6 +151,6 @@ public class PentahoNamespaceHandlerTest {
     verify( node ).getAttributes();
     verify( node ).getChildNodes();
     verify( parserContext, times( 2 ) ).getComponentDefinitionRegistry();
-    verify( parserContext, times( 14 ) ).createMetadata( (Class) anyObject() );
+    verify( parserContext, times( 14 ) ).createMetadata( any() );
   }
 }

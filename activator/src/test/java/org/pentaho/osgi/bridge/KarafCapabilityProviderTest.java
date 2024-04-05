@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -36,8 +36,8 @@ import org.pentaho.capabilities.api.ICapability;
 import java.util.Set;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -60,7 +60,7 @@ public class KarafCapabilityProviderTest {
     featuresService = mock( FeaturesService.class );
     when( featuresService.listFeatures() ).thenReturn( featureList );
     when( featuresService.getFeature( anyString() ) ).thenReturn( feature );
-    when( bundleContext.getService( (ServiceReference) anyObject() ) ).thenReturn( featuresService );
+    when( bundleContext.getService( any() ) ).thenReturn( featuresService );
   }
 
   @Test
@@ -151,7 +151,7 @@ public class KarafCapabilityProviderTest {
   @Test
   public void testFeatureEvent() throws Exception {
     FeaturesService featuresService = mock( FeaturesService.class );
-    when( bundleContext.getService( (ServiceReference) anyObject() ) ).thenReturn( featuresService );
+    when( bundleContext.getService( any() ) ).thenReturn( featuresService );
     karafCapabilityProvider = new KarafCapabilityProvider( bundleContext );
     ServiceReference serviceReference = mock( ServiceReference.class );
     karafCapabilityProvider.addingService( serviceReference );
@@ -173,7 +173,7 @@ public class KarafCapabilityProviderTest {
   @Test
   public void testFeatureEventUninstalled() throws Exception {
     FeaturesService featuresService = mock( FeaturesService.class );
-    when( bundleContext.getService( (ServiceReference) anyObject() ) ).thenReturn( featuresService );
+    when( bundleContext.getService( any() ) ).thenReturn( featuresService );
     karafCapabilityProvider = new KarafCapabilityProvider( bundleContext );
     ServiceReference serviceReference = mock( ServiceReference.class );
     karafCapabilityProvider.addingService( serviceReference );

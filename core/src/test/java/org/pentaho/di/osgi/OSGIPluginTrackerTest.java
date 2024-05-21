@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -51,8 +51,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -73,7 +74,7 @@ public class OSGIPluginTrackerTest {
     bundleContext = mock( BundleContext.class );
     Filter filter = mock( Filter.class );
     when( bundleContext.createFilter( anyString() ) ).thenReturn( filter );
-    when( mockProxyUnwrapper.unwrap( anyObject() ) ).thenAnswer( new Answer<Object>() {
+    when( mockProxyUnwrapper.unwrap( any() ) ).thenAnswer( new Answer<Object>() {
       @Override
       public Object answer( InvocationOnMock invocation ) throws Throwable {
         // return the same object that was passed in
@@ -214,8 +215,6 @@ public class OSGIPluginTrackerTest {
     when( ref.getProperty( "objectClass" ) ).thenReturn( PluginInterface.class.getName() );
     when( ref.getProperty( "PluginType" ) ).thenReturn( OSGIPluginType.class.getName() );
     when( bundle.getRegisteredServices() ).thenReturn( new ServiceReference[] { ref } );
-    when( cxt.getServiceReferences( eq( PluginInterface.class.getName() ), anyString() ) )
-        .thenReturn( new ServiceReference[] { ref } );
     OSGIPlugin plugin = new OSGIPlugin();
     String ID = "PLUGIN_ID";
     plugin.setID( ID );
@@ -243,8 +242,6 @@ public class OSGIPluginTrackerTest {
     when( beanFactory.getInstance( id, clazz ) ).thenReturn( bean );
     BundleContext cxt = mock( BundleContext.class );
     when( bundle.getBundleContext() ).thenReturn( cxt );
-    when( cxt.getServiceReferences( eq( PluginInterface.class.getName() ), anyString() ) )
-        .thenReturn( new ServiceReference[] {} );
     OSGIPlugin plugin = new OSGIPlugin();
     String ID = "PLUGIN_ID";
     plugin.setID( ID );
@@ -271,8 +268,6 @@ public class OSGIPluginTrackerTest {
     when( beanFactory.getInstance( id, clazz ) ).thenReturn( bean );
     BundleContext cxt = mock( BundleContext.class );
     when( bundle.getBundleContext() ).thenReturn( cxt );
-    when( cxt.getServiceReferences( eq( PluginInterface.class.getName() ), anyString() ) )
-        .thenReturn( null );
     OSGIPlugin plugin = new OSGIPlugin();
     String ID = "PLUGIN_ID";
     plugin.setID( ID );

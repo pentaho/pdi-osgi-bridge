@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -53,9 +53,14 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
   private final OSGIPluginTracker osgiPluginTracker;
   private AtomicBoolean listenerActive = new AtomicBoolean( false );
   private AtomicBoolean initialized = new AtomicBoolean( false );
+  private AtomicBoolean jobDone = new AtomicBoolean( false );
   private BundleContext bundleContext;
   private IPhasedLifecycleEvent<KettleLifecycleEvent> event;
   private Thread watcherThread;
+  private static final int retryCount = getSystemProperty(
+    KarafLifecycleListener.class.getCanonicalName() + ".threadRetries",
+    1, Integer::parseInt );
+  private static int retries = 0;
 
   private final Integer frameworkBeginningStartLevel;
   private FrameworkStartLevel frameworkStartLevel;
@@ -159,8 +164,13 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
         waitForBundlesStarted();
         waitForBlueprints();
         acceptEventOnDelayedServiceNotifiersDone();
+        if ( !jobDone.get() && Thread.currentThread().isInterrupted() && null != bundleContext && retries < retryCount ) {
+          ++retries;
+          maybeStartWatchers();
+        }
       } );
       watcherThread.setDaemon( true );
+      watcherThread.setContextClassLoader( this.getClass().getClassLoader() );
       watcherThread.setName( "KarafLifecycleListener Watcher Thread" );
       watcherThread.start();
       initialized.set( true );
@@ -281,6 +291,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
             if ( osgiPluginTracker.getOutstandingServiceNotifierListeners() == 0 && !accepted.getAndSet( true ) ) {
               logger.debug( "Done waiting on delayed service notifiers" );
               event.accept();
+              jobDone.set( true );
               osgiPluginTracker.removeDelayedServiceNotifierListener( this );
             }
           }

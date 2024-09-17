@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -41,7 +42,7 @@ import java.util.List;
  */
 public class OSGIServiceTracker extends ServiceTracker {
   private final Class clazzToTrack;
-  private final List<ServiceReference> references = new ArrayList<ServiceReference>();
+  private final List<ServiceReference> references = Collections.synchronizedList( new ArrayList<>() );
   private final BundleContext context;
   private final OSGIPluginTracker tracker;
   private static final Logger logger = LoggerFactory.getLogger( OSGIServiceTracker.class );

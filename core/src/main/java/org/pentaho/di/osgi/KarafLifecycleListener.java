@@ -32,11 +32,16 @@ import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
 import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifierListener;
 import org.pentaho.osgi.api.IKarafBlueprintWatcher;
 import org.pentaho.osgi.api.IKarafFeatureWatcher;
+import org.pentaho.platform.osgi.KarafBoot;
 import org.pentaho.platform.servicecoordination.api.IPhasedLifecycleEvent;
 import org.pentaho.platform.servicecoordination.api.IPhasedLifecycleListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.channels.FileLock;
+import java.nio.file.Files;
 import java.util.Hashtable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -133,6 +138,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
             "The Kettle Karaf Lifecycle Listener failed to execute properly after waiting for {} seconds. Releasing lifecycle hold, but some services may be unavailable.",
             TimeUnit.MILLISECONDS.toSeconds( timeout ) );
           event.accept();
+          releaseBootLock();
         }
       }
 
@@ -281,6 +287,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
             if ( osgiPluginTracker.getOutstandingServiceNotifierListeners() == 0 && !accepted.getAndSet( true ) ) {
               logger.debug( "Done waiting on delayed service notifiers" );
               event.accept();
+              releaseBootLock();
               osgiPluginTracker.removeDelayedServiceNotifierListener( this );
             }
           }
@@ -350,5 +357,28 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
   @VisibleForTesting
   static void setLogger( Logger testLogger ) {
     logger = testLogger;
+  }
+
+  /**
+   * Delete the karaf.boot.lock file and allow any other concurrent processes to proceed.
+   */
+  private void releaseBootLock() {
+    File lockFile = KarafBoot.getLockFile();
+    FileLock lockFileLock = KarafBoot.getLockFileLock();
+    try {
+      if ( null != lockFileLock ) {
+        lockFileLock.release();
+      }
+    } catch ( IOException e ) {
+      logger.warn( "Error releasing boot file lock", e );
+    }
+    try {
+      if ( null != lockFile ) {
+        Files.delete( lockFile.toPath() );
+        logger.info( "Karaf boot lock released." );
+      }
+    } catch ( IOException e ) {
+      logger.warn( "Error deleting lock file", e );
+    }
   }
 }

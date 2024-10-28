@@ -23,7 +23,6 @@
 package org.pentaho.di.osgi;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.MapMaker;
 import org.apache.commons.beanutils.BeanUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -50,7 +49,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -74,21 +73,14 @@ public class OSGIPluginTracker {
   private BundleContext context;
   private BeanFactoryLocator lookup;
   private ProxyUnwrapper proxyUnwrapper;
-  private Map<Class, OSGIServiceTracker> pluginInterfaceTrackers = new WeakHashMap<Class, OSGIServiceTracker>();
-  private Map<Class, OSGIServiceTracker> pluginTypeTrackers = new WeakHashMap<Class, OSGIServiceTracker>();
-  private Map<Class, OSGIServiceLifecycleListener> listeners =
-    new WeakHashMap<Class, OSGIServiceLifecycleListener>();
-  private Map<Object, List<ServiceReferenceListener>> instanceListeners =
-    new WeakHashMap<Object, List<ServiceReferenceListener>>();
-  // MapMaker provides a ConcurrentMap with weak keys and weak values
-  private Map<Object, ServiceReference> instanceToReferenceMap =
-    new MapMaker().weakKeys().weakValues().makeMap();
-  private Map<ServiceReference, Object> referenceToInstanceMap =
-    new MapMaker().weakKeys().weakValues().makeMap();
-  private Map<BeanFactory, Bundle> beanFactoryToBundleMap =
-    new MapMaker().weakKeys().weakValues().makeMap();
-  private Map<Object, BeanFactory> beanToFactoryMap =
-    new MapMaker().weakKeys().weakValues().makeMap();
+  private Map<Class, OSGIServiceTracker> pluginInterfaceTrackers = new ConcurrentHashMap<>();
+  private Map<Class, OSGIServiceTracker> pluginTypeTrackers = new ConcurrentHashMap<>();
+  private Map<Class, OSGIServiceLifecycleListener> listeners = new ConcurrentHashMap<>();
+  private Map<Object, List<ServiceReferenceListener>> instanceListeners = new ConcurrentHashMap<>();
+  private Map<Object, ServiceReference> instanceToReferenceMap = new ConcurrentHashMap<>();
+  private Map<ServiceReference, Object> referenceToInstanceMap = new ConcurrentHashMap<>();
+  private Map<BeanFactory, Bundle> beanFactoryToBundleMap = new ConcurrentHashMap<>();
+  private Map<Object, BeanFactory> beanToFactoryMap = new ConcurrentHashMap<>();
   private Logger logger = LoggerFactory.getLogger( getClass() );
   private List<Class<? extends PluginTypeInterface>> queuedClasses =
     new ArrayList<Class<? extends PluginTypeInterface>>();

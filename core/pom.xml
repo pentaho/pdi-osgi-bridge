@@ -8,6 +8,7 @@
     <version>9.3.0.6-786</version>
   </parent>
   <artifactId>pdi-osgi-bridge-core</artifactId>
+  <version>9.3.0.6-C284</version>
   <properties>
     <package.features>true</package.features>
   </properties>

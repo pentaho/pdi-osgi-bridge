@@ -12,15 +12,15 @@
   <dependencies>
     <dependency>
       <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.core</artifactId>
+      <artifactId>osgi.core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.compendium</artifactId>
+      <artifactId>osgi.cmpn</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.karaf.features</groupId>
-      <artifactId>org.apache.karaf.features.core</artifactId>
+      <groupId>org.hitachivantara.karaf.features</groupId>
+      <artifactId>org.hitachivantara.karaf.features.core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.aries.blueprint</groupId>

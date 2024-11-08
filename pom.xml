@@ -18,7 +18,6 @@
   </modules>
   <properties>
     <mockito.version>5.10.0</mockito.version>
-    <javax.servlet-api.version>3.0.1</javax.servlet-api.version>
     <tinybundles.version>2.0.0</tinybundles.version>
     <pentaho-osgi-utils.version>${project.version}</pentaho-osgi-utils.version>
     <pdi.version>10.3.0.0-SNAPSHOT</pdi.version>
@@ -105,9 +104,9 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>javax.servlet-api</artifactId>
-        <version>${javax.servlet-api.version}</version>
+        <groupId>jakarta.servlet</groupId>
+        <artifactId>jakarta.servlet-api</artifactId>
+        <version>${jakarta.servlet.version}</version>
       </dependency>
       <dependency>
         <groupId>org.hitachivantara</groupId>

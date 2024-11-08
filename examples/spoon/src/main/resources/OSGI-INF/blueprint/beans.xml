@@ -84,7 +84,7 @@
   </bean>
 
   <!-- HttpService Whiteboard registration of Servlet -->
-  <service interface="javax.servlet.Servlet" ref="HelloWorldMessageServlet">
+  <service interface="jakarta.servlet.Servlet" ref="HelloWorldMessageServlet">
     <service-properties>
       <entry key="osgi.http.whiteboard.servlet.pattern" value="/helloworld/message"/>
     </service-properties>

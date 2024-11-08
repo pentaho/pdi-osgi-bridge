@@ -38,7 +38,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 
-import javax.xml.soap.Node;
+import jakarta.xml.soap.Node;
 import java.net.URL;
 import java.util.Set;
 

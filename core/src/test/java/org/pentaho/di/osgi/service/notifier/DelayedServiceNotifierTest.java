@@ -15,6 +15,7 @@ package org.pentaho.di.osgi.service.notifier;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.pentaho.di.osgi.OSGIPlugin;
 import org.pentaho.di.osgi.OSGIPluginTracker;
 import org.pentaho.di.osgi.OSGIPluginTrackerException;
 import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
@@ -40,7 +41,7 @@ public class DelayedServiceNotifierTest {
   private Map<Class, OSGIServiceLifecycleListener> instanceListeners;
   private ScheduledExecutorService scheduler;
   private OSGIPluginTracker osgiPluginTracker;
-  private Object serviceObject;
+  private OSGIPlugin serviceObject;
   private Class<?> clazz;
   private ProxyUnwrapper proxyUnwrapper;
   private DelayedServiceNotifierListener delayedServiceNotifierListener;
@@ -50,7 +51,7 @@ public class DelayedServiceNotifierTest {
     instanceListeners = new HashMap<Class, OSGIServiceLifecycleListener>();
     scheduler = mock( ScheduledExecutorService.class );
     osgiPluginTracker = mock( OSGIPluginTracker.class );
-    serviceObject = mock( Object.class );
+    serviceObject = mock( OSGIPlugin.class );
     proxyUnwrapper = mock( ProxyUnwrapper.class );
     delayedServiceNotifierListener = mock( DelayedServiceNotifierListener.class );
     clazz = Map.class;

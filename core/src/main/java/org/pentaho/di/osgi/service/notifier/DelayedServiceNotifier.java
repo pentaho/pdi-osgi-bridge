@@ -14,6 +14,7 @@
 package org.pentaho.di.osgi.service.notifier;
 
 import org.pentaho.di.core.plugins.PluginInterface;
+import org.pentaho.di.osgi.OSGIPlugin;
 import org.pentaho.di.osgi.OSGIPluginTracker;
 import org.pentaho.di.osgi.OSGIPluginTrackerException;
 import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
@@ -58,8 +59,10 @@ public class DelayedServiceNotifier implements Runnable {
 
   @Override
   public void run() {
+    logger.debug( "DelayedServiceNotifier for {} run", (( OSGIPlugin ) serviceObject ).getID() );
     BeanFactory factory = null;
     try {
+
       factory = osgiPluginTracker.findOrCreateBeanFactoryFor( serviceObject );
     } catch ( OSGIPluginTrackerException e ) {
       logger.debug( "Error in the plugin tracker. We cannot proceed.", e );
@@ -70,14 +73,18 @@ public class DelayedServiceNotifier implements Runnable {
       notifyListener();
       return;
     }
+    logger.debug( "DelayedServiceNotifier for {} got factory", (( OSGIPlugin ) serviceObject ).getID() );
     // The beanfactory may not be registered yet. If not schedule a check every second until it is.
     // stopping services won't be able to find a beanfactory. Just skip
     if ( ( factory == null || osgiPluginTracker.getProxyUnwrapper() == null ) && eventType != LifecycleEvent.STOP ) {
+      logger.debug( "DelayedServiceNotifier for {} rescheduling1", (( OSGIPlugin ) serviceObject ).getID() );
       ScheduledFuture<?> timeHandle = scheduler.schedule( this, 100, TimeUnit.MILLISECONDS );
     } else {
       try {
+        logger.debug( "DelayedServiceNotifier for {} get listener", (( OSGIPlugin ) serviceObject ).getID() );
         OSGIServiceLifecycleListener listener = listeners.get( classToTrack );
         if ( listener != null ) {
+          logger.debug( "DelayedServiceNotifier for {} found listener", (( OSGIPlugin ) serviceObject ).getID() );
           switch ( eventType ) {
             case START:
               listener.pluginAdded( serviceObject );
@@ -97,8 +104,10 @@ public class DelayedServiceNotifier implements Runnable {
           ScheduledFuture<?> timeHandle = scheduler.schedule( this, 100, TimeUnit.MILLISECONDS );
         }
       } catch ( IllegalStateException e ) {
+        logger.debug( "DelayedServiceNotifier for {} exception", (( OSGIPlugin ) serviceObject ).getID() );
         if ( e.getMessage().startsWith( "Invalid BundleContext" ) ) {
           // try again later; bundle is restarting
+          logger.debug( "DelayedServiceNotifier for {} rescheduling2", (( OSGIPlugin ) serviceObject ).getID() );
           ScheduledFuture<?> timeHandle = scheduler.schedule( this, 100, TimeUnit.MILLISECONDS );
         }
       } finally {
@@ -108,6 +117,7 @@ public class DelayedServiceNotifier implements Runnable {
   }
 
   public void notifyListener() {
+    logger.debug( "DelayedServiceNotifier for {} notifyListener", (( OSGIPlugin ) serviceObject ).getID() );
     // Notify the listener so he's not waiting for us, we're done here
     if ( delayedServiceNotifierListener != null ) {
       delayedServiceNotifierListener.onRun( eventType, serviceObject );

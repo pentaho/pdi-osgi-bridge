@@ -16,8 +16,12 @@ package org.pentaho.di.osgi;
 import com.google.common.annotations.VisibleForTesting;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
+import org.pentaho.di.core.exception.KettlePluginException;
+import org.pentaho.di.core.plugins.PluginRegistry;
+import org.pentaho.di.core.plugins.PluginTypeInterface;
 import org.pentaho.di.core.util.ExecutorUtil;
 import org.pentaho.di.osgi.service.lifecycle.LifecycleEvent;
 import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifierListener;
@@ -33,7 +37,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -52,6 +62,8 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
   private BundleContext bundleContext;
   private IPhasedLifecycleEvent<KettleLifecycleEvent> event;
   private Thread watcherThread;
+  private static final Set<String> expectedPluginIds = new HashSet();
+  private static final Map<String, String> seenPluginIds = new ConcurrentHashMap<>();
 
   private final Integer frameworkBeginningStartLevel;
   private FrameworkStartLevel frameworkStartLevel;
@@ -155,6 +167,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
         logger.debug( "Watcher thread started" );
         waitForBundlesStarted();
         waitForBlueprints();
+        waitForKettlePluginsRegistered();
         acceptEventOnDelayedServiceNotifiersDone();
       } );
       watcherThread.setDaemon( true );
@@ -204,6 +217,41 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     }
   }
 
+  private synchronized <T> List<T> getAllOsgiServices( Class<T> serviceClass ) {
+    ServiceReference<T>[] serviceReferences = null;
+    List<T> serviceList = new ArrayList<>();
+    try {
+      while ( null == serviceReferences && null != bundleContext && !Thread.currentThread().isInterrupted() ) {
+        this.wait( 100 );
+        serviceReferences = ( ServiceReference<T>[] ) bundleContext.getAllServiceReferences( serviceClass.getName(), null );
+      }
+    } catch ( InterruptedException | IllegalStateException e ) {
+      if ( e instanceof InterruptedException || e.getMessage().startsWith( "Invalid BundleContext" ) ) {
+        logger.debug( String.format( "Watcher thread interrupted waiting for service %s", serviceClass.getName() ) );
+        Thread.currentThread().interrupt();
+      }
+    } catch ( InvalidSyntaxException e ) {
+      // this shouldn't happen since we're not using a filter in getAllServiceReferences
+      logger.error( "Error getting service references", e );
+    }
+    if ( null != serviceReferences ) {
+      try {
+        for ( ServiceReference<?> serviceReference : serviceReferences ) {
+          serviceList.add( ( T ) bundleContext.getService( serviceReference ) );
+        }
+        return serviceList;
+      } catch ( IllegalStateException e ) {
+        if ( e.getMessage().startsWith( "Invalid BundleContext" ) ) {
+          logger.debug( String.format( "Watcher thread interrupted waiting for service %s", serviceClass.getName() ) );
+          Thread.currentThread().interrupt();
+        }
+        return serviceList;
+      }
+    } else {
+      return serviceList;
+    }
+  }
+
   /**
    * Actively wait until features are installed.
    *
@@ -217,16 +265,9 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
   void waitForFeatures() {
     try {
       Thread.sleep( 100 );
-      IKarafFeatureWatcher karafFeatureWatcher = getOsgiService( IKarafFeatureWatcher.class );
-      if ( karafFeatureWatcher == null ) {
-        if ( null != bundleContext && !Thread.currentThread().isInterrupted() ) {
-          throw new IKarafFeatureWatcher.FeatureWatcherException( "No IKarafFeatureWatcher service available." );
-        } else if ( Thread.currentThread().isInterrupted() ) {
-          logger.debug( "Thread interrupted itself because bundle context was invalid; bundle likely restarting" );
-        }
-      } else {
-        karafFeatureWatcher.waitForFeatures();
-      }
+      IKarafFeatureWatcher karafFeatureWatcher = getKarafFeatureWatcher();
+      logger.debug( "Start waiting for features" );
+      karafFeatureWatcher.waitForFeatures();
     } catch ( IKarafFeatureWatcher.FeatureWatcherException e ) {
       if ( null != bundleContext && !( e.getCause() instanceof InterruptedException ) ) {
         logger.error( "Error in Feature Watcher", e );
@@ -252,6 +293,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
           logger.debug( "Thread interrupted itself because bundle context was invalid; bundle likely restarting" );
         }
       } else {
+        logger.debug( "Start waiting for blueprints" );
         karafBlueprintWatcher.waitForBlueprint();
       }
     } catch ( IKarafBlueprintWatcher.BlueprintWatcherException e ) {
@@ -267,6 +309,82 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
     }
   }
 
+  void waitForKettlePluginsRegistered() {
+    try {
+      Thread.sleep( 100 );
+      if ( expectedPluginIds.isEmpty() ) {
+        IKarafFeatureWatcher karafFeatureWatcher = getKarafFeatureWatcher();
+        // this is safe because if the karafFeatureWatcher returned would be null, the previous method would throw an exception
+        expectedPluginIds.addAll( karafFeatureWatcher.getFeatures( "org.pentaho.features",  "waitForPlugins" ) );
+      }
+      logger.debug( "Start waiting for {} kettle plugins", expectedPluginIds.size() );
+
+      while( !seenAllPlugins() ) {
+        Set<String> missingPlugins = new HashSet<>();
+        missingPlugins.addAll( expectedPluginIds );
+        missingPlugins.removeAll( seenPluginIds.keySet() );
+
+        // check if any plugin bundles were started before the listeners were running or were otherwise missed
+        List<OSGIPlugin> pluginsInKaraf = getAllOsgiServices( OSGIPlugin.class );
+        for ( OSGIPlugin osgiPlugin : pluginsInKaraf ) {
+          String pluginId = osgiPlugin.getID();
+          if ( missingPlugins.contains( pluginId ) ) {
+            // register the plugin with kettle
+            Class<? extends PluginTypeInterface> pluginTypeFromPlugin = osgiPlugin.getPluginType();
+            PluginRegistry.getInstance().registerPlugin( pluginTypeFromPlugin, osgiPlugin );
+            seenPluginIds.put( pluginId, pluginId );
+            logger.debug( "KarafLifecycleListener registered plugin: {}", pluginId );
+          }
+        }
+
+        if ( logger.isInfoEnabled() ) {
+          // recalculate missing plugins list
+          Set<String> missingPlugins2 = new HashSet<>();
+          missingPlugins2.addAll( expectedPluginIds );
+          missingPlugins2.removeAll( seenPluginIds.keySet() );
+          String remainingPluginList = missingPlugins2.stream().reduce( "", ( a, b ) -> a + "," + b );
+          logger.info( "Waiting for the following plugins: {}", remainingPluginList );
+        }
+
+        Thread.sleep( 1000 );
+      }
+    } catch ( IKarafFeatureWatcher.FeatureWatcherException e ) {
+      if ( null != bundleContext && !( e.getCause() instanceof InterruptedException ) ) {
+        logger.error( "Error in Feature Watcher", e );
+      } else if ( e.getCause() instanceof InterruptedException ) {
+        logger.debug( "Watcher thread interrupted during karafFeatureWatcher.waitForKettlePluginsRegistered" );
+        Thread.currentThread().interrupt();
+      }
+    } catch ( InterruptedException e ) {
+      logger.debug( "Watcher thread interrupted during waitForKettlePluginsRegistered" );
+      Thread.currentThread().interrupt();
+    } catch ( IOException e ) {
+      logger.error( "Exception reading list of Kettle plugins to wait for", e );
+    } catch ( KettlePluginException e ) {
+      logger.error( "Error trying to register plugin late", e );
+    }
+  }
+
+  private IKarafFeatureWatcher getKarafFeatureWatcher() throws IKarafFeatureWatcher.FeatureWatcherException {
+    IKarafFeatureWatcher karafFeatureWatcher = getOsgiService( IKarafFeatureWatcher.class );
+    if ( karafFeatureWatcher == null ) {
+      if ( null != bundleContext && !Thread.currentThread().isInterrupted() ) {
+        throw new IKarafFeatureWatcher.FeatureWatcherException( "No IKarafFeatureWatcher service available." );
+      } else if ( Thread.currentThread().isInterrupted() ) {
+        logger.debug( "Thread interrupted itself because bundle context was invalid; bundle likely restarting" );
+      }
+    }
+    return karafFeatureWatcher;
+  }
+
+  public static void pluginIdRegistered( String id ) {
+    seenPluginIds.put( id, id );
+  }
+
+  private static boolean seenAllPlugins()  {
+    return seenPluginIds.keySet().containsAll( expectedPluginIds );
+  }
+
   @VisibleForTesting
   void acceptEventOnDelayedServiceNotifiersDone() {
     try {
@@ -275,7 +393,10 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
         final AtomicBoolean accepted = new AtomicBoolean( false );
         DelayedServiceNotifierListener delayedServiceNotifierListener = new DelayedServiceNotifierListener() {
           @Override public void onRun( LifecycleEvent lifecycleEvent, Object serviceObject ) {
-            if ( osgiPluginTracker.getOutstandingServiceNotifierListeners() == 0 && !accepted.getAndSet( true ) ) {
+            logger.debug( "Listeners left2 : {}", osgiPluginTracker.getOutstandingServiceNotifierListeners() );
+            // proceed if we found the entire expected list or it was empty but startup is complete otherwise
+            if ( !expectedPluginIds.isEmpty()
+              || ( osgiPluginTracker.getOutstandingServiceNotifierListeners() == 0 && !accepted.getAndSet( true ) ) ) {
               logger.debug( "Done waiting on delayed service notifiers" );
               event.accept();
               releaseBootLock();
@@ -285,6 +406,7 @@ public class KarafLifecycleListener implements IPhasedLifecycleListener<KettleLi
         };
 
         logger.debug( "About to start waiting on delayed service notifiers" );
+        logger.debug( "Listeners left1 : {}", osgiPluginTracker.getOutstandingServiceNotifierListeners() );
         osgiPluginTracker.addDelayedServiceNotifierListener( delayedServiceNotifierListener );
         delayedServiceNotifierListener.onRun( null, null );
       }

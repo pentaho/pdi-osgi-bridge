@@ -62,7 +62,7 @@ public class OSGIPluginTrackerConcurrencyTest {
     @Test
     public void testGetBeanConcurrently() throws InvalidSyntaxException {
         tracker.setBundleContext(bundleContext);
-        final Class<Object> clazz = Object.class;
+        final Class<OSGIPlugin> clazz = OSGIPlugin.class;
         ServiceReference serviceReference = mock(ServiceReference.class);
         BeanFactoryLocator lookup = mock(BeanFactoryLocator.class);
         BeanFactory beanFactory = mock(BeanFactory.class);
@@ -71,13 +71,13 @@ public class OSGIPluginTrackerConcurrencyTest {
         when(lookup.getBeanFactory(bundle)).thenReturn(beanFactory);
         tracker.setBeanFactoryLookup(lookup);
         ExecutorService executor = Executors.newFixedThreadPool(64);
-        final Object instance = new Object();
+        final OSGIPlugin instance = new OSGIPlugin();
         when(bundleContext.getService(serviceReference)).thenReturn(instance);
         tracker.serviceChanged(clazz, LifecycleEvent.START, serviceReference);
         List<Future<Object>> futures = new ArrayList<Future<Object>>();
         for (int i = 1; i < 10000; ++i) {
             final String id = "TEST_ID" + Integer.toString(i);
-            Object bean = new Object();
+            OSGIPlugin bean = new OSGIPlugin();
             when(beanFactory.getInstance(id, clazz)).thenReturn(bean);
             Future future = executor.submit(new Callable() {
                 @Override

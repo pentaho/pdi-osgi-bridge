@@ -22,6 +22,7 @@
 
 package org.pentaho.di.osgi.service.lifecycle;
 
+import org.pentaho.di.osgi.KarafLifecycleListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.osgi.framework.InvalidSyntaxException;
@@ -55,6 +56,7 @@ public class PluginRegistryOSGIServiceLifecycleListener implements OSGIServiceLi
       Class<? extends PluginTypeInterface> pluginTypeFromPlugin = osgiPlugin.getPluginType();
       try {
         registry.registerPlugin( pluginTypeFromPlugin, serviceObject );
+        KarafLifecycleListener.pluginIdRegistered( osgiPlugin.getID() );
         openServiceTracker( pluginTypeFromPlugin, osgiPlugin);
         logger.debug( "Registered in PluginRegistry " + osgiPlugin.getID() + " " + osgiPlugin.getName() );
       } catch ( KettlePluginException e ) {

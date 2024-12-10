@@ -22,6 +22,7 @@
 
 package org.pentaho.di.osgi;
 
+import org.eclipse.swt.internal.gtk.OS;
 import org.slf4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
@@ -138,7 +139,7 @@ public class OSGIPluginTrackerTest {
   @Test
   public void testGetBeanNotNullFactory() {
     tracker.setBundleContext( bundleContext );
-    Class<Object> clazz = Object.class;
+    Class<OSGIPlugin> clazz = OSGIPlugin.class;
     ServiceReference serviceReference = mock( ServiceReference.class );
     BeanFactoryLocator lookup = mock( BeanFactoryLocator.class );
     BeanFactory beanFactory = mock( BeanFactory.class );
@@ -146,11 +147,11 @@ public class OSGIPluginTrackerTest {
     when( serviceReference.getBundle() ).thenReturn( bundle );
     when( lookup.getBeanFactory( bundle ) ).thenReturn( beanFactory );
     tracker.setBeanFactoryLookup( lookup );
-    Object instance = new Object();
+    OSGIPlugin instance = new OSGIPlugin();
     String id = "TEST_ID";
     when( bundleContext.getService( serviceReference ) ).thenReturn( instance );
     tracker.serviceChanged( clazz, LifecycleEvent.START, serviceReference );
-    Object bean = new Object();
+    OSGIPlugin bean = new OSGIPlugin();
     when( beanFactory.getInstance( id, clazz ) ).thenReturn( bean );
     assertEquals( bean, tracker.getBean( clazz, instance, id ) );
   }
@@ -165,7 +166,7 @@ public class OSGIPluginTrackerTest {
     Logger logger = mock( Logger.class );
     tracker.setLogger( logger );
     tracker.setBundleContext( bundleContext );
-    Class<Object> clazz = Object.class;
+    Class<OSGIPlugin> clazz = OSGIPlugin.class;
     ServiceReference serviceReference = mock( ServiceReference.class );
     BeanFactoryLocator lookup = mock( BeanFactoryLocator.class );
     BeanFactory beanFactory = mock( BeanFactory.class );
@@ -176,11 +177,11 @@ public class OSGIPluginTrackerTest {
     when( serviceReference.getBundle() ).thenReturn( bundle );
     when( lookup.getBeanFactory( bundle ) ).thenReturn( beanFactory );
     tracker.setBeanFactoryLookup( lookup );
-    Object instance = new Object();
+    OSGIPlugin instance = new OSGIPlugin();
     String id = "TEST_ID";
     when( bundleContext.getService( serviceReference ) ).thenReturn( instance );
     tracker.serviceChanged( clazz, LifecycleEvent.START, serviceReference );
-    Object bean = new Object();
+    OSGIPlugin bean = new OSGIPlugin();
     when( beanFactory.getInstance( id, clazz ) ).thenReturn( bean );
     ServiceReference ref = mock( ServiceReference.class );
     OSGIPlugin plugin = new OSGIPlugin();
@@ -194,7 +195,7 @@ public class OSGIPluginTrackerTest {
   @Test
   public void testGetBeanPluginPropertySuccess() throws InvalidSyntaxException {
     tracker.setBundleContext( bundleContext );
-    Class<Object> clazz = Object.class;
+    Class<OSGIPlugin> clazz = OSGIPlugin.class;
     ServiceReference serviceReference = mock( ServiceReference.class );
     BeanFactoryLocator lookup = mock( BeanFactoryLocator.class );
     BeanFactory beanFactory = mock( BeanFactory.class );
@@ -202,11 +203,11 @@ public class OSGIPluginTrackerTest {
     when( serviceReference.getBundle() ).thenReturn( bundle );
     when( lookup.getBeanFactory( bundle ) ).thenReturn( beanFactory );
     tracker.setBeanFactoryLookup( lookup );
-    Object instance = new Object();
+    OSGIPlugin instance = new OSGIPlugin();
     String id = "TEST_ID";
     when( bundleContext.getService( serviceReference ) ).thenReturn( instance );
     tracker.serviceChanged( clazz, LifecycleEvent.START, serviceReference );
-    Object bean = new Object();
+    OSGIPlugin bean = new OSGIPlugin();
     when( beanFactory.getInstance( id, clazz ) ).thenReturn( bean );
     BundleContext cxt = mock( BundleContext.class );
     when( bundle.getBundleContext() ).thenReturn( cxt );
@@ -227,7 +228,7 @@ public class OSGIPluginTrackerTest {
   @Test
   public void testGetBeanPluginPropertyNoRefs() throws InvalidSyntaxException {
     tracker.setBundleContext( bundleContext );
-    Class<Object> clazz = Object.class;
+    Class<OSGIPlugin> clazz = OSGIPlugin.class;
     ServiceReference serviceReference = mock( ServiceReference.class );
     BeanFactoryLocator lookup = mock( BeanFactoryLocator.class );
     BeanFactory beanFactory = mock( BeanFactory.class );
@@ -235,11 +236,11 @@ public class OSGIPluginTrackerTest {
     when( serviceReference.getBundle() ).thenReturn( bundle );
     when( lookup.getBeanFactory( bundle ) ).thenReturn( beanFactory );
     tracker.setBeanFactoryLookup( lookup );
-    Object instance = new Object();
+    OSGIPlugin instance = new OSGIPlugin();
     String id = "TEST_ID";
     when( bundleContext.getService( serviceReference ) ).thenReturn( instance );
     tracker.serviceChanged( clazz, LifecycleEvent.START, serviceReference );
-    Object bean = new Object();
+    OSGIPlugin bean = new OSGIPlugin();
     when( beanFactory.getInstance( id, clazz ) ).thenReturn( bean );
     BundleContext cxt = mock( BundleContext.class );
     when( bundle.getBundleContext() ).thenReturn( cxt );
@@ -255,7 +256,7 @@ public class OSGIPluginTrackerTest {
   @Test
   public void testGetBeanPluginPropertyNullRefs() throws InvalidSyntaxException {
     tracker.setBundleContext( bundleContext );
-    Class<Object> clazz = Object.class;
+    Class<OSGIPlugin> clazz = OSGIPlugin.class;
     ServiceReference serviceReference = mock( ServiceReference.class );
     BeanFactoryLocator lookup = mock( BeanFactoryLocator.class );
     BeanFactory beanFactory = mock( BeanFactory.class );
@@ -263,11 +264,11 @@ public class OSGIPluginTrackerTest {
     when( serviceReference.getBundle() ).thenReturn( bundle );
     when( lookup.getBeanFactory( bundle ) ).thenReturn( beanFactory );
     tracker.setBeanFactoryLookup( lookup );
-    Object instance = new Object();
+    OSGIPlugin instance = new OSGIPlugin();
     String id = "TEST_ID";
     when( bundleContext.getService( serviceReference ) ).thenReturn( instance );
     tracker.serviceChanged( clazz, LifecycleEvent.START, serviceReference );
-    Object bean = new Object();
+    OSGIPlugin bean = new OSGIPlugin();
     when( beanFactory.getInstance( id, clazz ) ).thenReturn( bean );
     BundleContext cxt = mock( BundleContext.class );
     when( bundle.getBundleContext() ).thenReturn( cxt );
@@ -282,15 +283,15 @@ public class OSGIPluginTrackerTest {
 
   @Test
   public void testGetClassLoaderNull() {
-    assertNull( tracker.getClassLoader( new Object() ) );
+    assertNull( tracker.getClassLoader( new OSGIPlugin() ) );
   }
 
   @Test
   public void testGetClassLoaderSuccess() {
     tracker.setBundleContext( bundleContext );
-    Class<Object> clazz = Object.class;
+    Class<OSGIPlugin> clazz = OSGIPlugin.class;
     ServiceReference serviceReference = mock( ServiceReference.class );
-    Object instance = new Object();
+    OSGIPlugin instance = new OSGIPlugin();
     when( bundleContext.getService( serviceReference ) ).thenReturn( instance );
     Bundle bundle = mock( Bundle.class );
     when( serviceReference.getBundle() ).thenReturn( bundle );
@@ -305,9 +306,9 @@ public class OSGIPluginTrackerTest {
     tracker.setBundleContext( bundleContext );
     String message = "EXCEPTION_MESSAGE";
     RuntimeException e = new RuntimeException( message );
-    Class<Object> clazz = Object.class;
+    Class<OSGIPlugin> clazz = OSGIPlugin.class;
     ServiceReference serviceReference = mock( ServiceReference.class );
-    Object instance = new Object();
+    OSGIPlugin instance = new OSGIPlugin();
     when( bundleContext.getService( serviceReference ) ).thenReturn( instance );
     when( serviceReference.getBundle() ).thenThrow( e );
     tracker.serviceChanged( clazz, LifecycleEvent.START, serviceReference );
@@ -329,38 +330,38 @@ public class OSGIPluginTrackerTest {
     BeanFactoryLocator lookup = mock( BeanFactoryLocator.class );
     tracker.setBeanFactoryLookup( lookup );
     OSGIServiceLifecycleListener listener1 = mock( OSGIServiceLifecycleListener.class );
-    tracker.addPluginLifecycleListener( Object.class, listener1 );
+    tracker.addPluginLifecycleListener( OSGIPlugin.class, listener1 );
     OSGIServiceLifecycleListener listener2 = mock( OSGIServiceLifecycleListener.class );
-    tracker.addPluginLifecycleListener( Object.class, listener2 );
-    Object instance = new Object();
+    tracker.addPluginLifecycleListener( OSGIPlugin.class, listener2 );
+    OSGIPlugin instance = new OSGIPlugin();
     Bundle bundle = mock( Bundle.class );
     ServiceReference serviceReference = mock( ServiceReference.class );
     when( serviceReference.getBundle() ).thenReturn( bundle );
     BeanFactory beanFactory = mock( BeanFactory.class );
     when( lookup.getBeanFactory( bundle ) ).thenReturn( beanFactory );
     when( bundleContext.getService( serviceReference ) ).thenReturn( instance );
-    tracker.serviceChanged( Object.class, LifecycleEvent.START, serviceReference );
+    tracker.serviceChanged( OSGIPlugin.class, LifecycleEvent.START, serviceReference );
     verify( listener2 ).pluginAdded( instance );
   }
 
   @Test
   public void testSetBundleContextWithQueue() {
-    tracker.registerPluginClass( Object.class );
+    tracker.registerPluginClass( OSGIPlugin.class );
     assertEquals( 0, tracker.getTrackers().size() );
     tracker.setBundleContext( bundleContext );
     assertEquals( 1, tracker.getTrackers().size() );
-    assertEquals( Object.class, new ArrayList<Class>( tracker.getTrackers().keySet() ).get( 0 ) );
+    assertEquals( OSGIPlugin.class, new ArrayList<Class>( tracker.getTrackers().keySet() ).get( 0 ) );
   }
 
   @Test
   public void testRegisterPluginClassAlreadyTracking() {
     tracker.setBundleContext( bundleContext );
-    tracker.registerPluginClass( Object.class );
+    tracker.registerPluginClass( OSGIPlugin.class );
     assertEquals( 1, tracker.getTrackers().size() );
-    assertEquals( Object.class, new ArrayList<Class>( tracker.getTrackers().keySet() ).get( 0 ) );
-    assertTrue( tracker.registerPluginClass( Object.class ) );
+    assertEquals( OSGIPlugin.class, new ArrayList<Class>( tracker.getTrackers().keySet() ).get( 0 ) );
+    assertTrue( tracker.registerPluginClass( OSGIPlugin.class ) );
     assertEquals( 1, tracker.getTrackers().size() );
-    assertEquals( Object.class, new ArrayList<Class>( tracker.getTrackers().keySet() ).get( 0 ) );
+    assertEquals( OSGIPlugin.class, new ArrayList<Class>( tracker.getTrackers().keySet() ).get( 0 ) );
   }
 
   @Test
@@ -379,15 +380,15 @@ public class OSGIPluginTrackerTest {
 
   @Test
   public void testGetOutstandingServiceNotifierListeners() {
-    when( aggregatingNotifierListener.getCount() ).thenReturn( 1 ).thenReturn( 2 );
+    when( aggregatingNotifierListener.getCount() ).thenReturn( 1 ).thenReturn( 1 ).thenReturn( 2 ).thenReturn( 2 );
     assertEquals( 1, tracker.getOutstandingServiceNotifierListeners() );
     assertEquals( 2, tracker.getOutstandingServiceNotifierListeners() );
   }
 
   @Test
   public void testServiceChangedAggregatingListenerInteraction() {
-    String instance = "instance";
-    ServiceReference<String> serviceReference = mock( ServiceReference.class );
+    OSGIPlugin instance = new OSGIPlugin();
+    ServiceReference<OSGIPlugin> serviceReference = mock( ServiceReference.class );
     BeanFactoryLocator beanFactoryLocator = mock( BeanFactoryLocator.class );
     Bundle bundle = mock( Bundle.class );
     BeanFactory beanFactory = mock( BeanFactory.class );
@@ -397,14 +398,14 @@ public class OSGIPluginTrackerTest {
     when( beanFactoryLocator.getBeanFactory( bundle ) ).thenReturn( beanFactory );
     tracker.setBundleContext( bundleContext );
     tracker.setBeanFactoryLookup( beanFactoryLocator );
-    tracker.serviceChanged( String.class, LifecycleEvent.START, serviceReference );
+    tracker.serviceChanged( OSGIPlugin.class, LifecycleEvent.START, serviceReference );
     verify( aggregatingNotifierListener ).incrementCount();
     verify( aggregatingNotifierListener ).onRun( LifecycleEvent.START, instance );
   }
 
   @Test
   public void findOrCreateBeanFactoryFor() throws Exception {
-    String instance = "instance";
+    OSGIPlugin instance = new OSGIPlugin();
     BeanFactory beanFactoryFor = tracker.findOrCreateBeanFactoryFor( instance );
     assertNull( beanFactoryFor );
     BeanFactoryLocator locator = mock( BeanFactoryLocator.class );
@@ -415,13 +416,13 @@ public class OSGIPluginTrackerTest {
     } catch ( OSGIPluginTrackerException expected ) {
     }
 
-    ServiceReference<String> serviceReference = mock( ServiceReference.class );
+    ServiceReference<OSGIPlugin> serviceReference = mock( ServiceReference.class );
     BeanFactoryLocator beanFactoryLocator = mock( BeanFactoryLocator.class );
     when( bundleContext.getService( serviceReference ) ).thenReturn( instance );
     when( serviceReference.getBundle() ).thenReturn( null );
     tracker.setBundleContext( bundleContext );
     tracker.setBeanFactoryLookup( beanFactoryLocator );
-    tracker.serviceChanged( String.class, LifecycleEvent.START, serviceReference );
+    tracker.serviceChanged( OSGIPlugin.class, LifecycleEvent.START, serviceReference );
     try {
       tracker.findOrCreateBeanFactoryFor( instance );
       fail( "Should have thrown an OSGIPluginTrackerException" );
@@ -434,8 +435,8 @@ public class OSGIPluginTrackerTest {
 
   @Test
   public void testInvalidBundleContextOnServiceRemoved() {
-    String instance = "instance";
-    ServiceReference<String> serviceReference = mock( ServiceReference.class );
+    OSGIPlugin instance = new OSGIPlugin();
+    ServiceReference<OSGIPlugin> serviceReference = mock( ServiceReference.class );
     BeanFactoryLocator beanFactoryLocator = mock( BeanFactoryLocator.class );
     Bundle bundle = mock( Bundle.class );
     BeanFactory beanFactory = mock( BeanFactory.class );
@@ -445,12 +446,12 @@ public class OSGIPluginTrackerTest {
     when( beanFactoryLocator.getBeanFactory( bundle ) ).thenReturn( beanFactory );
     tracker.setBundleContext( bundleContext );
     tracker.setBeanFactoryLookup( beanFactoryLocator );
-    tracker.serviceChanged( String.class, LifecycleEvent.START, serviceReference );
+    tracker.serviceChanged( OSGIPlugin.class, LifecycleEvent.START, serviceReference );
 
     // Now invalidate the bundleContext and send a Stop event
 
     when( bundleContext.getService( serviceReference ) ).thenThrow( new IllegalStateException( "BundleContext Invalid" ) );
-    tracker.serviceChanged( String.class, LifecycleEvent.STOP, serviceReference );
+    tracker.serviceChanged( OSGIPlugin.class, LifecycleEvent.STOP, serviceReference );
 
     verify( aggregatingNotifierListener, times(1) ).onRun( LifecycleEvent.STOP, instance );
 

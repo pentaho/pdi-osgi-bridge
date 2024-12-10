@@ -257,8 +257,10 @@ public class OSGIPluginTracker {
       logger.debug( "BeanFactoryLookup is currently not set, returning null" );
       return null;
     }
+    logger.debug( "Got lookup {}", serviceObject instanceof OSGIPlugin ? (( OSGIPlugin )serviceObject).getID() : serviceObject);
 
     ServiceReference reference = instanceToReferenceMap.get( serviceObject );
+    logger.debug( "Got reference {}", reference );
     if ( reference == null ) {
       // serviceObject might already be a blueprint container
       BeanFactory beanFactory = lookup.getBeanFactory( serviceObject );
@@ -268,6 +270,7 @@ public class OSGIPluginTracker {
       return beanFactory;
     }
     Bundle objectBundle = reference.getBundle();
+    logger.debug( "Got bundle {}", objectBundle );
     if ( objectBundle == null ) {
       throw new OSGIPluginTrackerException( "Service's Bundle is null, service no longer valid." );
     }
@@ -275,6 +278,7 @@ public class OSGIPluginTracker {
     if ( factory == null ) {
       return null;
     }
+    logger.debug( "Got factory {}", factory );
     beanFactoryToBundleMap.put( factory, objectBundle );
     return factory;
   }
@@ -399,20 +403,24 @@ public class OSGIPluginTracker {
     }
     instanceToReferenceMap.put( instance, serviceObject );
     referenceToInstanceMap.put( serviceObject, instance );
+    logger.debug( "Adding DelayedServiceNotifier for {}", cls.getName() );
     aggregatingNotifierListener.incrementCount();
 
     new DelayedServiceNotifier( this, cls, evt, instance, listeners, scheduler, aggregatingNotifierListener ).run();
   }
 
   public boolean addDelayedServiceNotifierListener( DelayedServiceNotifierListener delayedServiceNotifierListener ) {
+    logger.debug( "Adding listener, count before {}", aggregatingNotifierListener.getCount() );
     return aggregatingNotifierListener.addListener( delayedServiceNotifierListener );
   }
 
   public boolean removeDelayedServiceNotifierListener( DelayedServiceNotifierListener delayedServiceNotifierListener ) {
+    logger.debug( "Removing listener, count before {}", aggregatingNotifierListener.getCount() );
     return aggregatingNotifierListener.removeListener( delayedServiceNotifierListener );
   }
 
   public int getOutstandingServiceNotifierListeners() {
+    logger.debug( "Listener count {}", aggregatingNotifierListener.getCount() );
     return aggregatingNotifierListener.getCount();
   }
 

@@ -173,7 +173,7 @@ public class KarafLifecycleListenerTest {
     when( bundleContext.getServiceReference( IKarafFeatureWatcher.class ) ).thenReturn( featureWatcherServiceReference );
     when( bundleContext.getServiceReference( IKarafBlueprintWatcher.class ) ).thenReturn( blueprintWatcherServiceReference );
 
-    when( osgiPluginTracker.getOutstandingServiceNotifierListeners() ).thenReturn( 1 ).thenReturn( 0 );
+    when( osgiPluginTracker.getOutstandingServiceNotifierListeners() ).thenReturn( 1 ).thenReturn( 1 ).thenReturn( 1 ).thenReturn( 0 );
     karafLifecycleListener.onPhaseChange( iPhasedLifecycleEvent );
     ArgumentCaptor<DelayedServiceNotifierListener> delayedServiceNotifierListenerArgumentCaptor =
       ArgumentCaptor.forClass( DelayedServiceNotifierListener.class );

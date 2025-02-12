@@ -9,6 +9,10 @@
   </parent>
   <artifactId>pdi-osgi-bridge-activator</artifactId>
   <packaging>bundle</packaging>
+  <properties>
+    <jakarta.xml.ws-api.version>2.3.3</jakarta.xml.ws-api.version>
+    <jakarta.xml.bind-api.version>2.3.3</jakarta.xml.bind-api.version>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>org.osgi</groupId>
@@ -81,9 +85,19 @@
     <dependency>
       <groupId>jakarta.xml.ws</groupId>
       <artifactId>jakarta.xml.ws-api</artifactId>
+      <version>${jakarta.xml.ws-api.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>jakarta.xml.bind</groupId>
+        <artifactId>jakarta.xml.bind-api-parent</artifactId>
+        <version>${jakarta.xml.bind-api.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <build>
     <finalName>${project.artifactId}</finalName>
     <plugins>

@@ -81,6 +81,7 @@
     <dependency>
       <groupId>jakarta.xml.ws</groupId>
       <artifactId>jakarta.xml.ws-api</artifactId>
+      <version>${jakarta.xml.ws-osgi.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

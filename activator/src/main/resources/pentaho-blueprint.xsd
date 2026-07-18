@@ -1,3 +1,14 @@
+<!-- ******************************************************************************
+ *
+ * Pentaho
+ *
+ * Copyright (C) 2026 by Pentaho Canada Inc. : http://www.pentaho.com
+ *
+ * Use of this software is governed by the Business Source License included
+ * in the LICENSE.TXT file.
+ *
+ * Change Date: 2030-06-15
+ ******************************************************************************* -->
 <xsd:schema xmlns="http://www.pentaho.com/xml/schemas/pentaho-blueprint" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.pentaho.com/xml/schemas/pentaho-blueprint" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0.0">
 
 
